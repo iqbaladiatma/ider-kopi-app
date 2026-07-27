@@ -49,6 +49,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         position.latitude,
         position.longitude,
       );
+      if (!mounted) return;
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
@@ -56,6 +57,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         _isLocationLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _locationError = e.toString();
         _isLocationLoading = false;
@@ -104,7 +106,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       if (mounted) {
         _showSuccess();
         await Future.delayed(const Duration(milliseconds: 1500));
-        if (mounted) context.go('/home');
+        if (mounted) {
+          final navigator = Navigator.of(context, rootNavigator: true);
+          if (navigator.canPop()) navigator.pop();
+          context.go('/home');
+        }
       }
     } catch (e) {
       _showError('Gagal mengirim absensi: $e');

@@ -1,18 +1,43 @@
-import 'package:intl/intl.dart';
-
 class AppDateUtils {
   AppDateUtils._();
 
+  static const List<String> _days = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
+  ];
+
+  static const List<String> _months = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+
+  static String _two(int n) => n.toString().padLeft(2, '0');
+
   static String formatDate(DateTime date) {
-    return DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(date);
+    return '${_days[date.weekday - 1]}, ${_two(date.day)} ${_months[date.month - 1]} ${date.year}';
   }
 
   static String formatDateShort(DateTime date) {
-    return DateFormat('dd MMM yyyy', 'id_ID').format(date);
+    return '${_two(date.day)} ${_months[date.month - 1]} ${date.year}';
   }
 
   static String formatTime(DateTime time) {
-    return DateFormat('HH:mm:ss').format(time);
+    return '${_two(time.hour)}:${_two(time.minute)}:${_two(time.second)}';
   }
 
   static String formatTimeShort(String? time) {
@@ -26,11 +51,12 @@ class AppDateUtils {
   }
 
   static String formatMonthYear(DateTime date) {
-    return DateFormat('MMMM yyyy', 'id_ID').format(date);
+    return '${_months[date.month - 1]} ${date.year}';
   }
 
   static String todayDateString() {
-    return DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final now = DateTime.now();
+    return '${now.year}-${_two(now.month)}-${_two(now.day)}';
   }
 
   static String greeting() {

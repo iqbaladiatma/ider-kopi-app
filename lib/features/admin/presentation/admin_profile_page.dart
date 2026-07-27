@@ -23,6 +23,7 @@ class AdminProfilePage extends ConsumerWidget {
               GradientHeader(
                 padding: const EdgeInsets.all(24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
                       width: 78,
@@ -45,6 +46,7 @@ class AdminProfilePage extends ConsumerWidget {
                     userAsync.when(
                       data: (user) => Text(
                         user?.fullName ?? 'Admin',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -61,6 +63,7 @@ class AdminProfilePage extends ConsumerWidget {
                       ),
                       error: (_, __) => const Text(
                         'Admin',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -72,6 +75,7 @@ class AdminProfilePage extends ConsumerWidget {
                     userAsync.when(
                       data: (user) => Text(
                         user?.email ?? '',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -136,7 +140,7 @@ class AdminProfilePage extends ConsumerWidget {
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Tentang Aplikasi'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -154,7 +158,7 @@ class AdminProfilePage extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Tutup'),
           ),
         ],
@@ -165,16 +169,16 @@ class AdminProfilePage extends ConsumerWidget {
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Keluar'),
         content: const Text('Apakah Anda yakin ingin keluar?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Keluar'),
           ),

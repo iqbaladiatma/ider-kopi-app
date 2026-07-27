@@ -60,6 +60,7 @@ class ProfilePage extends ConsumerWidget {
         boxShadow: AppTheme.gradientShadow,
       ),
       child: Stack(
+        alignment: Alignment.center,
         children: [
           Positioned(
             top: -25,
@@ -74,6 +75,7 @@ class ProfilePage extends ConsumerWidget {
             ),
           ),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 78,
@@ -100,12 +102,15 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 error: (_, __) => const Text(
                   'Pengguna',
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 data: (profile) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       profile?.fullName ?? 'Pengguna',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -115,6 +120,7 @@ class ProfilePage extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text(
                       profile?.outlet ?? profile?.kangiderNama ?? '',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(color: AppColors.primaryLight, fontSize: 14),
                     ),
                   ],
@@ -299,7 +305,7 @@ class ProfilePage extends ConsumerWidget {
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Tentang Aplikasi'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -317,7 +323,7 @@ class ProfilePage extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Tutup'),
           ),
         ],
@@ -328,16 +334,16 @@ class ProfilePage extends ConsumerWidget {
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Keluar'),
         content: const Text('Apakah Anda yakin ingin keluar?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Keluar'),
           ),

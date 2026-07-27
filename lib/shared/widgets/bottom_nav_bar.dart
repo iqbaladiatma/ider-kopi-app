@@ -78,8 +78,10 @@ class _BottomNav extends StatelessWidget {
 
   bool _isActive(String path) {
     if (path == '/home') return currentPath == '/home';
-    if (path == '/check-in') {
-      return currentPath == '/check-in' || currentPath == '/check-out';
+    if (path == '/attendance-options') {
+      return currentPath == '/attendance-options' ||
+          currentPath == '/check-in' ||
+          currentPath == '/check-out';
     }
     if (path == '/history') return currentPath == '/history';
     if (path == '/profile') return currentPath == '/profile';
@@ -140,12 +142,12 @@ class _BottomNav extends StatelessWidget {
   }
 
   Widget _buildFab(BuildContext context) {
-    final isActive = _isActive('/check-in');
+    final isActive = _isActive('/attendance-options');
     return GestureDetector(
       onTap: () {
         if (!isActive) {
           HapticFeedback.selectionClick();
-          context.go('/check-in');
+          context.go('/attendance-options');
         }
       },
       behavior: HitTestBehavior.opaque,

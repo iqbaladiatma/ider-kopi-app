@@ -32,6 +32,7 @@ class GradientHeader extends StatelessWidget {
         boxShadow: showShadow ? AppTheme.gradientShadow : null,
       ),
       child: Stack(
+        alignment: Alignment.center,
         children: [
           if (showDecoration) ...[
             Positioned(

@@ -15,7 +15,9 @@ import 'widgets/camera_section.dart';
 import 'widgets/location_card.dart';
 
 class CheckOutPage extends ConsumerStatefulWidget {
-  const CheckOutPage({super.key});
+  const CheckOutPage({super.key, this.reason});
+
+  final String? reason;
 
   @override
   ConsumerState<CheckOutPage> createState() => _CheckOutPageState();
@@ -48,6 +50,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         position.latitude,
         position.longitude,
       );
+      if (!mounted) return;
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
@@ -55,6 +58,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         _isLocationLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _locationError = e.toString();
         _isLocationLoading = false;
@@ -76,6 +80,17 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         return;
       }
 
+      String? keterangan = widget.reason;
+      if (widget.reason == 'Izin') {
+        final izinReason = await _showIzinReasonDialog(context);
+        if (!mounted) return;
+        if (izinReason == null || izinReason.trim().isEmpty) {
+          _showError('Alasan izin wajib diisi');
+          return;
+        }
+        keterangan = 'Izin: ${izinReason.trim()}';
+      }
+
       final repo = ref.read(attendanceRepositoryProvider);
       String? selfieFileId;
 
@@ -90,6 +105,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         latitudePulang: _latitude,
         longitudePulang: _longitude,
         selfiePulangFileId: selfieFileId,
+        keterangan: keterangan,
       );
 
       await repo.checkOut(todayRecord.id!, request);
@@ -100,7 +116,11 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
       if (mounted) {
         _showSuccess();
         await Future.delayed(const Duration(milliseconds: 1500));
-        if (mounted) context.go('/home');
+        if (mounted) {
+          final navigator = Navigator.of(context, rootNavigator: true);
+          if (navigator.canPop()) navigator.pop();
+          context.go('/home');
+        }
       }
     } catch (e) {
       _showError('Gagal check-out: $e');
@@ -220,6 +240,35 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
             const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<String?> _showIzinReasonDialog(BuildContext context) {
+    String? reason;
+    return showDialog<String?>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Alasan Izin'),
+        content: TextField(
+          autofocus: true,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Tulis alasan izin...',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (value) => reason = value,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(reason?.trim()),
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
     );
   }

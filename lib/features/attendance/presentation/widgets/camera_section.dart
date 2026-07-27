@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/constants/app_colors.dart';
 
@@ -66,7 +67,7 @@ class _CameraSectionState extends State<CameraSection> {
     try {
       final xFile = await _controller!.takePicture();
       final file = File(xFile.path);
-      setState(() => _capturedImage = file);
+      if (mounted) setState(() => _capturedImage = file);
       widget.onPhotoCaptured?.call(file);
     } catch (e) {
       if (mounted) {
@@ -140,12 +141,19 @@ class _CameraSectionState extends State<CameraSection> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              _capturedImage!,
-              height: 300,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: kIsWeb
+                ? Image.network(
+                    _capturedImage!.path,
+                    height: 300,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Image.file(
+                    _capturedImage!,
+                    height: 300,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(

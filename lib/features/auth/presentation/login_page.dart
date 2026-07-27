@@ -174,6 +174,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ],
       ),
       child: Stack(
+        alignment: Alignment.center,
         children: [
           Positioned(
             top: -30,
@@ -201,6 +202,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 84,
@@ -225,6 +227,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 18),
               const Text(
                 'IderKopi Absensi',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 26,
@@ -234,6 +237,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 6),
               const Text(
                 'Catat kehadiranmu',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.primaryLight,
                   fontSize: 14,

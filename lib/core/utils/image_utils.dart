@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
@@ -8,6 +9,8 @@ class ImageUtils {
 
   static Future<File> compressImage(File imageFile,
       {int quality = 70, int maxWidth = 720}) async {
+    if (kIsWeb) return imageFile;
+
     final bytes = await imageFile.readAsBytes();
     final original = img.decodeImage(bytes);
 

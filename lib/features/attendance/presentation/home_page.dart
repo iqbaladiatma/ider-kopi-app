@@ -245,26 +245,184 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildActionCards(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: Icons.camera_alt_rounded,
-            label: 'Check In',
-            onTap: () => context.go('/check-in'),
+    return todayAsync.when(
+      loading: () => const Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 96,
+              child: Card(
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: Icons.receipt_long_rounded,
-            label: 'Riwayat',
-            onTap: () => context.go('/history'),
+          SizedBox(width: 12),
+          Expanded(
+            child: SizedBox(
+              height: 96,
+              child: Card(
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+      error: (_, __) => Row(
+        children: [
+          Expanded(
+            child: _buildActionCard(
+              context,
+              icon: Icons.camera_alt_rounded,
+              label: 'Check In',
+              onTap: () => context.go('/check-in'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildActionCard(
+              context,
+              icon: Icons.receipt_long_rounded,
+              label: 'Riwayat',
+              onTap: () => context.go('/history'),
+            ),
+          ),
+        ],
+      ),
+      data: (record) {
+        if (record == null || !record.hasCheckedIn) {
+          return Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.camera_alt_rounded,
+                  label: 'Check In',
+                  onTap: () => context.go('/check-in'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.receipt_long_rounded,
+                  label: 'Riwayat',
+                  onTap: () => context.go('/history'),
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (record.hasCheckedOut) {
+          return Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.check_circle_rounded,
+                  label: 'Selesai',
+                  onTap: null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.receipt_long_rounded,
+                  label: 'Riwayat',
+                  onTap: () => context.go('/history'),
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (!_isWorkingHours()) {
+          return Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.logout_rounded,
+                  label: 'Check Out',
+                  onTap: () => context.go('/check-out'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.receipt_long_rounded,
+                  label: 'Riwayat',
+                  onTap: () => context.go('/history'),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.logout_rounded,
+                    label: 'Check Out',
+                    onTap: null,
+                    subtitle: 'Masih jam kerja',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.receipt_long_rounded,
+                    label: 'Riwayat',
+                    onTap: () => context.go('/history'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                'Pilih alasan check out awal:',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.work_history_rounded,
+                    label: 'Lembur',
+                    onTap: () => _goToCheckOut(context, 'Lembur'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.sick_rounded,
+                    label: 'Izin',
+                    onTap: () => _goToCheckOut(context, 'Izin'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -272,42 +430,64 @@ class HomePage extends ConsumerWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
+    String? subtitle,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-            boxShadow: AppTheme.softShadow,
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(14),
+    final enabled = onTap != null;
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.5,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+              boxShadow: AppTheme.softShadow,
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: AppColors.primary),
                 ),
-                child: Icon(icon, color: AppColors.primary),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  bool _isWorkingHours() {
+    final now = DateTime.now();
+    return now.hour >= 8 && now.hour < 17;
+  }
+
+  void _goToCheckOut(BuildContext context, String reason) {
+    context.push('/check-out', extra: reason);
   }
 
   Widget _buildRecentHistory(AsyncValue<List<AttendanceRecord>> historyAsync) {

@@ -9,6 +9,7 @@ import '../../features/admin/presentation/admin_users_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
+import '../../features/attendance/presentation/attendance_options_page.dart';
 import '../../features/attendance/presentation/check_in_page.dart';
 import '../../features/attendance/presentation/check_out_page.dart';
 import '../../features/attendance/presentation/history_page.dart';
@@ -123,12 +124,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, __) => const HomePage(),
           ),
           GoRoute(
+            path: '/attendance-options',
+            builder: (_, __) => const AttendanceOptionsPage(),
+          ),
+          GoRoute(
             path: '/check-in',
             builder: (_, __) => const CheckInPage(),
           ),
           GoRoute(
             path: '/check-out',
-            builder: (_, __) => const CheckOutPage(),
+            builder: (_, state) => CheckOutPage(reason: state.extra as String?),
           ),
           GoRoute(
             path: '/history',

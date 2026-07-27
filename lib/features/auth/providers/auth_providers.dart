@@ -34,6 +34,8 @@ final currentUserProvider = FutureProvider<UserProfile?>((ref) async {
 });
 
 final kangiderIdProvider = FutureProvider<String?>((ref) async {
+  // Wait for current user to be loaded so kangider_id is saved to storage first.
+  await ref.watch(currentUserProvider.future);
   final repo = ref.read(authRepositoryProvider);
   return await repo.getKangiderId();
 });
