@@ -8,9 +8,10 @@ class GradientHeader extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(20),
-    this.borderRadius = 16,
+    this.borderRadius = 20,
     this.gradient,
     this.showShadow = true,
+    this.showDecoration = true,
   });
 
   final Widget child;
@@ -18,6 +19,7 @@ class GradientHeader extends StatelessWidget {
   final double borderRadius;
   final Gradient? gradient;
   final bool showShadow;
+  final bool showDecoration;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,37 @@ class GradientHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: showShadow ? AppTheme.gradientShadow : null,
       ),
-      child: child,
+      child: Stack(
+        children: [
+          if (showDecoration) ...[
+            Positioned(
+              top: -30,
+              right: -20,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -40,
+              left: -10,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+          ],
+          child,
+        ],
+      ),
     );
   }
 }

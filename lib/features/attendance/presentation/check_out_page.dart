@@ -125,19 +125,23 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
                 color: AppColors.successLight,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.success.withValues(alpha: 0.2),
+                ),
               ),
-              child: const Icon(Icons.check, color: AppColors.success, size: 36),
+              child: const Icon(Icons.check_rounded, color: AppColors.success, size: 40),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             const Text(
               'Check Out Berhasil',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -165,7 +169,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
       appBar: AppBar(
         title: const Text('Absensi Pulang'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.go('/home'),
         ),
       ),
@@ -189,7 +193,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
               Center(
                 child: TextButton.icon(
                   onPressed: _getCurrentLocation,
-                  icon: const Icon(Icons.refresh, color: AppColors.primary),
+                  icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
                   label: const Text(
                     'Coba Lagi',
                     style: TextStyle(color: AppColors.primary),
@@ -209,6 +213,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
             const SizedBox(height: 24),
             CustomButton(
               label: 'CHECK OUT',
+              icon: Icons.logout_rounded,
               onPressed: _canSubmit ? _handleSubmit : null,
               isLoading: _isSubmitting,
             ),
@@ -240,7 +245,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
               padding: EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.warning, color: AppColors.warning),
+                  Icon(Icons.warning_rounded, color: AppColors.warning),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -255,62 +260,77 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         }
 
         return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: IntrinsicHeight(
+            child: Row(
               children: [
-                const Text(
-                  'Check In Hari Ini',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                Container(
+                  width: 4,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    borderRadius: BorderRadius.horizontal(left: Radius.circular(16)),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: AppColors.success, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      AppDateUtils.formatTimeWIB(record.masuk),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.success,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (record.latitude != null && record.longitude != null)
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 16, color: AppColors.textMuted),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${record.latitude!.toStringAsFixed(2)}, ${record.longitude!.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textMuted,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Check In Hari Ini',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.camera_alt, size: 16, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    Text(
-                      record.selfieFileId != null ? 'Selfie tersimpan' : 'Tanpa selfie',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textMuted,
-                      ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppDateUtils.formatTimeWIB(record.masuk),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (record.latitude != null && record.longitude != null)
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_rounded, size: 16, color: AppColors.textMuted),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${record.latitude!.toStringAsFixed(2)}, ${record.longitude!.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.camera_alt_rounded, size: 16, color: AppColors.textMuted),
+                            const SizedBox(width: 4),
+                            Text(
+                              record.selfieFileId != null ? 'Selfie tersimpan' : 'Tanpa selfie',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -328,13 +348,13 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.access_time, color: AppColors.primary),
+            const Icon(Icons.access_time_rounded, color: AppColors.primary),
             const SizedBox(width: 8),
             Text(
               'Jam: ${AppDateUtils.formatTime(now)} WIB',
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

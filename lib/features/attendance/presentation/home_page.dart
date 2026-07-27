@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../data/attendance_model.dart';
@@ -42,29 +43,15 @@ class HomePage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildGreetingCard(userAsync),
-              const SizedBox(height: 24),
-              const Text(
-                'Status Hari Ini',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 28),
+              _buildSectionTitle('Status Hari Ini'),
+              const SizedBox(height: 10),
               _buildTodayStatus(context, todayAsync),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               _buildActionCards(context, todayAsync),
-              const SizedBox(height: 24),
-              const Text(
-                'Riwayat Terkini',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 28),
+              _buildSectionTitle('Riwayat Terkini'),
+              const SizedBox(height: 10),
               _buildRecentHistory(historyAsync),
             ],
           ),
@@ -73,30 +60,90 @@ class HomePage extends ConsumerWidget {
     );
   }
 
+  Widget _buildSectionTitle(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildGreetingCard(AsyncValue userAsync) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.gradientShadow,
       ),
-      child: userAsync.when(
-        loading: () => const SizedBox(
-          height: 80,
-          child: Center(
-            child: CircularProgressIndicator(color: Colors.white),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -20,
+            right: -10,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
           ),
-        ),
-        error: (_, __) => _buildGreetingContent('Pengguna', ''),
-        data: (user) => _buildGreetingContent(
-          user?.fullName ?? 'Pengguna',
-          user?.outlet ?? user?.kangiderNama ?? '',
-        ),
+          Positioned(
+            bottom: -30,
+            left: -10,
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+          userAsync.when(
+            loading: () => const SizedBox(
+              height: 90,
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            error: (_, __) => _buildGreetingContent('Pengguna', ''),
+            data: (user) => _buildGreetingContent(
+              user?.fullName ?? 'Pengguna',
+              user?.outlet ?? user?.kangiderNama ?? '',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -109,6 +156,7 @@ class HomePage extends ConsumerWidget {
           '${AppDateUtils.greeting()},',
           style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
+        const SizedBox(height: 2),
         Text(
           name,
           style: const TextStyle(
@@ -118,16 +166,24 @@ class HomePage extends ConsumerWidget {
           ),
         ),
         if (outlet.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            outlet,
-            style: const TextStyle(color: AppColors.primaryLight, fontSize: 14),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              outlet,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
           ),
         ],
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Row(
           children: [
-            const Icon(Icons.calendar_today, color: Colors.white70, size: 14),
+            const Icon(Icons.calendar_today_rounded,
+                color: Colors.white70, size: 14),
             const SizedBox(width: 6),
             Text(
               AppDateUtils.formatDate(DateTime.now()),
@@ -194,7 +250,7 @@ class HomePage extends ConsumerWidget {
         Expanded(
           child: _buildActionCard(
             context,
-            icon: Icons.camera_alt,
+            icon: Icons.camera_alt_rounded,
             label: 'Check In',
             onTap: () => context.go('/check-in'),
           ),
@@ -203,7 +259,7 @@ class HomePage extends ConsumerWidget {
         Expanded(
           child: _buildActionCard(
             context,
-            icon: Icons.receipt_long,
+            icon: Icons.receipt_long_rounded,
             label: 'Riwayat',
             onTap: () => context.go('/history'),
           ),
@@ -218,32 +274,37 @@ class HomePage extends ConsumerWidget {
     required String label,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+            boxShadow: AppTheme.softShadow,
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: AppColors.primary),
               ),
-              child: Icon(icon, color: AppColors.primary),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -261,13 +322,14 @@ class HomePage extends ConsumerWidget {
       ),
       data: (records) {
         if (records.isEmpty) {
-          return const SizedBox(
-            height: 200,
-            child: Center(
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.receipt_long, size: 48, color: AppColors.gray300),
+                  Icon(Icons.receipt_long_rounded,
+                      size: 48, color: AppColors.gray300),
                   SizedBox(height: 12),
                   Text(
                     'Belum ada riwayat',
@@ -287,7 +349,7 @@ class HomePage extends ConsumerWidget {
         final recent = records.take(3).toList();
         return Column(
           children: recent.map((r) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 10),
             child: HistoryListItem(record: r),
           )).toList(),
         );

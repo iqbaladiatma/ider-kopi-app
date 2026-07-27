@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -57,7 +58,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                       children: const [
                         SizedBox(height: 100),
                         EmptyView(
-                          icon: Icons.receipt_long,
+                          icon: Icons.receipt_long_rounded,
                           title: 'Belum ada riwayat absensi',
                           subtitle: 'Mulai absen hari ini',
                         ),
@@ -71,7 +72,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     itemBuilder: (context, index) {
                       final record = records[index];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: HistoryListItem(record: record),
                       );
                     },
@@ -87,36 +88,54 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
   Widget _buildMonthPicker() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: _pickMonth,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppDateUtils.formatMonthYear(_selectedMonth),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
-                  ],
-                ),
-              ),
-            ),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: GestureDetector(
+        onTap: _pickMonth,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+            boxShadow: AppTheme.softShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.calendar_month_rounded,
+                    color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  AppDateUtils.formatMonthYear(_selectedMonth),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const Icon(Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.textMuted),
+            ],
+          ),
+        ),
       ),
     );
   }

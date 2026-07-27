@@ -7,7 +7,7 @@ class ErrorView extends StatelessWidget {
     super.key,
     required this.message,
     this.onRetry,
-    this.icon = Icons.wifi_off,
+    this.icon = Icons.wifi_off_rounded,
     this.title = 'Terjadi Kesalahan',
   });
 
@@ -25,11 +25,15 @@ class ErrorView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
                 color: AppColors.errorLight,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.15),
+                  width: 1.5,
+                ),
               ),
               child: Icon(icon, size: 40, color: AppColors.error),
             ),
@@ -50,24 +54,26 @@ class ErrorView extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
+                height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Coba Lagi'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Coba Lagi'),
               ),
             ],
           ],

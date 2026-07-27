@@ -103,12 +103,27 @@ class _CameraSectionState extends State<CameraSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: AppColors.primary, size: 20),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _buildCameraArea(),
@@ -121,6 +136,7 @@ class _CameraSectionState extends State<CameraSection> {
   Widget _buildCameraArea() {
     if (_capturedImage != null) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -132,11 +148,17 @@ class _CameraSectionState extends State<CameraSection> {
             ),
           ),
           const SizedBox(height: 12),
-          TextButton(
+          OutlinedButton.icon(
             onPressed: _retakePhoto,
-            child: const Text(
-              'Ambil Ulang',
-              style: TextStyle(color: AppColors.primary),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Ambil Ulang'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],
@@ -149,21 +171,22 @@ class _CameraSectionState extends State<CameraSection> {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
+          color: AppColors.surfaceAlt,
           border: Border.all(
             color: AppColors.border,
-            style: BorderStyle.solid,
-            width: 2,
+            width: 1.5,
           ),
         ),
         child: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.camera_alt, size: 48, color: AppColors.textMuted),
-              SizedBox(height: 8),
+              Icon(Icons.camera_alt_rounded,
+                  size: 48, color: AppColors.textMuted),
+              SizedBox(height: 10),
               Text(
                 'Kamera tidak tersedia',
-                style: TextStyle(color: AppColors.textMuted),
+                style: TextStyle(color: AppColors.textMuted, fontSize: 14),
               ),
             ],
           ),
@@ -172,6 +195,7 @@ class _CameraSectionState extends State<CameraSection> {
     }
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
@@ -188,13 +212,21 @@ class _CameraSectionState extends State<CameraSection> {
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 )
-              : const Icon(Icons.camera),
+              : const Icon(Icons.camera_rounded),
           label: Text(_isCapturing ? 'Mengambil...' : 'Ambil Foto'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
@@ -34,6 +35,7 @@ class ProfilePage extends ConsumerWidget {
             const SizedBox(height: 24),
             CustomButton(
               label: 'KELUAR',
+              icon: Icons.logout_rounded,
               variant: ButtonVariant.outlined,
               onPressed: () => _handleLogout(context, ref),
             ),
@@ -54,47 +56,71 @@ class ProfilePage extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.gradientShadow,
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+          Positioned(
+            top: -25,
+            right: -10,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
             ),
-            child: const Icon(Icons.person, size: 40, color: AppColors.primary),
           ),
-          const SizedBox(height: 12),
-          profileAsync.when(
-            loading: () => const SizedBox(
-              height: 20,
-              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-            ),
-            error: (_, __) => const Text(
-              'Pengguna',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            data: (profile) => Column(
-              children: [
-                Text(
-                  profile?.fullName ?? 'Pengguna',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+          Column(
+            children: [
+              Container(
+                width: 78,
+                height: 78,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  profile?.outlet ?? profile?.kangiderNama ?? '',
-                  style: const TextStyle(color: AppColors.primaryLight, fontSize: 14),
+                child: const Icon(Icons.person_rounded, size: 42, color: AppColors.primary),
+              ),
+              const SizedBox(height: 14),
+              profileAsync.when(
+                loading: () => const SizedBox(
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 ),
-              ],
-            ),
+                error: (_, __) => const Text(
+                  'Pengguna',
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                data: (profile) => Column(
+                  children: [
+                    Text(
+                      profile?.fullName ?? 'Pengguna',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      profile?.outlet ?? profile?.kangiderNama ?? '',
+                      style: const TextStyle(color: AppColors.primaryLight, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -120,11 +146,11 @@ class ProfilePage extends ConsumerWidget {
         return Card(
           child: Column(
             children: [
-              _buildInfoRow(Icons.email, 'Email', profile.email),
+              _buildInfoRow(Icons.email_rounded, 'Email', profile.email),
               const Divider(height: 1),
-              _buildInfoRow(Icons.store, 'Outlet', profile.outlet ?? '-'),
+              _buildInfoRow(Icons.store_rounded, 'Outlet', profile.outlet ?? '-'),
               const Divider(height: 1),
-              _buildInfoRow(Icons.phone, 'Telepon', profile.phone ?? '-'),
+              _buildInfoRow(Icons.phone_rounded, 'Telepon', profile.phone ?? '-'),
             ],
           ),
         );
@@ -137,7 +163,15 @@ class ProfilePage extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.textMuted),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: AppColors.textSecondary),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -154,7 +188,7 @@ class ProfilePage extends ConsumerWidget {
                   value,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -173,11 +207,11 @@ class ProfilePage extends ConsumerWidget {
           'Statistik Bulan Ini',
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Card(
           child: statsAsync.when(
             loading: () => const SizedBox(
@@ -211,17 +245,20 @@ class ProfilePage extends ConsumerWidget {
       children: [
         Container(
           width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          height: 28,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
         ),
         const SizedBox(width: 12),
-        Text(label, style: const TextStyle(fontSize: 14)),
+        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
         const Spacer(),
         Text(
           '$count hari',
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: color,
           ),
         ),
@@ -231,9 +268,9 @@ class ProfilePage extends ConsumerWidget {
 
   Widget _buildSettingsSection(BuildContext context) {
     final items = [
-      _SettingsItem(icon: Icons.settings, label: 'Pengaturan'),
-      _SettingsItem(icon: Icons.privacy_tip, label: 'Kebijakan Privasi'),
-      _SettingsItem(icon: Icons.info, label: 'Tentang Aplikasi'),
+      _SettingsItem(icon: Icons.settings_rounded, label: 'Pengaturan'),
+      _SettingsItem(icon: Icons.privacy_tip_rounded, label: 'Kebijakan Privasi'),
+      _SettingsItem(icon: Icons.info_rounded, label: 'Tentang Aplikasi'),
     ];
 
     return Card(
@@ -244,7 +281,7 @@ class ProfilePage extends ConsumerWidget {
               ListTile(
                 leading: Icon(item.icon, color: AppColors.textSecondary),
                 title: Text(item.label),
-                trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
                 onTap: () {
                   if (item.label == 'Tentang Aplikasi') {
                     _showAboutDialog(context);

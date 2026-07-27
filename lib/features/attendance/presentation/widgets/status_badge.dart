@@ -26,10 +26,10 @@ class StatusBadge extends StatelessWidget {
         (AppColors.surfaceAlt, AppColors.textMuted, 'Belum Absen'),
     };
 
-    final (hPad, vPad, fontSize, radius) = switch (size) {
-      StatusBadgeSize.small => (6.0, 2.0, 10.0, 4.0),
-      StatusBadgeSize.normal => (8.0, 4.0, 12.0, 6.0),
-      StatusBadgeSize.large => (12.0, 6.0, 14.0, 8.0),
+    final (hPad, vPad, fontSize, radius, dotSize) = switch (size) {
+      StatusBadgeSize.small => (6.0, 2.0, 10.0, 4.0, 5.0),
+      StatusBadgeSize.normal => (8.0, 4.0, 12.0, 6.0, 6.0),
+      StatusBadgeSize.large => (12.0, 6.0, 14.0, 8.0, 7.0),
     };
 
     return Container(
@@ -38,13 +38,27 @@ class StatusBadge extends StatelessWidget {
         color: bgColor,
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: textColor,
-          fontSize: fontSize,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: dotSize,
+            height: dotSize,
+            decoration: BoxDecoration(
+              color: textColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: hPad * 0.5),
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

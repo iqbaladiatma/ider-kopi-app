@@ -17,19 +17,35 @@ class AttendanceSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Status Hari Ini',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.today_rounded,
+                      color: AppColors.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Status Hari Ini',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _buildStatusRow(
               'Check In',
               record.hasCheckedIn ? record.masuk! : 'Belum',
               record.hasCheckedIn,
+              icon: Icons.login_rounded,
             ),
             const Divider(height: 24),
             _buildStatusRow(
@@ -37,6 +53,7 @@ class AttendanceSummaryCard extends StatelessWidget {
               record.hasCheckedOut ? record.pulang! : 'Belum',
               record.hasCheckedOut,
               isWaiting: record.hasCheckedIn && !record.hasCheckedOut,
+              icon: Icons.logout_rounded,
             ),
             const SizedBox(height: 12),
             StatusBadge(status: record.status),
@@ -51,6 +68,7 @@ class AttendanceSummaryCard extends StatelessWidget {
     String value,
     bool isDone, {
     bool isWaiting = false,
+    IconData icon = Icons.radio_button_unchecked,
   }) {
     final color = isDone
         ? AppColors.success
@@ -58,15 +76,15 @@ class AttendanceSummaryCard extends StatelessWidget {
             ? AppColors.warning
             : AppColors.error;
 
-    final icon = isDone
+    final actualIcon = isDone
         ? Icons.check_circle
         : isWaiting
             ? Icons.hourglass_empty
-            : Icons.radio_button_unchecked;
+            : icon;
 
     return Row(
       children: [
-        Icon(icon, color: color, size: 20),
+        Icon(actualIcon, color: color, size: 20),
         const SizedBox(width: 12),
         Text(
           label,

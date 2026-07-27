@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/gradient_header.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/admin_providers.dart';
@@ -25,7 +26,7 @@ class AdminDashboardPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GradientHeader(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -55,7 +56,7 @@ class AdminDashboardPage extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     const Text(
                       'Admin Panel - IderKopi Absensi',
                       style: TextStyle(
@@ -66,21 +67,14 @@ class AdminDashboardPage extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Statistik',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              const SizedBox(height: 26),
+              const _SectionTitle(title: 'Statistik'),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: _StatCard(
-                      icon: Icons.people,
+                      icon: Icons.people_rounded,
                       label: 'Total User',
                       value: userCountAsync.when(
                         data: (count) => count.toString(),
@@ -93,7 +87,7 @@ class AdminDashboardPage extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _StatCard(
-                      icon: Icons.assignment_turned_in,
+                      icon: Icons.assignment_turned_in_rounded,
                       label: 'Absensi Hari Ini',
                       value: todayAttAsync.when(
                         data: (count) => count.toString(),
@@ -105,25 +99,18 @@ class AdminDashboardPage extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Manajemen',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              const SizedBox(height: 26),
+              const _SectionTitle(title: 'Manajemen'),
               const SizedBox(height: 12),
               _MenuCard(
-                icon: Icons.people_alt,
+                icon: Icons.people_alt_rounded,
                 title: 'Kelola User',
                 subtitle: 'Lihat, tambah, edit, dan hapus user',
                 onTap: () => context.go('/admin/users'),
               ),
               const SizedBox(height: 12),
               _MenuCard(
-                icon: Icons.receipt_long,
+                icon: Icons.receipt_long_rounded,
                 title: 'Riwayat Absensi',
                 subtitle: 'Lihat semua riwayat absensi karyawan',
                 onTap: () => context.go('/admin/attendance'),
@@ -132,6 +119,37 @@ class AdminDashboardPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -152,35 +170,44 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
+            Container(height: 4, color: color),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: color, size: 21),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -205,20 +232,27 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
+        child: Container(
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+            boxShadow: AppTheme.softShadow,
+          ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 22),
               ),
@@ -231,11 +265,11 @@ class _MenuCard extends StatelessWidget {
                       title,
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
                       style: const TextStyle(
@@ -246,7 +280,7 @@ class _MenuCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
             ],
           ),
         ),

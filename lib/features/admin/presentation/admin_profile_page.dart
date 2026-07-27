@@ -25,19 +25,23 @@ class AdminProfilePage extends ConsumerWidget {
                 child: Column(
                   children: [
                     Container(
-                      width: 72,
-                      height: 72,
+                      width: 78,
+                      height: 78,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Colors.white.withValues(alpha: 0.18),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.35),
+                          width: 2,
+                        ),
                       ),
                       child: const Icon(
-                        Icons.admin_panel_settings,
+                        Icons.admin_panel_settings_rounded,
                         color: Colors.white,
-                        size: 36,
+                        size: 38,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     userAsync.when(
                       data: (user) => Text(
                         user?.fullName ?? 'Admin',
@@ -80,32 +84,19 @@ class AdminProfilePage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    'Role & Akses',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
+              const _SectionLabel('Role & Akses'),
               const SizedBox(height: 12),
               Card(
                 child: Column(
                   children: [
                     _InfoTile(
-                      icon: Icons.shield,
+                      icon: Icons.shield_rounded,
                       label: 'Role',
                       value: userAsync.asData?.value?.roleName ?? 'Admin',
                     ),
                     const Divider(height: 1),
                     _InfoTile(
-                      icon: Icons.business,
+                      icon: Icons.business_rounded,
                       label: 'Outlet',
                       value: userAsync.asData?.value?.outlet ?? 'HQ',
                     ),
@@ -113,35 +104,22 @@ class AdminProfilePage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    'Aplikasi',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
+              const _SectionLabel('Aplikasi'),
               const SizedBox(height: 12),
               Card(
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.info_outline, color: AppColors.primary),
+                      leading: const Icon(Icons.info_outline_rounded, color: AppColors.primary),
                       title: const Text('Tentang Aplikasi'),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
                       onTap: () => _showAboutDialog(context),
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(Icons.logout, color: AppColors.error),
+                      leading: const Icon(Icons.logout_rounded, color: AppColors.error),
                       title: const Text('Keluar'),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
                       onTap: () => _handleLogout(context, ref),
                     ),
                   ],
@@ -213,6 +191,30 @@ class AdminProfilePage extends ConsumerWidget {
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _InfoTile extends StatelessWidget {
   const _InfoTile({
     required this.icon,
@@ -230,7 +232,15 @@ class _InfoTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 22),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 20),
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(

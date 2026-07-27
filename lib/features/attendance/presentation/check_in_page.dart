@@ -141,7 +141,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       appBar: AppBar(
         title: const Text('Absensi Masuk'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.go('/home'),
         ),
       ),
@@ -163,7 +163,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
               Center(
                 child: TextButton.icon(
                   onPressed: _getCurrentLocation,
-                  icon: const Icon(Icons.refresh, color: AppColors.primary),
+                  icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
                   label: const Text(
                     'Coba Lagi',
                     style: TextStyle(color: AppColors.primary),
@@ -182,6 +182,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             const SizedBox(height: 24),
             CustomButton(
               label: 'KIRIM ABSENSI',
+              icon: Icons.send_rounded,
               onPressed: _canSubmit ? _handleSubmit : null,
               isLoading: _isSubmitting,
             ),
@@ -198,39 +199,65 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Jam',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-                ),
-                Text(
-                  AppDateUtils.formatTime(now),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.access_time_rounded,
+                  color: AppColors.primary, size: 20),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Tanggal',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-                ),
-                Text(
-                  AppDateUtils.formatDateShort(now),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Jam',
+                          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                        ),
+                        Text(
+                          AppDateUtils.formatTime(now),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  Container(
+                    width: 1,
+                    height: 32,
+                    color: AppColors.border,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Tanggal',
+                          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                        ),
+                        Text(
+                          AppDateUtils.formatDateShort(now),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -239,47 +266,90 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }
 }
 
-class _SuccessDialog extends StatelessWidget {
+class _SuccessDialog extends StatefulWidget {
   const _SuccessDialog({required this.title, required this.message});
 
   final String title;
   final String message;
 
   @override
+  State<_SuccessDialog> createState() => _SuccessDialogState();
+}
+
+class _SuccessDialogState extends State<_SuccessDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: AppColors.successLight,
-                shape: BoxShape.circle,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ScaleTransition(
+                scale: _scaleAnimation,
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.successLight,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.success.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: const Icon(Icons.check_rounded,
+                      color: AppColors.success, size: 40),
+                ),
               ),
-              child: const Icon(Icons.check, color: AppColors.success, size: 36),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 18),
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 8),
+              Text(
+                widget.message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

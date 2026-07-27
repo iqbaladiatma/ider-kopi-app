@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/loading_overlay.dart';
@@ -409,20 +410,36 @@ class _UserCard extends StatelessWidget {
     final initials = _getInitials(user.fullName);
     final isAdmin = user.roleName?.toLowerCase() == 'admin';
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppTheme.softShadow,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor:
-                  isAdmin ? AppColors.primaryLight : AppColors.surfaceAlt,
-              child: Text(
-                initials,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isAdmin ? AppColors.primary : AppColors.gray600,
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: isAdmin ? AppColors.primaryGradient : null,
+                color: isAdmin ? null : AppColors.surfaceAlt,
+                border: Border.all(
+                  color: isAdmin ? Colors.white : AppColors.border,
+                  width: 1,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  initials,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isAdmin ? Colors.white : AppColors.gray600,
+                  ),
                 ),
               ),
             ),
@@ -464,17 +481,17 @@ class _UserCard extends StatelessWidget {
                       ],
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: isAdmin
                               ? AppColors.primaryLight
                               : AppColors.successLight,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           user.roleName ?? 'User',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: isAdmin
                                 ? AppColors.primary
@@ -488,7 +505,7 @@ class _UserCard extends StatelessWidget {
               ),
             ),
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: AppColors.textMuted),
+              icon: const Icon(Icons.more_vert_rounded, color: AppColors.textMuted),
               onSelected: (value) {
                 if (value == 'edit') onEdit();
                 if (value == 'delete') onDelete();

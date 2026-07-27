@@ -7,7 +7,7 @@ class EmptyView extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.icon = Icons.inbox,
+    this.icon = Icons.inbox_outlined,
   });
 
   final String title;
@@ -23,13 +23,17 @@ class EmptyView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: AppColors.surfaceAlt,
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLighter,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primaryLight,
+                  width: 1.5,
+                ),
               ),
-              child: Icon(icon, size: 40, color: AppColors.gray400),
+              child: Icon(icon, size: 40, color: AppColors.primary.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 20),
             Text(
@@ -38,7 +42,7 @@ class EmptyView extends StatelessWidget {
                 fontFamily: 'Inter',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.gray500,
+                color: AppColors.gray600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -49,6 +53,7 @@ class EmptyView extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textMuted,
+                  height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),

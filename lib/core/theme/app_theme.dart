@@ -8,6 +8,9 @@ class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
+        splashColor: AppColors.primary.withValues(alpha: 0.08),
+        highlightColor: AppColors.primary.withValues(alpha: 0.04),
+        hoverColor: AppColors.primary.withValues(alpha: 0.04),
         colorScheme: const ColorScheme.light(
           primary: AppColors.primary,
           onPrimary: Colors.white,
@@ -53,7 +56,7 @@ class AppTheme {
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary, width: 2),
+            side: const BorderSide(color: AppColors.primary, width: 1.5),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -80,23 +83,23 @@ class AppTheme {
           fillColor: AppColors.surfaceAlt,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: const BorderSide(color: AppColors.border, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.6), width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+            borderSide: const BorderSide(color: AppColors.error, width: 1.2),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.error, width: 2),
+            borderSide: const BorderSide(color: AppColors.error, width: 1.5),
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -108,10 +111,50 @@ class AppTheme {
         cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 0,
+          shadowColor: AppColors.cardShadow,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppColors.border),
+            side: const BorderSide(color: AppColors.border, width: 1),
           ),
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: AppColors.surfaceAlt,
+          selectedColor: AppColors.primaryLight,
+          labelStyle: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+          side: BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        ),
+        listTileTheme: const ListTileThemeData(
+          iconColor: AppColors.textSecondary,
+          textColor: AppColors.textPrimary,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
+        tabBarTheme: const TabBarThemeData(
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textMuted,
+          indicatorColor: AppColors.primary,
+          labelStyle: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          indicatorSize: TabBarIndicatorSize.label,
         ),
         dividerTheme: const DividerThemeData(
           color: AppColors.border,
@@ -129,6 +172,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 4,
         ),
         dialogTheme: DialogThemeData(
           backgroundColor: Colors.white,
@@ -217,12 +261,17 @@ class AppTheme {
         ),
       );
 
-  // Reusable shadow getters
+  // Reusable multi-layer shadows (more natural than single layer)
   static List<BoxShadow> get cardShadow => [
         const BoxShadow(
           color: AppColors.cardShadow,
           blurRadius: 8,
           offset: Offset(0, 2),
+        ),
+        BoxShadow(
+          color: AppColors.cardShadow.withValues(alpha: 0.5),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
         ),
       ];
 
@@ -232,6 +281,11 @@ class AppTheme {
           blurRadius: 12,
           offset: Offset(0, 4),
         ),
+        BoxShadow(
+          color: AppColors.buttonShadow.withValues(alpha: 0.4),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
       ];
 
   static List<BoxShadow> get gradientShadow => [
@@ -239,6 +293,24 @@ class AppTheme {
           color: AppColors.gradientShadow,
           blurRadius: 16,
           offset: Offset(0, 6),
+        ),
+        BoxShadow(
+          color: AppColors.gradientShadow.withValues(alpha: 0.5),
+          blurRadius: 28,
+          offset: const Offset(0, 12),
+        ),
+      ];
+
+  static List<BoxShadow> get softShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.04),
+          blurRadius: 12,
+          offset: const Offset(0, 2),
+        ),
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.02),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
         ),
       ];
 }

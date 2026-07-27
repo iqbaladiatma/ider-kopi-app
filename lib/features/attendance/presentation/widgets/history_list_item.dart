@@ -36,13 +36,13 @@ class HistoryListItem extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildTimeRow('Masuk', AppDateUtils.formatTimeShort(record.masuk),
-                      record.hasCheckedIn),
-                  const SizedBox(height: 4),
+                      record.hasCheckedIn, Icons.login_rounded),
+                  const SizedBox(height: 6),
                   _buildTimeRow('Pulang', AppDateUtils.formatTimeShort(record.pulang),
-                      record.hasCheckedOut),
-                  const SizedBox(height: 8),
+                      record.hasCheckedOut, Icons.logout_rounded),
+                  const SizedBox(height: 10),
                   StatusBadge(status: record.status),
                 ],
               ),
@@ -56,15 +56,15 @@ class HistoryListItem extends StatelessWidget {
   Widget _buildSelfieThumbnail() {
     if (selfieUrl != null && selfieUrl!.isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: CachedNetworkImage(
           imageUrl: selfieUrl!,
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           fit: BoxFit.cover,
           placeholder: (_, __) => Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             color: AppColors.surfaceAlt,
           ),
           errorWidget: (_, __, ___) => _buildPlaceholder(),
@@ -76,26 +76,30 @@ class HistoryListItem extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border, width: 1),
       ),
-      child: const Icon(Icons.person, size: 20, color: AppColors.textMuted),
+      child: const Icon(Icons.person, size: 22, color: AppColors.textMuted),
     );
   }
 
-  Widget _buildTimeRow(String label, String time, bool isDone) {
+  Widget _buildTimeRow(String label, String time, bool isDone, IconData icon) {
+    final color = isDone ? AppColors.success : AppColors.textMuted;
     return Row(
       children: [
         SizedBox(
-          width: 60,
+          width: 56,
           child: Text(
             label,
             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
         ),
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
         Text(
           time,
           style: TextStyle(
@@ -103,12 +107,6 @@ class HistoryListItem extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: isDone ? AppColors.textPrimary : AppColors.textMuted,
           ),
-        ),
-        const SizedBox(width: 4),
-        Icon(
-          isDone ? Icons.check_circle : Icons.remove_circle_outline,
-          size: 14,
-          color: isDone ? AppColors.success : AppColors.textMuted,
         ),
       ],
     );
