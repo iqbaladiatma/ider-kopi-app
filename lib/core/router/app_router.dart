@@ -20,7 +20,6 @@ import '../../shared/widgets/bottom_nav_bar.dart';
 
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(this._ref) {
-    // Trigger auth init immediately
     _ref.read(authInitProvider);
     _ref.listen(authStateProvider, (_, __) => notifyListeners());
     _ref.listen(userRoleProvider, (_, __) => notifyListeners());
@@ -46,6 +45,30 @@ final _routerNotifierProvider = Provider<_RouterNotifier>((ref) {
   return _RouterNotifier(ref);
 });
 
+Page<dynamic> _buildTransitionPage({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.04, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child,
+        ),
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  );
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(_routerNotifierProvider);
 
@@ -56,12 +79,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isSplashRoute = state.matchedLocation == '/splash';
       final isLoginRoute = state.matchedLocation == '/login';
 
-      // While initializing auth, stay on splash
       if (notifier.isInitializing) {
         return isSplashRoute ? null : '/splash';
       }
 
-      // Auth initialized — leave splash
       if (isSplashRoute) {
         return notifier.isLoggedIn
             ? (notifier.isAdmin ? '/admin' : '/home')
@@ -72,6 +93,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAdmin = notifier.isAdmin;
       final isAdminRoute = state.matchedLocation.startsWith('/admin');
       final isUserRoute = state.matchedLocation == '/home' ||
+          state.matchedLocation == '/attendance-options' ||
           state.matchedLocation.startsWith('/check') ||
           state.matchedLocation == '/history' ||
           state.matchedLocation == '/profile';
@@ -91,7 +113,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/login',
-        builder: (_, __) => const LoginPage(),
+        pageBuilder: (context, state) => _buildTransitionPage(
+          context: context,
+          state: state,
+          child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/check-in',
+        pageBuilder: (context, state) => _buildTransitionPage(
+          context: context,
+          state: state,
+          child: const CheckInPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/check-out',
+        pageBuilder: (context, state) => _buildTransitionPage(
+          context: context,
+          state: state,
+          child: CheckOutPage(reason: state.extra as String?),
+        ),
       ),
       // Admin routes with shell
       ShellRoute(
@@ -126,14 +168,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/attendance-options',
             builder: (_, __) => const AttendanceOptionsPage(),
-          ),
-          GoRoute(
-            path: '/check-in',
-            builder: (_, __) => const CheckInPage(),
-          ),
-          GoRoute(
-            path: '/check-out',
-            builder: (_, state) => CheckOutPage(reason: state.extra as String?),
           ),
           GoRoute(
             path: '/history',

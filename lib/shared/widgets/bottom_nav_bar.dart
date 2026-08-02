@@ -3,17 +3,77 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../features/attendance/presentation/attendance_options_page.dart';
+import '../../features/attendance/presentation/history_page.dart';
+import '../../features/attendance/presentation/home_page.dart';
+import '../../features/profile/presentation/profile_page.dart';
 
-class MainShell extends StatelessWidget {
+class MainShell extends StatefulWidget {
   const MainShell({super.key, required this.child});
 
   final Widget child;
 
   @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  late PageController _pageController;
+
+  int _getPageIndex(String path) {
+    if (path == '/home') return 0;
+    if (path == '/attendance-options' || path == '/check-in' || path == '/check-out') return 1;
+    if (path == '/history') return 2;
+    if (path == '/profile') return 3;
+    return 0;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _syncPage(int targetPage) {
+    if (_pageController.hasClients) {
+      final currentPage = _pageController.page?.round() ?? 0;
+      if (currentPage != targetPage) {
+        _pageController.animateToPage(
+          targetPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    final pageIndex = _getPageIndex(location);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncPage(pageIndex);
+    });
+
     return Scaffold(
-      body: child,
-      bottomNavigationBar: _BottomNav(currentPath: GoRouterState.of(context).matchedLocation),
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: const [
+          HomePage(),
+          AttendanceOptionsPage(),
+          HistoryPage(),
+          ProfilePage(),
+        ],
+      ),
+      bottomNavigationBar: _BottomNav(currentPath: location),
     );
   }
 }
@@ -28,19 +88,23 @@ class _BottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: const Border(top: BorderSide(color: AppColors.border, width: 1)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(
+          top: BorderSide(color: AppColors.border.withValues(alpha: 0.8), width: 1),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, -2),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
+        top: false,
+        bottom: true,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.only(top: 6, bottom: 10, left: 8, right: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -50,7 +114,6 @@ class _BottomNav extends StatelessWidget {
                 activeIcon: Icons.home_rounded,
                 label: 'Home',
                 path: '/home',
-                isFab: false,
               ),
               _buildFab(context),
               _buildItem(
@@ -59,15 +122,13 @@ class _BottomNav extends StatelessWidget {
                 activeIcon: Icons.receipt_long_rounded,
                 label: 'Riwayat',
                 path: '/history',
-                isFab: false,
               ),
               _buildItem(
                 context,
-                icon: Icons.person_outline,
+                icon: Icons.person_outline_rounded,
                 activeIcon: Icons.person_rounded,
                 label: 'Profil',
                 path: '/profile',
-                isFab: false,
               ),
             ],
           ),
@@ -94,7 +155,6 @@ class _BottomNav extends StatelessWidget {
     required IconData activeIcon,
     required String label,
     required String path,
-    required bool isFab,
   }) {
     final isActive = _isActive(path);
     return GestureDetector(
@@ -106,35 +166,52 @@ class _BottomNav extends StatelessWidget {
       },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 68,
+        width: 72,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: isActive ? AppColors.primaryLight : Colors.transparent,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(
-                isActive ? activeIcon : icon,
-                size: 22,
-                color: isActive ? AppColors.primary : AppColors.textMuted,
+              child: AnimatedScale(
+                scale: isActive ? 1.1 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(
+                      scale: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  },
+                  child: Icon(
+                    isActive ? activeIcon : icon,
+                    key: ValueKey(isActive),
+                    size: 22,
+                    color: isActive ? AppColors.primary : AppColors.textMuted,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                fontFamily: 'Inter',
+                fontSize: 10.5,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 color: isActive ? AppColors.primary : AppColors.textMuted,
               ),
+              child: Text(label),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
           ],
         ),
       ),
@@ -146,49 +223,62 @@ class _BottomNav extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!isActive) {
-          HapticFeedback.selectionClick();
+          HapticFeedback.mediumImpact();
           context.go('/attendance-options');
         }
       },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 68,
+        width: 72,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Transform.translate(
-              offset: const Offset(0, -14),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.4),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
+              offset: const Offset(0, -18),
+              child: AnimatedScale(
+                scale: isActive ? 1.08 : 1.0,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primary, AppColors.primaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                  border: Border.all(color: Colors.white, width: 4),
-                ),
-                child: const Icon(
-                  Icons.camera_alt_rounded,
-                  color: Colors.white,
-                  size: 26,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: isActive ? 0.6 : 0.4),
+                        blurRadius: isActive ? 22 : 16,
+                        offset: const Offset(0, 8),
+                        spreadRadius: isActive ? 0 : -2,
+                      ),
+                    ],
+                    border: Border.all(color: Colors.white, width: 3.5),
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
             Transform.translate(
-              offset: const Offset(0, -8),
-              child: Text(
-                'Absen',
+              offset: const Offset(0, -10),
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  fontFamily: 'Inter',
+                  fontSize: 10.5,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   color: isActive ? AppColors.primary : AppColors.textMuted,
                 ),
+                child: const Text('Absen'),
               ),
             ),
           ],

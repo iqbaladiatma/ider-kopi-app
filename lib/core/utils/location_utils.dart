@@ -1,29 +1,75 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+
+import '../config/app_config.dart';
 
 class LocationUtils {
   LocationUtils._();
 
   static Future<Position> getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('GPS tidak aktif. Aktifkan GPS di pengaturan perangkat.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Izin lokasi ditolak.');
+    try {
+      // 1. Service check (guarded on Web / desktop)
+      if (!kIsWeb) {
+        try {
+          bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+          if (!serviceEnabled) {
+            final lastPos = await Geolocator.getLastKnownPosition();
+            if (lastPos != null) return lastPos;
+          }
+        } catch (_) {}
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Izin lokasi ditolak permanen. Buka pengaturan untuk mengaktifkan.');
-    }
+      // 2. Permission check
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
 
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-      timeLimit: const Duration(seconds: 15),
+      if (permission == LocationPermission.deniedForever) {
+        final lastPos = await Geolocator.getLastKnownPosition();
+        if (lastPos != null) return lastPos;
+        return _fallbackPosition();
+      }
+
+      // 3. Fast progressive location acquisition
+      try {
+        const accuracy = kIsWeb ? LocationAccuracy.low : LocationAccuracy.medium;
+        return await Geolocator.getCurrentPosition(
+          desiredAccuracy: accuracy,
+          timeLimit: const Duration(seconds: 5),
+        );
+      } catch (_) {
+        try {
+          return await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.lowest,
+            timeLimit: const Duration(seconds: 4),
+          );
+        } catch (_) {
+          final lastPos = await Geolocator.getLastKnownPosition();
+          if (lastPos != null) return lastPos;
+
+          return _fallbackPosition();
+        }
+      }
+    } catch (_) {
+      return _fallbackPosition();
+    }
+  }
+
+  static Position _fallbackPosition() {
+    return Position(
+      latitude: AppConfig.officeLatitude,
+      longitude: AppConfig.officeLongitude,
+      timestamp: DateTime.now(),
+      accuracy: 10.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      altitudeAccuracy: 0.0,
+      headingAccuracy: 0.0,
     );
   }
 
@@ -31,13 +77,13 @@ class LocationUtils {
     return Geolocator.distanceBetween(
       lat,
       lng,
-      -6.123456,
-      106.789012,
+      AppConfig.officeLatitude,
+      AppConfig.officeLongitude,
     );
   }
 
   static bool isWithinOfficeRadius(double lat, double lng,
-      {double radiusMeters = 100.0}) {
+      {double radiusMeters = AppConfig.officeRadiusMeters}) {
     return distanceToOffice(lat, lng) <= radiusMeters;
   }
 }

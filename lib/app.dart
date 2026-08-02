@@ -12,6 +12,7 @@ class IderKopiApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
+      title: 'IderKopi Absensi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: router,

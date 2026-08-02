@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +27,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   bool? _isWithinRadius;
   bool _isLocationLoading = true;
   String? _locationError;
-  File? _selfieFile;
+  XFile? _selfieFile;
   bool _isSubmitting = false;
 
   @override
@@ -201,72 +200,89 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
   Widget _buildTimeCard() {
     final now = DateTime.now();
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.access_time_rounded,
-                  color: AppColors.primary, size: 20),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Jam',
-                          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+            child: const Icon(Icons.access_time_rounded, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Waktu',
+                        style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        AppDateUtils.formatTime(now),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.3,
                         ),
-                        Text(
-                          AppDateUtils.formatTime(now),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    width: 1,
-                    height: 32,
-                    color: AppColors.border,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Tanggal',
-                          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+                Container(
+                  width: 1,
+                  height: 36,
+                  color: AppColors.borderLight,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tanggal',
+                        style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        AppDateUtils.formatDateShort(now),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.2,
                         ),
-                        Text(
-                          AppDateUtils.formatDateShort(now),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -313,7 +329,7 @@ class _SuccessDialogState extends State<_SuccessDialog>
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: FadeTransition(
@@ -324,25 +340,27 @@ class _SuccessDialogState extends State<_SuccessDialog>
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Container(
-                  width: 72,
-                  height: 72,
+                  width: 84,
+                  height: 84,
                   decoration: BoxDecoration(
                     color: AppColors.successLight,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.success.withValues(alpha: 0.2),
+                      color: AppColors.success.withValues(alpha: 0.25),
+                      width: 2,
                     ),
                   ),
-                  child: const Icon(Icons.check_rounded,
-                      color: AppColors.success, size: 40),
+                  child: const Icon(Icons.check_rounded, color: AppColors.success, size: 44),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
               Text(
                 widget.title,
                 style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Inter',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
                 ),
               ),
               const SizedBox(height: 8),
@@ -351,7 +369,14 @@ class _SuccessDialogState extends State<_SuccessDialog>
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
+                  height: 1.5,
                 ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Terima kasih! 🎉',
+                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
                 textAlign: TextAlign.center,
               ),
             ],

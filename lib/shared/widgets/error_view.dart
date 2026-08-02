@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/app_theme.dart';
 
 class ErrorView extends StatelessWidget {
   const ErrorView({
@@ -20,22 +21,29 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.errorLight,
+                    AppColors.error.withValues(alpha: 0.08),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.15),
-                  width: 1.5,
+                  color: AppColors.error.withValues(alpha: 0.2),
+                  width: 2,
                 ),
               ),
-              child: Icon(icon, size: 40, color: AppColors.error),
+              child: Icon(icon, size: 44, color: AppColors.error),
             ),
             const SizedBox(height: 24),
             Text(
@@ -43,8 +51,9 @@ class ErrorView extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
+                letterSpacing: -0.3,
               ),
               textAlign: TextAlign.center,
             ),
@@ -54,24 +63,45 @@ class ErrorView extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
-                height: 1.4,
+                height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Coba Lagi'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 28),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: AppTheme.buttonShadow,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: onRetry,
+                    borderRadius: BorderRadius.circular(14),
+                    splashColor: Colors.white.withValues(alpha: 0.2),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.refresh_rounded, color: Colors.white, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Coba Lagi',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

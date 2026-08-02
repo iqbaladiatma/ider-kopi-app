@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class CameraSection extends StatefulWidget {
   const CameraSection({
@@ -13,7 +14,7 @@ class CameraSection extends StatefulWidget {
     this.label = 'Foto Selfie',
   });
 
-  final ValueChanged<File?>? onPhotoCaptured;
+  final ValueChanged<XFile?>? onPhotoCaptured;
   final String label;
 
   @override
@@ -24,7 +25,7 @@ class _CameraSectionState extends State<CameraSection> {
   CameraController? _controller;
   bool _isInitialized = false;
   bool _isCapturing = false;
-  File? _capturedImage;
+  XFile? _capturedImage;
   List<CameraDescription>? _cameras;
 
   @override
@@ -66,9 +67,8 @@ class _CameraSectionState extends State<CameraSection> {
     setState(() => _isCapturing = true);
     try {
       final xFile = await _controller!.takePicture();
-      final file = File(xFile.path);
-      if (mounted) setState(() => _capturedImage = file);
-      widget.onPhotoCaptured?.call(file);
+      if (mounted) setState(() => _capturedImage = xFile);
+      widget.onPhotoCaptured?.call(xFile);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -98,38 +98,45 @@ class _CameraSectionState extends State<CameraSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.camera_alt_rounded,
-                      color: AppColors.primary, size: 20),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  widget.label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: const Icon(Icons.camera_alt_rounded,
+                    color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.1,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildCameraArea(),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildCameraArea(),
+        ],
       ),
     );
   }
@@ -149,7 +156,7 @@ class _CameraSectionState extends State<CameraSection> {
                     fit: BoxFit.cover,
                   )
                 : Image.file(
-                    _capturedImage!,
+                    File(_capturedImage!.path),
                     height: 300,
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -206,34 +213,56 @@ class _CameraSectionState extends State<CameraSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           child: SizedBox(
             height: 300,
             width: double.infinity,
             child: CameraPreview(_controller!),
           ),
         ),
-        const SizedBox(height: 12),
-        ElevatedButton.icon(
-          onPressed: _isCapturing ? null : _takePhoto,
-          icon: _isCapturing
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Icon(Icons.camera_rounded),
-          label: Text(_isCapturing ? 'Mengambil...' : 'Ambil Foto'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        const SizedBox(height: 14),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: AppTheme.buttonShadow,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: _isCapturing ? null : _takePhoto,
+              borderRadius: BorderRadius.circular(14),
+              splashColor: Colors.white.withValues(alpha: 0.2),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _isCapturing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.camera_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isCapturing ? 'Mengambil...' : 'Ambil Foto',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

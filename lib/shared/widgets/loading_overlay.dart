@@ -32,12 +32,13 @@ class LoadingOverlay extends StatelessWidget {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+                          color: Colors.black.withValues(alpha: 0.14),
+                          blurRadius: 28,
+                          offset: const Offset(0, 10),
+                          spreadRadius: -4,
                         ),
                       ],
                     ),
@@ -57,8 +58,9 @@ class LoadingOverlay extends StatelessWidget {
                           Text(
                             message!,
                             style: const TextStyle(
+                              fontFamily: 'Inter',
                               fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
                             ),
                             textAlign: TextAlign.center,

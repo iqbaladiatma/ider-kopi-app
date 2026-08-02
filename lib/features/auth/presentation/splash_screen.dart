@@ -12,39 +12,66 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late AnimationController _scaleController;
+  late AnimationController _logoController;
+  late AnimationController _textController;
+  late AnimationController _pulseController;
+
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _textFadeAnimation;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _scaleController = AnimationController(
+
+    _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
+
+    _textController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
     );
-    _scaleAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: const Interval(0.0, 0.6, curve: Curves.easeOut)),
     );
-    _fadeController.forward();
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) _scaleController.forward();
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
+
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
+    );
+
+    _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _textController, curve: Curves.easeOut),
+    );
+
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _logoController.forward();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) _textController.forward();
     });
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
-    _scaleController.dispose();
+    _logoController.dispose();
+    _textController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -54,77 +81,168 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.primaryLighter, Colors.white],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFFF1F2),
+              Colors.white,
+              Color(0xFFFFF8F8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            stops: [0.0, 0.5, 1.0],
           ),
         ),
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.error, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.25),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.coffee_rounded,
-                      size: 44,
-                      color: AppColors.primary,
-                    ),
-                  ),
+        child: Stack(
+          children: [
+            // Background decorations
+            Positioned(
+              top: -80,
+              right: -60,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withValues(alpha: 0.04),
                 ),
-                const SizedBox(height: 28),
-                const Text(
-                  'IderKopi Absensi',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Versi ${AppConfig.appVersion}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 36),
-                const _LoadingDots(),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              bottom: -100,
+              left: -80,
+              child: Container(
+                width: 320,
+                height: 320,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withValues(alpha: 0.03),
+                ),
+              ),
+            ),
+            // Main content
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (_, child) => Transform.scale(
+                          scale: _pulseAnimation.value,
+                          child: child,
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Outer glow ring
+                            Container(
+                              width: 110,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.primary.withValues(alpha: 0.10),
+                              ),
+                            ),
+                            // Inner white circle
+                            Container(
+                              width: 90,
+                              height: 90,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.30),
+                                    blurRadius: 28,
+                                    offset: const Offset(0, 8),
+                                    spreadRadius: -2,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.coffee_rounded,
+                                size: 46,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+                  // Text
+                  FadeTransition(
+                    opacity: _textFadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        children: [
+                          const Text(
+                            'IderKopi',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.primary,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                          const Text(
+                            'Absensi',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLighter,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.primaryLight),
+                            ),
+                            child: const Text(
+                              'v${AppConfig.appVersion}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 56),
+                  const _LoadingPulse(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _LoadingDots extends StatefulWidget {
-  const _LoadingDots();
+class _LoadingPulse extends StatefulWidget {
+  const _LoadingPulse();
 
   @override
-  State<_LoadingDots> createState() => _LoadingDotsState();
+  State<_LoadingPulse> createState() => _LoadingPulseState();
 }
 
-class _LoadingDotsState extends State<_LoadingDots>
+class _LoadingPulseState extends State<_LoadingPulse>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -133,7 +251,7 @@ class _LoadingDotsState extends State<_LoadingDots>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1400),
     )..repeat();
   }
 
@@ -151,10 +269,11 @@ class _LoadingDotsState extends State<_LoadingDots>
         return AnimatedBuilder(
           animation: _controller,
           builder: (_, child) {
-            final delay = index * 0.2;
-            final t = (_controller.value - delay).abs();
-            final scale = 0.5 + (1 - t.clamp(0.0, 1.0)) * 0.5;
-            final opacity = 0.4 + (1 - t.clamp(0.0, 1.0)) * 0.6;
+            final delay = index * 0.25;
+            final raw = (_controller.value - delay) % 1.0;
+            final t = raw < 0 ? raw + 1.0 : raw;
+            final scale = 0.5 + (1.0 - (t - 0.5).abs() * 2).clamp(0.0, 1.0) * 0.5;
+            final opacity = 0.35 + (1.0 - (t - 0.5).abs() * 2).clamp(0.0, 1.0) * 0.65;
             return Transform.scale(
               scale: scale,
               child: Opacity(
@@ -164,8 +283,8 @@ class _LoadingDotsState extends State<_LoadingDots>
             );
           },
           child: Container(
-            width: 8,
-            height: 8,
+            width: 9,
+            height: 9,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: const BoxDecoration(
               color: AppColors.primary,

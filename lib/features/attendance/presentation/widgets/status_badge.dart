@@ -15,21 +15,37 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bgColor, textColor, label) = switch (status) {
-      AttendanceStatus.tepatWaktu =>
-        (AppColors.successLight, AppColors.success, 'Tepat Waktu'),
-      AttendanceStatus.terlambat =>
-        (AppColors.warningLight, AppColors.warningDark, 'Terlambat'),
-      AttendanceStatus.alpha =>
-        (AppColors.errorLight, AppColors.error, 'Alpha'),
-      AttendanceStatus.belumAbsen =>
-        (AppColors.surfaceAlt, AppColors.textMuted, 'Belum Absen'),
+    final (bgColor, textColor, label, icon) = switch (status) {
+      AttendanceStatus.tepatWaktu => (
+        AppColors.successLight,
+        AppColors.successDark,
+        'Tepat Waktu',
+        Icons.check_circle_rounded,
+      ),
+      AttendanceStatus.terlambat => (
+        AppColors.warningLight,
+        AppColors.warningDark,
+        'Terlambat',
+        Icons.schedule_rounded,
+      ),
+      AttendanceStatus.alpha => (
+        AppColors.errorLight,
+        AppColors.errorDark,
+        'Alpha',
+        Icons.cancel_rounded,
+      ),
+      AttendanceStatus.belumAbsen => (
+        AppColors.surfaceAlt,
+        AppColors.textMuted,
+        'Belum Absen',
+        Icons.radio_button_unchecked_rounded,
+      ),
     };
 
-    final (hPad, vPad, fontSize, radius, dotSize) = switch (size) {
-      StatusBadgeSize.small => (6.0, 2.0, 10.0, 4.0, 5.0),
-      StatusBadgeSize.normal => (8.0, 4.0, 12.0, 6.0, 6.0),
-      StatusBadgeSize.large => (12.0, 6.0, 14.0, 8.0, 7.0),
+    final (hPad, vPad, fontSize, radius, iconSize) = switch (size) {
+      StatusBadgeSize.small => (6.0, 3.0, 10.0, 6.0, 9.0),
+      StatusBadgeSize.normal => (10.0, 5.0, 12.0, 8.0, 11.0),
+      StatusBadgeSize.large => (14.0, 7.0, 13.0, 10.0, 13.0),
     };
 
     return Container(
@@ -37,25 +53,23 @@ class StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: textColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: dotSize,
-            height: dotSize,
-            decoration: BoxDecoration(
-              color: textColor,
-              shape: BoxShape.circle,
-            ),
-          ),
+          Icon(icon, color: textColor, size: iconSize),
           SizedBox(width: hPad * 0.5),
           Text(
             label,
             style: TextStyle(
               color: textColor,
               fontSize: fontSize,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
             ),
           ),
         ],

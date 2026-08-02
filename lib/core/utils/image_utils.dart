@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -7,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 class ImageUtils {
   ImageUtils._();
 
-  static Future<File> compressImage(File imageFile,
+  static Future<XFile> compressImage(XFile imageFile,
       {int quality = 70, int maxWidth = 720}) async {
     if (kIsWeb) return imageFile;
 
@@ -32,6 +33,6 @@ class ImageUtils {
     final outputFile = File(outputPath);
     await outputFile.writeAsBytes(compressedBytes);
 
-    return outputFile;
+    return XFile(outputPath);
   }
 }

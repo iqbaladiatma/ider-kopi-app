@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +28,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
   bool? _isWithinRadius;
   bool _isLocationLoading = true;
   String? _locationError;
-  File? _selfieFile;
+  XFile? _selfieFile;
   bool _isSubmitting = false;
 
   @override
@@ -82,13 +81,33 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
       String? keterangan = widget.reason;
       if (widget.reason == 'Izin') {
-        final izinReason = await _showIzinReasonDialog(context);
+        if (!mounted) return;
+        final izinReason = await _showReasonDialog(
+          context,
+          title: 'Alasan Izin',
+          hint: 'Tulis alasan izin...',
+        );
         if (!mounted) return;
         if (izinReason == null || izinReason.trim().isEmpty) {
           _showError('Alasan izin wajib diisi');
           return;
         }
         keterangan = 'Izin: ${izinReason.trim()}';
+      } else if (widget.reason == 'Lembur') {
+        if (!mounted) return;
+        final lemburReason = await _showReasonDialog(
+          context,
+          title: 'Keterangan Lembur',
+          hint: 'Tulis kegiatan / pekerjaan lembur...',
+        );
+        if (!mounted) return;
+        if (lemburReason != null && lemburReason.trim().isNotEmpty) {
+          keterangan = 'Lembur: ${lemburReason.trim()}';
+        } else {
+          keterangan = 'Lembur';
+        }
+      } else {
+        keterangan = 'Check Out';
       }
 
       final repo = ref.read(attendanceRepositoryProvider);
@@ -114,7 +133,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
       ref.invalidate(historyProvider);
 
       if (mounted) {
-        _showSuccess();
+        _showSuccess(keterangan);
         await Future.delayed(const Duration(milliseconds: 1500));
         if (mounted) {
           final navigator = Navigator.of(context, rootNavigator: true);
@@ -123,7 +142,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         }
       }
     } catch (e) {
-      _showError('Gagal check-out: $e');
+      _showError('Gagal memproses absensi: $e');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -139,43 +158,76 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
     );
   }
 
-  void _showSuccess() {
+  void _showSuccess(String? keterangan) {
     if (!mounted) return;
+    final isLembur = widget.reason == 'Lembur';
+    final isIzin = widget.reason == 'Izin';
+    final title = isLembur ? 'Absensi Lembur Terkirim!' : (isIzin ? 'Izin Terkirim!' : 'Check Out Berhasil!');
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.successLight,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.success.withValues(alpha: 0.2),
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.successLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.25),
+                    width: 2,
+                  ),
+                ),
+                child: const Icon(Icons.check_rounded, color: AppColors.success, size: 44),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
                 ),
               ),
-              child: const Icon(Icons.check_rounded, color: AppColors.success, size: 40),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Check Out Berhasil',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pulang pada ${AppDateUtils.formatTime(DateTime.now())} WIB',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 8),
+              Text(
+                'Tercatat pada ${AppDateUtils.formatTime(DateTime.now())} WIB',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              if (keterangan != null && keterangan.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    keterangan,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 4),
+              const Text(
+                'Terima kasih & selamat beristirahat!',
+                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -184,10 +236,16 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
   @override
   Widget build(BuildContext context) {
     final todayAsync = ref.watch(todayAttendanceProvider);
+    final isLembur = widget.reason == 'Lembur';
+    final isIzin = widget.reason == 'Izin';
+    final pageTitle = isLembur ? 'Absensi Lembur' : (isIzin ? 'Absensi Izin' : 'Absensi Pulang');
+    final buttonLabel = isLembur ? 'KIRIM ABSENSI LEMBUR' : (isIzin ? 'KIRIM PERMOHONAN IZIN' : 'CHECK OUT');
+    final buttonIcon = isLembur ? Icons.work_history_rounded : (isIzin ? Icons.sick_rounded : Icons.logout_rounded);
+    final cameraLabel = isLembur ? 'Foto Selfie Lembur (Opsional)' : (isIzin ? 'Foto Selfie Izin (Opsional)' : 'Foto Selfie Pulang (Opsional)');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Absensi Pulang'),
+        title: Text(pageTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.go('/home'),
@@ -223,7 +281,7 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
             ],
             const SizedBox(height: 16),
             CameraSection(
-              label: 'Foto Selfie Pulang (Opsional)',
+              label: cameraLabel,
               onPhotoCaptured: (file) {
                 setState(() => _selfieFile = file);
               },
@@ -232,8 +290,8 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
             _buildTimeDisplay(),
             const SizedBox(height: 24),
             CustomButton(
-              label: 'CHECK OUT',
-              icon: Icons.logout_rounded,
+              label: buttonLabel,
+              icon: buttonIcon,
               onPressed: _canSubmit ? _handleSubmit : null,
               isLoading: _isSubmitting,
             ),
@@ -244,18 +302,18 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
     );
   }
 
-  Future<String?> _showIzinReasonDialog(BuildContext context) {
+  Future<String?> _showReasonDialog(BuildContext context, {required String title, required String hint}) {
     String? reason;
     return showDialog<String?>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Alasan Izin'),
+        title: Text(title),
         content: TextField(
           autofocus: true,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Tulis alasan izin...',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: hint,
+            border: const OutlineInputBorder(),
           ),
           onChanged: (value) => reason = value,
         ),
@@ -275,114 +333,131 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
   Widget _buildCheckInSummary(AsyncValue<AttendanceRecord?> todayAsync) {
     return todayAsync.when(
-      loading: () => const Card(
-        child: SizedBox(
-          height: 100,
-          child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      loading: () => Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.border),
         ),
+        child: const Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5)),
       ),
-      error: (e, _) => Card(
-        child: SizedBox(
-          height: 100,
-          child: Center(child: Text('Gagal memuat: $e')),
+      error: (e, _) => Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.border),
         ),
+        child: const Center(child: Text('Gagal memuat', style: TextStyle(color: AppColors.textMuted))),
       ),
       data: (record) {
         if (record == null || !record.hasCheckedIn) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.warning_rounded, color: AppColors.warning),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Anda belum check-in hari ini',
-                      style: TextStyle(color: AppColors.warning),
-                    ),
-                  ),
-                ],
-              ),
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.warningLight,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
             ),
-          );
-        }
-
-        return Card(
-          child: IntrinsicHeight(
             child: Row(
               children: [
                 Container(
-                  width: 4,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    borderRadius: BorderRadius.horizontal(left: Radius.circular(16)),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: const Icon(Icons.warning_rounded, color: AppColors.warningDark, size: 18),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Check In Hari Ini',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              AppDateUtils.formatTimeWIB(record.masuk),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.success,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (record.latitude != null && record.longitude != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on_rounded, size: 16, color: AppColors.textMuted),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${record.latitude!.toStringAsFixed(2)}, ${record.longitude!.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.camera_alt_rounded, size: 16, color: AppColors.textMuted),
-                            const SizedBox(width: 4),
-                            Text(
-                              record.selfieFileId != null ? 'Selfie tersimpan' : 'Tanpa selfie',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Anda belum check-in hari ini',
+                  style: TextStyle(
+                    color: AppColors.warningDark,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.successLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.login_rounded, color: AppColors.success, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Check In Hari Ini',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppDateUtils.formatTimeWIB(record.masuk),
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.success,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (record.latitude != null && record.longitude != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on_rounded, size: 13, color: AppColors.textMuted),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${record.latitude!.toStringAsFixed(2)}, ${record.longitude!.toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         );
       },
@@ -391,23 +466,53 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
   Widget _buildTimeDisplay() {
     final now = DateTime.now();
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.access_time_rounded, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(
-              'Jam: ${AppDateUtils.formatTime(now)} WIB',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
+            child: const Icon(Icons.access_time_rounded, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Waktu Check Out',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                '${AppDateUtils.formatTime(now)} WIB',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

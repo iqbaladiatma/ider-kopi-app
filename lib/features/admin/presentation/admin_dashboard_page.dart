@@ -25,51 +25,90 @@ class AdminDashboardPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Greeting Header
               GradientHeader(
-                padding: const EdgeInsets.all(22),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    userAsync.when(
-                      data: (user) => Text(
-                        'Halo, ${user?.fullName ?? 'Admin'}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.admin_panel_settings_rounded,
+                              color: Colors.white, size: 22),
                         ),
-                      ),
-                      loading: () => const SizedBox(
-                        width: 120,
-                        height: 28,
-                        child: LinearProgressIndicator(
-                          color: Colors.white,
-                          backgroundColor: Colors.white24,
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Admin Panel',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            userAsync.when(
+                              data: (user) => Text(
+                                'Halo, ${user?.fullName ?? 'Admin'} 👋',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              loading: () => const SizedBox(
+                                width: 140,
+                                height: 22,
+                                child: LinearProgressIndicator(
+                                  color: Colors.white,
+                                  backgroundColor: Colors.white24,
+                                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                                ),
+                              ),
+                              error: (_, __) => const Text(
+                                'Halo, Admin 👋',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      error: (_, __) => const Text(
-                        'Halo, Admin',
+                      child: const Text(
+                        'IderKopi Absensi — Dashboard',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Admin Panel - IderKopi Absensi',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 26),
-              const _SectionTitle(title: 'Statistik'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 28),
+              const _SectionTitle(title: 'Ringkasan'),
+              const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
@@ -82,9 +121,10 @@ class AdminDashboardPage extends ConsumerWidget {
                         error: (_, __) => '-',
                       ),
                       color: AppColors.primary,
+                      gradient: AppColors.primaryGradient,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: _StatCard(
                       icon: Icons.assignment_turned_in_rounded,
@@ -95,17 +135,23 @@ class AdminDashboardPage extends ConsumerWidget {
                         error: (_, __) => '-',
                       ),
                       color: AppColors.success,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0F9960), Color(0xFF0A7A4A)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 26),
+              const SizedBox(height: 28),
               const _SectionTitle(title: 'Manajemen'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _MenuCard(
                 icon: Icons.people_alt_rounded,
                 title: 'Kelola User',
                 subtitle: 'Lihat, tambah, edit, dan hapus user',
+                color: AppColors.primary,
                 onTap: () => context.go('/admin/users'),
               ),
               const SizedBox(height: 12),
@@ -113,6 +159,7 @@ class AdminDashboardPage extends ConsumerWidget {
                 icon: Icons.receipt_long_rounded,
                 title: 'Riwayat Absensi',
                 subtitle: 'Lihat semua riwayat absensi karyawan',
+                color: AppColors.success,
                 onTap: () => context.go('/admin/attendance'),
               ),
             ],
@@ -134,19 +181,21 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Container(
           width: 4,
-          height: 18,
+          height: 20,
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Text(
           title,
           style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontFamily: 'Inter',
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
             color: AppColors.textPrimary,
+            letterSpacing: -0.3,
           ),
         ),
       ],
@@ -160,58 +209,65 @@ class _StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    required this.gradient,
   });
 
   final IconData icon;
   final String label;
   final String value;
   final Color color;
+  final Gradient gradient;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(height: 4, color: color),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: color, size: 21),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(13),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+              letterSpacing: -1.0,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -223,12 +279,14 @@ class _MenuCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    required this.color,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -236,27 +294,31 @@ class _MenuCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.border),
             boxShadow: AppTheme.softShadow,
           ),
           child: Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                 ),
-                child: Icon(icon, color: AppColors.primary, size: 22),
+                child: Icon(icon, color: color, size: 24),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,9 +326,11 @@ class _MenuCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
+                        fontFamily: 'Inter',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -275,12 +339,25 @@ class _MenuCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.textSecondary,
+                        height: 1.3,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppColors.textMuted,
+                  size: 14,
+                ),
+              ),
             ],
           ),
         ),

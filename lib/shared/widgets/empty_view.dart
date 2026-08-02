@@ -18,31 +18,43 @@ class EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
-                color: AppColors.primaryLighter,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryLighter,
+                    AppColors.primaryLight.withValues(alpha: 0.6),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: AppColors.primaryLight,
-                  width: 1.5,
+                  width: 2,
                 ),
               ),
-              child: Icon(icon, size: 40, color: AppColors.primary.withValues(alpha: 0.6)),
+              child: Icon(
+                icon,
+                size: 44,
+                color: AppColors.primary.withValues(alpha: 0.65),
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Text(
               title,
               style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.gray600,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
             ),
@@ -53,7 +65,7 @@ class EmptyView extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textMuted,
-                  height: 1.4,
+                  height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),

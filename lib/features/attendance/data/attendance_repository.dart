@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 
 import '../../../core/config/app_config.dart';
@@ -113,17 +112,20 @@ class AttendanceRepository {
         .toList();
   }
 
-  Future<String> uploadSelfie(File imageFile) async {
+  Future<String> uploadSelfie(XFile imageFile) async {
     if (AppConfig.useMockAuth) {
       return 'mock-selfie-${DateTime.now().millisecondsSinceEpoch}';
     }
 
+    final bytes = await imageFile.readAsBytes();
     final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(imageFile.path),
+      'file': MultipartFile.fromBytes(
+        bytes,
+        filename: 'selfie_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      ),
     });
 
     final response = await _client.post('/files', formData: formData);
-
     final data = response.data['data'] as Map<String, dynamic>;
     return data['id'] as String;
   }
