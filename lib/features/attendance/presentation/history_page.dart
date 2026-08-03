@@ -5,8 +5,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../data/attendance_model.dart';
 import '../providers/attendance_providers.dart';
-import 'widgets/history_list_item.dart';
 
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
@@ -30,137 +30,87 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final historyAsync = ref.watch(monthlyHistoryProvider(params));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Riwayat Absensi'),
-        backgroundColor: AppColors.background,
-      ),
-      body: Column(
-        children: [
-          _buildMonthPicker(),
-          Expanded(
-            child: RefreshIndicator(
-              color: AppColors.primary,
-              strokeWidth: 2.5,
-              onRefresh: () async {
-                ref.invalidate(monthlyHistoryProvider(params));
-              },
-              child: historyAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                    strokeWidth: 2.5,
+      backgroundColor: AppColors.white,
+      body: RefreshIndicator(
+        color: AppColors.red,
+        onRefresh: () async {
+          ref.invalidate(monthlyHistoryProvider(params));
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Header Signature + Stats Card
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(
+                      22,
+                      MediaQuery.of(context).padding.top + 18,
+                      22,
+                      54,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: AppColors.red,
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                    ),
+                    child: const Text(
+                      'Riwayat Absensi',
+                      style: TextStyle(
+                        fontFamily: 'Sora',
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
-                error: (e, _) => ErrorView(
-                  message: 'Gagal memuat riwayat',
-                  onRetry: () => ref.invalidate(monthlyHistoryProvider(params)),
-                ),
-                data: (records) {
-                  if (records.isEmpty) {
-                    return ListView(
-                      children: const [
-                        SizedBox(height: 60),
-                        EmptyView(
+
+                  // Floating Stats Card
+                  Positioned(
+                    left: 22,
+                    right: 22,
+                    bottom: -36,
+                    child: _buildStatsCard(historyAsync),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 52),
+
+              // Record List
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: historyAsync.when(
+                  loading: () => const SizedBox(
+                    height: 150,
+                    child: Center(child: CircularProgressIndicator(color: AppColors.red)),
+                  ),
+                  error: (e, _) => ErrorView(
+                    message: 'Gagal memuat riwayat',
+                    onRetry: () => ref.invalidate(monthlyHistoryProvider(params)),
+                  ),
+                  data: (records) {
+                    if (records.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: EmptyView(
                           icon: Icons.receipt_long_rounded,
                           title: 'Belum ada riwayat absensi',
                           subtitle: 'Mulai absen hari ini untuk melihat riwayat',
                         ),
-                      ],
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                    itemCount: records.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: HistoryListItem(record: records[index]),
                       );
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                    }
 
-  Widget _buildMonthPicker() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.border.withValues(alpha: 0.8), width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: GestureDetector(
-        onTap: _pickMonth,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceAlt,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Periode',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textMuted,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      AppDateUtils.formatMonthYear(_selectedMonth),
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                  ],
+                    return Column(
+                      children: records.map((rec) => _buildRecordCard(rec)).toList(),
+                    );
+                  },
                 ),
               ),
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.primary, size: 18),
-              ),
+
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -168,32 +118,234 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
   }
 
-  Future<void> _pickMonth() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedMonth,
-      firstDate: DateTime(2024, 1),
-      lastDate: DateTime.now(),
-      helpText: 'Pilih Bulan',
-      initialDatePickerMode: DatePickerMode.year,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              surface: Colors.white,
+  Widget _buildStatsCard(AsyncValue<List<AttendanceRecord>> historyAsync) {
+    int hadir = 0;
+    int telat = 0;
+    int absen = 0;
+
+    historyAsync.whenData((records) {
+      for (final r in records) {
+        if (r.masuk != null) {
+          final isLate = r.isLate ?? false;
+          if (isLate) {
+            telat++;
+          } else {
+            hadir++;
+          }
+        } else {
+          absen++;
+        }
+      }
+    });
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x2E101012),
+            blurRadius: 30,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatBlock(
+              numStr: '$hadir',
+              labelStr: 'HADIR',
+              numColor: AppColors.green,
             ),
           ),
-          child: child!,
-        );
-      },
+          Container(width: 1, height: 32, color: AppColors.line),
+          Expanded(
+            child: _buildStatBlock(
+              numStr: '$telat',
+              labelStr: 'TELAT',
+              numColor: AppColors.amber,
+            ),
+          ),
+          Container(width: 1, height: 32, color: AppColors.line),
+          Expanded(
+            child: _buildStatBlock(
+              numStr: '$absen',
+              labelStr: 'ABSEN',
+              numColor: AppColors.red,
+            ),
+          ),
+        ],
+      ),
     );
+  }
 
-    if (picked != null) {
-      setState(() {
-        _selectedMonth = DateTime(picked.year, picked.month, 1);
-      });
+  Widget _buildStatBlock({
+    required String numStr,
+    required String labelStr,
+    required Color numColor,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          numStr,
+          style: TextStyle(
+            fontFamily: 'Sora',
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+            color: numColor,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          labelStr,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 9.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.muted,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecordCard(AttendanceRecord record) {
+    final isLate = record.isLate ?? false;
+    final isAbsent = record.masuk == null;
+
+    final Color stripColor;
+    final String statusText;
+    final Color statusTextColor;
+
+    if (isAbsent) {
+      stripColor = AppColors.red;
+      statusText = 'Tidak Hadir';
+      statusTextColor = AppColors.red;
+    } else if (isLate) {
+      stripColor = AppColors.amber;
+      statusText = 'Terlambat';
+      statusTextColor = AppColors.amber;
+    } else {
+      stripColor = AppColors.green;
+      statusText = 'Hadir';
+      statusTextColor = AppColors.green;
     }
+
+    final formattedDate = AppDateUtils.formatDate(record.tanggalAbsensi);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.line),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            // Left color strip
+            Container(
+              width: 4,
+              color: stripColor,
+            ),
+
+            // Date & Status
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      formattedDate,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      statusText,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: statusTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Times (Check In)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    record.masuk ?? '—',
+                    style: const TextStyle(
+                      fontFamily: 'Space Mono',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const Text(
+                    'MASUK',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Times (Check Out)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 12, 14, 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    record.keluar ?? '—',
+                    style: const TextStyle(
+                      fontFamily: 'Space Mono',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const Text(
+                    'PULANG',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

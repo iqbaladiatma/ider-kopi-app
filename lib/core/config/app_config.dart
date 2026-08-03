@@ -16,6 +16,6 @@ class AppConfig {
 
   static const String appVersion = '1.0.0';
 
-  // Set ke true untuk pakai mock auth (testing tanpa Directus)
-  static const bool useMockAuth = true;
+  // Flag untuk integrasi Directus (false = ambil data langsung dari Directus API)
+  static const bool useMockAuth = false;
 }

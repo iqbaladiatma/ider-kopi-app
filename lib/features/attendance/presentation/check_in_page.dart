@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,12 +8,9 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/image_utils.dart';
 import '../../../core/utils/location_utils.dart';
-import '../../../shared/widgets/custom_button.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../data/attendance_model.dart';
 import '../providers/attendance_providers.dart';
-import 'widgets/camera_section.dart';
-import 'widgets/location_card.dart';
 
 class CheckInPage extends ConsumerStatefulWidget {
   const CheckInPage({super.key});
@@ -22,18 +20,46 @@ class CheckInPage extends ConsumerStatefulWidget {
 }
 
 class _CheckInPageState extends ConsumerState<CheckInPage> {
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
+  bool _isCameraInitialized = false;
+
   double? _latitude;
   double? _longitude;
   bool? _isWithinRadius;
   bool _isLocationLoading = true;
   String? _locationError;
-  XFile? _selfieFile;
+  XFile? _capturedSelfie;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    _initCamera();
     _getCurrentLocation();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras == null || _cameras!.isEmpty) return;
+
+      final frontCamera = _cameras!.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.front,
+        orElse: () => _cameras!.first,
+      );
+
+      _cameraController = CameraController(
+        frontCamera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+      );
+
+      await _cameraController!.initialize();
+      if (mounted) setState(() => _isCameraInitialized = true);
+    } catch (_) {
+      if (mounted) setState(() => _isCameraInitialized = false);
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -64,14 +90,25 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     }
   }
 
-  bool get _canSubmit =>
-      !_isSubmitting &&
-      _selfieFile != null &&
-      _latitude != null &&
-      _longitude != null;
+  Future<void> _takePhoto() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    try {
+      final file = await _cameraController!.takePicture();
+      if (mounted) setState(() => _capturedSelfie = file);
+    } catch (e) {
+      _showError('Gagal mengambil foto: $e');
+    }
+  }
+
+  void _retakePhoto() {
+    setState(() => _capturedSelfie = null);
+  }
 
   Future<void> _handleSubmit() async {
-    if (!_canSubmit) return;
+    if (_capturedSelfie == null || _latitude == null || _longitude == null) {
+      _showError('Silakan ambil foto selfie dan pastikan GPS aktif');
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 
@@ -83,8 +120,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       }
 
       final repo = ref.read(attendanceRepositoryProvider);
-
-      final compressedFile = await ImageUtils.compressImage(_selfieFile!);
+      final compressedFile = await ImageUtils.compressImage(_capturedSelfie!);
       final fileId = await repo.uploadSelfie(compressedFile);
 
       final now = DateTime.now();
@@ -103,13 +139,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       ref.invalidate(historyProvider);
 
       if (mounted) {
-        _showSuccess();
-        await Future.delayed(const Duration(milliseconds: 1500));
-        if (mounted) {
-          final navigator = Navigator.of(context, rootNavigator: true);
-          if (navigator.canPop()) navigator.pop();
-          context.go('/home');
-        }
+        _showSuccessDialog();
       }
     } catch (e) {
       _showError('Gagal mengirim absensi: $e');
@@ -123,264 +153,234 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.error,
+        backgroundColor: AppColors.red,
       ),
     );
   }
 
-  void _showSuccess() {
-    if (!mounted) return;
+  void _showSuccessDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _SuccessDialog(
-        title: 'Absensi Terkirim',
-        message: 'Check-in berhasil pada ${AppDateUtils.formatTime(DateTime.now())} WIB',
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Absensi Masuk'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.go('/home'),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
           children: [
-            LocationCard(
-              latitude: _latitude,
-              longitude: _longitude,
-              isWithinRadius: _isWithinRadius,
-              isLoading: _isLocationLoading,
-              error: _locationError,
-              onRetry: _getCurrentLocation,
-            ),
-            if (_locationError != null) ...[
-              const SizedBox(height: 8),
-              Center(
-                child: TextButton.icon(
-                  onPressed: _getCurrentLocation,
-                  icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-                  label: const Text(
-                    'Coba Lagi',
-                    style: TextStyle(color: AppColors.primary),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            CameraSection(
-              onPhotoCaptured: (file) {
-                setState(() => _selfieFile = file);
-              },
-            ),
-            const SizedBox(height: 16),
-            _buildTimeCard(),
-            const SizedBox(height: 24),
-            CustomButton(
-              label: 'KIRIM ABSENSI',
-              icon: Icons.send_rounded,
-              onPressed: _canSubmit ? _handleSubmit : null,
-              isLoading: _isSubmitting,
-            ),
-            const SizedBox(height: 32),
+            Icon(Icons.check_circle_rounded, color: AppColors.green, size: 28),
+            SizedBox(width: 10),
+            Text('Absen Masuk Sah!', style: TextStyle(fontFamily: 'Sora', fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTimeCard() {
-    final now = DateTime.now();
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(12),
+        content: const Text('Foto selfie dan lokasi GPS telah berhasil dikirim.'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/home');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
             ),
-            child: const Icon(Icons.access_time_rounded, color: Colors.white, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Waktu',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        AppDateUtils.formatTime(now),
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 36,
-                  color: AppColors.borderLight,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Tanggal',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        AppDateUtils.formatDateShort(now),
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
     );
-  }
-}
-
-class _SuccessDialog extends StatefulWidget {
-  const _SuccessDialog({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  State<_SuccessDialog> createState() => _SuccessDialogState();
-}
-
-class _SuccessDialogState extends State<_SuccessDialog>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-    _controller.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _cameraController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    color: AppColors.successLight,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.success.withValues(alpha: 0.25),
-                      width: 2,
+    final gpsStatusText = _isLocationLoading
+        ? 'Mendapatkan GPS...'
+        : (_isWithinRadius == true
+            ? 'Dalam radius outlet · 12m'
+            : (_locationError != null ? 'GPS Gagal' : 'Luar radius outlet'));
+
+    return Scaffold(
+      backgroundColor: AppColors.ink,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Topbar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () => context.go('/home'),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                     ),
                   ),
-                  child: const Icon(Icons.check_rounded, color: AppColors.success, size: 44),
+                  const Text(
+                    'Absen Masuk',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                ],
+              ),
+            ),
+
+            // Camera Viewport Frame
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C20),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Preview Camera or Captured Photo
+                    if (_capturedSelfie != null)
+                      Image.file(
+                        File(_capturedSelfie!.path),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    else if (_isCameraInitialized && _cameraController != null)
+                      CameraPreview(_cameraController!)
+                    else
+                      const Center(
+                        child: CircularProgressIndicator(color: AppColors.red),
+                      ),
+
+                    // Top GPS Badge Overlay
+                    Positioned(
+                      top: 14,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.red.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                            Text(
+                              gpsStatusText,
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Face Guide Overlay
+                    if (_capturedSelfie == null)
+                      Container(
+                        width: 150,
+                        height: 190,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.35),
+                            width: 2.5,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Terima kasih! 🎉',
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+            ),
+
+            // Shutter / Action Controls
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+              child: _capturedSelfie == null
+                  ? GestureDetector(
+                      onTap: _takePhoto,
+                      child: Container(
+                        width: 66,
+                        height: 66,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        alignment: Alignment.center,
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          decoration: const BoxDecoration(
+                            color: AppColors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              onPressed: _retakePhoto,
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.white24),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                              ),
+                              child: const Text('Ulangi Foto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: _isSubmitting ? null : _handleSubmit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.red,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                              ),
+                              child: _isSubmitting
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Text('Kirim Absen', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
         ),
       ),
     );

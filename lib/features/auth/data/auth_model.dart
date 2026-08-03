@@ -1,4 +1,4 @@
-class AuthTokens {
+wclass AuthTokens {
   final String accessToken;
   final String refreshToken;
   final DateTime expiresAt;
@@ -65,6 +65,12 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     final role = json['role'] as Map<String, dynamic>?;
+    final rawOutlet = json['outlet']?.toString();
+    // Data dari Directus / Kangider otomatis masuk ke outlet IderKopi
+    final resolvedOutlet = (rawOutlet != null && rawOutlet.isNotEmpty)
+        ? (rawOutlet.contains('IderKopi') ? rawOutlet : 'IderKopi - $rawOutlet')
+        : 'IderKopi';
+
     return UserProfile(
       id: json['id']?.toString() ?? '',
       email: json['email'] ?? '',
@@ -72,7 +78,7 @@ class UserProfile {
       lastName: json['last_name'],
       kangiderId: json['kangider_id']?.toString(),
       kangiderNama: json['kangider_nama'],
-      outlet: json['outlet'],
+      outlet: resolvedOutlet,
       roleId: role?['id']?.toString(),
       roleName: role?['name'],
     );

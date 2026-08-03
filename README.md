@@ -31,4 +31,12 @@ Terhubung langsung ke Directus API di `api.iderkopi.id`.
 
 ## Dokumentasi
 
-Lihat folder `docs/` untuk dokumentasi lengkap.
+- **Dokumentasi Lengkap**: [`docs/DOKUMENTASI_LENGKAP.md`](docs/DOKUMENTASI_LENGKAP.md)
+- Lihat folder `docs/` untuk dokumentasi modular lainnya:
+  - `00-OVERVIEW.md` — gambaran umum project
+  - `01-ARCHITECTURE.md` — arsitektur sistem & API
+  - `02-DIRECTUS-SCHEMA.md` — schema & permissions Directus
+  - `03-FLUTTER-STRUCTURE.md` — struktur folder Flutter
+  - `04-UI-UX-DESIGN.md` — design system & mockup
+  - `05-DEPENDENCIES.md` — daftar dependencies
+  - `06-ROADMAP.md` — roadmap pengembangan

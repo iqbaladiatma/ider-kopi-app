@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
-import '../../../shared/widgets/loading_overlay.dart';
 import '../data/admin_user_model.dart';
 import '../providers/admin_providers.dart';
 
@@ -18,64 +15,352 @@ class AdminUsersPage extends ConsumerStatefulWidget {
 }
 
 class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
-  bool _isDeleting = false;
+  int _activeTab = 0; // 0: Outlet, 1: Karyawan
 
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kelola User'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/admin'),
+      backgroundColor: AppColors.white,
+      body: RefreshIndicator(
+        color: AppColors.ink,
+        onRefresh: () async => ref.invalidate(usersProvider),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Signature Block Header Dark Ink
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                  22,
+                  MediaQuery.of(context).padding.top + 18,
+                  22,
+                  20,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.ink,
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Kelola Outlet & User',
+                          style: TextStyle(
+                            fontFamily: 'Sora',
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => _showAddUserDialog(context),
+                          icon: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Segmented Tab
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _activeTab = 0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: _activeTab == 0 ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Daftar Outlet',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: _activeTab == 0 ? AppColors.ink : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _activeTab = 1),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: _activeTab == 1 ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Data Karyawan',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: _activeTab == 1 ? AppColors.ink : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Tab View Content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: _activeTab == 0
+                    ? _buildOutletTab()
+                    : _buildUserTab(usersAsync),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add),
-            onPressed: () => _showAddUserDialog(context),
+      ),
+    );
+  }
+
+  Widget _buildOutletTab() {
+    final outlets = [
+      (name: 'Malioboro', pct: 90, addr: 'Jl. Malioboro No. 52, Yogyakarta', info: '9 / 10 HADIR', radius: 'RADIUS 150M'),
+      (name: 'Kotabaru', pct: 78, addr: 'Jl. Suroto No. 8, Kotabaru', info: '7 / 9 HADIR', radius: 'RADIUS 150M'),
+      (name: 'Sudirman', pct: 100, addr: 'Jl. Jend. Sudirman No. 21', info: '8 / 8 HADIR', radius: 'RADIUS 100M'),
+      (name: 'Seturan', pct: 85, addr: 'Jl. Seturan Raya No. 12', info: '6 / 7 HADIR', radius: 'RADIUS 150M'),
+    ];
+
+    return Column(
+      children: outlets.map((o) => _buildOutletCard(o)).toList(),
+    );
+  }
+
+  Widget _buildOutletCard(({String name, int pct, String addr, String info, String radius}) o) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                o.name,
+                style: const TextStyle(
+                  fontFamily: 'Sora',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                '${o.pct}%',
+                style: const TextStyle(
+                  fontFamily: 'Space Mono',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.red,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 3),
+          Text(
+            o.addr,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 10.5,
+              color: AppColors.muted,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Progress Bar Track & Fill
+          Container(
+            height: 6,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: o.pct / 100.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.red,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 9),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                o.info,
+                style: const TextStyle(
+                  fontFamily: 'Space Mono',
+                  fontSize: 9,
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                o.radius,
+                style: const TextStyle(
+                  fontFamily: 'Space Mono',
+                  fontSize: 9,
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      body: LoadingOverlay(
-        isLoading: _isDeleting,
-        message: 'Menghapus user...',
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async => ref.invalidate(usersProvider),
-          child: usersAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+    );
+  }
+
+  Widget _buildUserTab(AsyncValue<List<AdminUser>> usersAsync) {
+    return usersAsync.when(
+      loading: () => const SizedBox(
+        height: 150,
+        child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+      ),
+      error: (e, _) => ErrorView(
+        message: 'Gagal memuat data karyawan: $e',
+        onRetry: () => ref.invalidate(usersProvider),
+      ),
+      data: (users) {
+        if (users.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: EmptyView(
+              icon: Icons.people_outline_rounded,
+              title: 'Belum ada data karyawan',
+              subtitle: 'Tambahkan karyawan baru dengan tombol + di atas',
             ),
-            error: (e, _) => ErrorView(
-              message: 'Gagal memuat data user: $e',
-              onRetry: () => ref.invalidate(usersProvider),
+          );
+        }
+
+        return Column(
+          children: users.map((u) => _buildUserCard(u)).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildUserCard(AdminUser user) {
+    final name = user.fullName;
+    final initials = name.isNotEmpty
+        ? name.trim().split(' ').map((e) => e[0]).take(2).join()
+        : 'IK';
+    final outlet = user.outlet ?? 'HQ';
+    final role = user.roleName ?? 'Karyawan';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(12),
             ),
-            data: (users) {
-              if (users.isEmpty) {
-                return const EmptyView(
-                  icon: Icons.people_outline,
-                  title: 'Belum ada user',
-                  subtitle: 'Tambahkan user baru dengan tombol + di atas',
-                );
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: users.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return _UserCard(
-                    user: user,
-                    onEdit: () => _showEditUserDialog(context, user),
-                    onDelete: () => _confirmDelete(context, user),
-                  );
-                },
-              );
-            },
+            alignment: Alignment.center,
+            child: Text(
+              initials.toUpperCase(),
+              style: const TextStyle(
+                fontFamily: 'Sora',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  '$role · $outlet',
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (val) {
+              if (val == 'edit') _showEditUserDialog(context, user);
+              if (val == 'delete') _confirmDelete(context, user);
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              const PopupMenuItem(value: 'delete', child: Text('Hapus', style: TextStyle(color: AppColors.red))),
+            ],
+            icon: const Icon(Icons.more_vert_rounded, color: AppColors.muted, size: 20),
+          ),
+        ],
       ),
     );
   }
@@ -85,137 +370,98 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
     final passwordCtrl = TextEditingController();
     final firstNameCtrl = TextEditingController();
     final lastNameCtrl = TextEditingController();
-    final kangiderNamaCtrl = TextEditingController();
     final outletCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
-      builder: (dialogContext) => _FormDialog(
-        title: 'Tambah User',
-        formKey: formKey,
-        fields: [
-          _FormField(
-            controller: emailCtrl,
-            label: 'Email',
-            keyboardType: TextInputType.emailAddress,
-            validator: (v) => v!.trim().isEmpty ? 'Email wajib diisi' : null,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Tambah Karyawan', style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email')),
+              const SizedBox(height: 10),
+              TextField(controller: passwordCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
+              const SizedBox(height: 10),
+              TextField(controller: firstNameCtrl, decoration: const InputDecoration(labelText: 'Nama Depan')),
+              const SizedBox(height: 10),
+              TextField(controller: lastNameCtrl, decoration: const InputDecoration(labelText: 'Nama Belakang')),
+              const SizedBox(height: 10),
+              TextField(controller: outletCtrl, decoration: const InputDecoration(labelText: 'Outlet')),
+            ],
           ),
-          _FormField(
-            controller: passwordCtrl,
-            label: 'Password',
-            obscure: true,
-            validator: (v) => v!.isEmpty ? 'Password wajib diisi' : null,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              try {
+                final repo = ref.read(adminRepositoryProvider);
+                await repo.createUser(CreateUserData(
+                  email: emailCtrl.text.trim(),
+                  password: passwordCtrl.text,
+                  firstName: firstNameCtrl.text.trim(),
+                  lastName: lastNameCtrl.text.trim(),
+                  outlet: outletCtrl.text.trim(),
+                  roleId: 2,
+                ));
+                ref.invalidate(usersProvider);
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menambah user: $e')));
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+            child: const Text('Simpan', style: TextStyle(color: Colors.white)),
           ),
-          _FormField(controller: firstNameCtrl, label: 'Nama Depan'),
-          _FormField(controller: lastNameCtrl, label: 'Nama Belakang'),
-          _FormField(controller: kangiderNamaCtrl, label: 'Nama Kangider'),
-          _FormField(controller: outletCtrl, label: 'Outlet'),
         ],
-        submitLabel: 'Simpan',
-        onSubmit: () async {
-          if (!formKey.currentState!.validate()) return;
-          Navigator.pop(dialogContext);
-
-          final roles = await ref.read(rolesProvider.future);
-          final userRole = roles
-              .where((r) => r['name']?.toString().toLowerCase() != 'admin')
-              .toList();
-
-          if (userRole.isEmpty) {
-            if (mounted) {
-              // ignore: use_build_context_synchronously
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Role user tidak ditemukan')),
-              );
-            }
-            return;
-          }
-
-          try {
-            final repo = ref.read(adminRepositoryProvider);
-            await repo.createUser(CreateUserData(
-              email: emailCtrl.text.trim(),
-              password: passwordCtrl.text,
-              firstName: firstNameCtrl.text.trim().isEmpty
-                  ? null
-                  : firstNameCtrl.text.trim(),
-              lastName: lastNameCtrl.text.trim().isEmpty
-                  ? null
-                  : lastNameCtrl.text.trim(),
-              kangiderNama: kangiderNamaCtrl.text.trim().isEmpty
-                  ? null
-                  : kangiderNamaCtrl.text.trim(),
-              outlet: outletCtrl.text.trim().isEmpty
-                  ? null
-                  : outletCtrl.text.trim(),
-              roleId: userRole.first['id'],
-            ));
-            ref.invalidate(usersProvider);
-            if (mounted) {
-              // ignore: use_build_context_synchronously
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User berhasil ditambahkan')),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              // ignore: use_build_context_synchronously
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Gagal menambah user: $e')),
-              );
-            }
-          }
-        },
       ),
     );
   }
 
   void _showEditUserDialog(BuildContext context, AdminUser user) {
-    final firstNameCtrl = TextEditingController(text: user.firstName ?? '');
-    final lastNameCtrl = TextEditingController(text: user.lastName ?? '');
-    final kangiderNamaCtrl =
-        TextEditingController(text: user.kangiderNama ?? '');
-    final outletCtrl = TextEditingController(text: user.outlet ?? '');
+    final firstNameCtrl = TextEditingController(text: user.firstName);
+    final lastNameCtrl = TextEditingController(text: user.lastName);
 
     showDialog(
       context: context,
-      builder: (dialogContext) => _FormDialog(
-        title: 'Edit User',
-        subtitle: user.email,
-        fields: [
-          _FormField(controller: firstNameCtrl, label: 'Nama Depan'),
-          _FormField(controller: lastNameCtrl, label: 'Nama Belakang'),
-          _FormField(controller: kangiderNamaCtrl, label: 'Nama Kangider'),
-          _FormField(controller: outletCtrl, label: 'Outlet'),
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Edit User', style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: firstNameCtrl, decoration: const InputDecoration(labelText: 'Nama Depan')),
+            const SizedBox(height: 10),
+            TextField(controller: lastNameCtrl, decoration: const InputDecoration(labelText: 'Nama Belakang')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              try {
+                final repo = ref.read(adminRepositoryProvider);
+                await repo.updateUser(user.id, UpdateUserData(
+                  firstName: firstNameCtrl.text.trim(),
+                  lastName: lastNameCtrl.text.trim(),
+                ));
+                ref.invalidate(usersProvider);
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal mengubah user: $e')));
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+            child: const Text('Simpan', style: TextStyle(color: Colors.white)),
+          ),
         ],
-        submitLabel: 'Simpan',
-        onSubmit: () async {
-          Navigator.pop(dialogContext);
-          try {
-            final repo = ref.read(adminRepositoryProvider);
-            await repo.updateUser(user.id, {
-              'first_name': firstNameCtrl.text.trim(),
-              'last_name': lastNameCtrl.text.trim(),
-              'kangider_nama': kangiderNamaCtrl.text.trim(),
-              'outlet': outletCtrl.text.trim(),
-            });
-            ref.invalidate(usersProvider);
-            if (mounted) {
-              // ignore: use_build_context_synchronously
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User berhasil diperbarui')),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              // ignore: use_build_context_synchronously
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Gagal memperbarui: $e')),
-              );
-            }
-          }
-        },
       ),
     );
   }
@@ -223,316 +469,30 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
   void _confirmDelete(BuildContext context, AdminUser user) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28),
-            SizedBox(width: 8),
-            Text('Hapus User'),
-          ],
-        ),
+        title: const Text('Hapus User'),
         content: Text('Yakin ingin menghapus ${user.fullName}?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Batal'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
             onPressed: () async {
-              Navigator.pop(dialogContext);
-              setState(() => _isDeleting = true);
+              Navigator.pop(dialogCtx);
               try {
                 final repo = ref.read(adminRepositoryProvider);
                 await repo.deleteUser(user.id);
                 ref.invalidate(usersProvider);
-                if (mounted) {
-                  // ignore: use_build_context_synchronously
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User berhasil dihapus')),
-                  );
-                }
               } catch (e) {
                 if (mounted) {
-                  // ignore: use_build_context_synchronously
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Gagal menghapus: $e')),
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus user: $e')));
                 }
-              } finally {
-                if (mounted) setState(() => _isDeleting = false);
               }
             },
-            child: const Text('Hapus'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
-  }
-}
-
-class _FormField {
-  final TextEditingController controller;
-  final String label;
-  final bool obscure;
-  final TextInputType? keyboardType;
-  final String? Function(String?)? validator;
-
-  _FormField({
-    required this.controller,
-    required this.label,
-    this.obscure = false,
-    this.keyboardType,
-    this.validator,
-  });
-}
-
-class _FormDialog extends StatelessWidget {
-  const _FormDialog({
-    required this.title,
-    this.subtitle,
-    required this.fields,
-    required this.submitLabel,
-    required this.onSubmit,
-    this.formKey,
-  });
-
-  final String title;
-  final String? subtitle;
-  final List<_FormField> fields;
-  final String submitLabel;
-  final Future<void> Function() onSubmit;
-  final GlobalKey<FormState>? formKey;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 20),
-                ...fields.map((f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: TextFormField(
-                        controller: f.controller,
-                        decoration: InputDecoration(
-                          labelText: f.label,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 14),
-                        ),
-                        obscureText: f.obscure,
-                        keyboardType: f.keyboardType,
-                        validator: f.validator,
-                      ),
-                    )),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                      ),
-                      onPressed: () => onSubmit(),
-                      child: Text(submitLabel),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _UserCard extends StatelessWidget {
-  const _UserCard({
-    required this.user,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final AdminUser user;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final initials = _getInitials(user.fullName);
-    final isAdmin = user.roleName?.toLowerCase() == 'admin';
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppTheme.softShadow,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: isAdmin ? AppColors.primaryGradient : null,
-                color: isAdmin ? null : AppColors.surfaceAlt,
-                border: Border.all(
-                  color: isAdmin ? Colors.white : AppColors.border,
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  initials,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isAdmin ? Colors.white : AppColors.gray600,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.fullName,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    user.email,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (user.outlet != null) ...[
-                        const Icon(Icons.store, size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Text(
-                          user.outlet!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: isAdmin
-                              ? AppColors.primaryLight
-                              : AppColors.successLight,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          user.roleName ?? 'User',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isAdmin
-                                ? AppColors.primary
-                                : AppColors.success,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, color: AppColors.textMuted),
-              onSelected: (value) {
-                if (value == 'edit') onEdit();
-                if (value == 'delete') onDelete();
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Text('Hapus',
-                      style: TextStyle(color: AppColors.error)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getInitials(String name) {
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    if (parts.isNotEmpty && parts[0].isNotEmpty) {
-      return parts[0][0].toUpperCase();
-    }
-    return '?';
   }
 }

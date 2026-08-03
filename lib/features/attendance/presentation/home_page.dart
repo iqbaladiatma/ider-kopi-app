@@ -1,15 +1,14 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/providers/brand_provider.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../data/attendance_model.dart';
 import '../providers/attendance_providers.dart';
-import 'widgets/attendance_summary_card.dart';
-import 'widgets/history_list_item.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,91 +17,384 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(currentUserProvider);
     final todayAsync = ref.watch(todayAttendanceProvider);
-    final historyAsync = ref.watch(historyProvider);
+    final activeBrand = ref.watch(activeBrandProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.white,
       body: RefreshIndicator(
-        color: AppColors.primary,
-        strokeWidth: 2.5,
+        color: activeBrand.primaryColor,
         onRefresh: () async {
           ref.invalidate(todayAttendanceProvider);
           ref.invalidate(historyProvider);
         },
-        child: CustomScrollView(
+        child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // App Bar
-            SliverAppBar(
-              expandedHeight: 0,
-              floating: true,
-              snap: true,
-              backgroundColor: AppColors.background,
-              elevation: 0,
-              scrolledUnderElevation: 0.5,
-              shadowColor: AppColors.cardShadow,
-              title: Row(
+          child: Column(
+            children: [
+              // Signature Header + Floating Ring Card
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
+                  // Block Header
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(
+                      22,
+                      MediaQuery.of(context).padding.top + 16,
+                      22,
+                      56,
+                    ),
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(9),
+                      color: activeBrand.primaryColor,
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
                     ),
-                    child: const Icon(Icons.coffee_rounded, size: 17, color: Colors.white),
+                    child: Column(
+                      children: [
+                        // Top Header Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppDateUtils.formatFullDate(DateTime.now()),
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                userAsync.when(
+                                  data: (user) => Text(
+                                    user?.fullName ?? 'Karyawan',
+                                    style: const TextStyle(
+                                      fontFamily: 'Sora',
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  loading: () => const SizedBox(
+                                    width: 120,
+                                    height: 24,
+                                    child: LinearProgressIndicator(color: Colors.white, backgroundColor: Colors.white24),
+                                  ),
+                                  error: (_, __) => const Text(
+                                    'Karyawan',
+                                    style: TextStyle(
+                                      fontFamily: 'Sora',
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // Avatar Circle & Mode Pill
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                userAsync.when(
+                                  data: (user) {
+                                    final initials = user?.fullName.isNotEmpty == true
+                                        ? user!.fullName.trim().split(' ').map((e) => e[0]).take(2).join()
+                                        : 'IK';
+                                    return Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.16),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        initials.toUpperCase(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Sora',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  loading: () => const SizedBox(width: 38, height: 38),
+                                  error: (_, __) => const SizedBox(width: 38, height: 38),
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Mode Badge Pill
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(activeBrand.iconData, color: Colors.white, size: 12),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        activeBrand.badgeText,
+                                        style: const TextStyle(
+                                          fontFamily: 'Space Mono',
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'IderKopi',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.4,
-                    ),
+
+                  // Floating Ring Card (Overlay)
+                  Positioned(
+                    left: 22,
+                    right: 22,
+                    bottom: -36,
+                    child: _buildRingCard(todayAsync, activeBrand),
                   ),
                 ],
               ),
-              actions: [
-                Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  child: IconButton(
-                    icon: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceAlt,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border),
+
+              const SizedBox(height: 52),
+
+              // Main Body Content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: Column(
+                  children: [
+                    // Punch Button (Absen Masuk / Absen Pulang)
+                    _buildPunchButton(context, todayAsync, activeBrand),
+
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Wajib foto selfie + lokasi GPS',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 10.5,
+                        color: AppColors.muted,
+                        fontWeight: FontWeight.w500,
                       ),
-                      child: const Icon(Icons.person_outline_rounded, size: 18, color: AppColors.textSecondary),
                     ),
-                    onPressed: () => context.go('/profile'),
+
+                    const SizedBox(height: 18),
+
+                    // Feature Cards: Izin & Lembur
+                    _buildFeatureActionCards(context, todayAsync),
+
+                    const SizedBox(height: 24),
+
+                    // Section Title
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Aktivitas Hari Ini (${activeBrand.name})',
+                          style: const TextStyle(
+                            fontFamily: 'Sora',
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => context.go('/history'),
+                          child: Text(
+                            'Riwayat',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: activeBrand.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Timeline
+                    _buildTimeline(todayAsync),
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRingCard(AsyncValue<AttendanceRecord?> todayAsync, AppBrand activeBrand) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x2E101012),
+            blurRadius: 30,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Ring Chart
+          SizedBox(
+            width: 74,
+            height: 74,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(74, 74),
+                  painter: _RingPainter(
+                    ringColor: activeBrand.primaryColor,
+                    progress: todayAsync.when(
+                      data: (rec) => rec?.keluar != null ? 1.0 : (rec?.masuk != null ? 0.5 : 0.0),
+                      loading: () => 0.0,
+                      error: (_, __) => 0.0,
+                    ),
+                  ),
+                ),
+                Text(
+                  todayAsync.when(
+                    data: (rec) => rec?.keluar != null ? '100%' : (rec?.masuk != null ? '50%' : '0%'),
+                    loading: () => '0%',
+                    error: (_, __) => '0%',
+                  ),
+                  style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
                   ),
                 ),
               ],
             ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildGreetingCard(userAsync),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Status Hari Ini'),
-                  const SizedBox(height: 10),
-                  _buildTodayStatus(context, todayAsync),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Aksi Cepat'),
-                  const SizedBox(height: 10),
-                  _buildActionCards(context, todayAsync),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Riwayat Terkini'),
-                  const SizedBox(height: 10),
-                  _buildRecentHistory(historyAsync),
-                  const SizedBox(height: 16),
-                ]),
+          ),
+
+          const SizedBox(width: 16),
+
+          // Time Info
+          Expanded(
+            child: todayAsync.when(
+              data: (rec) {
+                final displayTime = rec?.masuk ?? '07:30';
+                final subText = rec?.keluar != null
+                    ? 'Shift selesai hari ini'
+                    : (rec?.masuk != null ? 'Sudah absen masuk (${activeBrand.name})' : 'Belum absen hari ini');
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      displayTime,
+                      style: const TextStyle(
+                        fontFamily: 'Sora',
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subText,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const SizedBox(
+                height: 40,
+                child: Center(child: CircularProgressIndicator(color: AppColors.red, strokeWidth: 2)),
+              ),
+              error: (_, __) => const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '--:--',
+                    style: TextStyle(fontFamily: 'Sora', fontSize: 22, fontWeight: FontWeight.w700),
+                  ),
+                  Text('Belum absen', style: TextStyle(fontSize: 11, color: AppColors.muted)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPunchButton(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync, AppBrand activeBrand) {
+    final hasCheckedIn = todayAsync.asData?.value?.masuk != null;
+    final hasCheckedOut = todayAsync.asData?.value?.keluar != null;
+
+    final String label;
+    final VoidCallback? onPressed;
+
+    if (hasCheckedOut) {
+      label = 'Absensi Selesai Hari Ini';
+      onPressed = null;
+    } else if (hasCheckedIn) {
+      label = 'Absen Pulang (${activeBrand.name})';
+      onPressed = () => context.go('/check-out');
+    } else {
+      label = 'Absen Masuk (${activeBrand.name})';
+      onPressed = () => context.go('/check-in');
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: activeBrand.primaryColor,
+          disabledBackgroundColor: AppColors.muted.withValues(alpha: 0.3),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(100),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.access_time_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 9),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
           ],
@@ -111,170 +403,216 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildFeatureActionCards(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
+    final rec = todayAsync.asData?.value;
+    final hasCheckedIn = rec?.masuk != null;
+
     return Row(
       children: [
-        Container(
-          width: 4,
-          height: 18,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(2),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              if (!hasCheckedIn) {
+                context.go('/check-in');
+              } else {
+                context.go('/check-out', extra: 'Izin');
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.local_hospital_rounded, color: AppColors.ink, size: 20),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Izin',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      Text(
+                        'Pengajuan Izin',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 10,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 10),
-        Text(
-          title,
-          style: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.2,
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              if (!hasCheckedIn) {
+                context.go('/check-in');
+              } else {
+                context.go('/check-out', extra: 'Lembur');
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.access_time_filled_rounded, color: AppColors.ink, size: 20),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lembur',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      Text(
+                        'Absen Lembur',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 10,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildGreetingCard(AsyncValue userAsync) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: AppTheme.gradientShadow,
-      ),
-      child: Stack(
-        children: [
-          // Decorative circles
-          Positioned(
-            top: -30,
-            right: -15,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.07),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -40,
-            left: -15,
-            child: Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 20,
-            right: 60,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.25),
-              ),
-            ),
-          ),
-          userAsync.when(
-            loading: () => const SizedBox(
-              height: 90,
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            error: (_, __) => _buildGreetingContent('Pengguna', ''),
-            data: (user) => _buildGreetingContent(
-              user?.fullName ?? 'Pengguna',
-              user?.outlet ?? user?.kangiderNama ?? '',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildTimeline(AsyncValue<AttendanceRecord?> todayAsync) {
+    final rec = todayAsync.asData?.value;
+    final isDoneIn = rec?.masuk != null;
+    final isDoneOut = rec?.keluar != null;
 
-  Widget _buildGreetingContent(String name, String outlet) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '${AppDateUtils.greeting()} 👋',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.8),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
-        ),
-        if (outlet.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.store_rounded, size: 12, color: Colors.white70),
-                const SizedBox(width: 5),
-                Text(
-                  outlet,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: 16),
+        // Item Masuk
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20),
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.line)),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.calendar_today_rounded, color: Colors.white70, size: 13),
-              const SizedBox(width: 6),
-              Text(
-                AppDateUtils.formatDate(DateTime.now()),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isDoneIn ? AppColors.greenBg : AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  isDoneIn ? Icons.check_rounded : Icons.radio_button_unchecked_rounded,
+                  size: isDoneIn ? 18 : 14,
+                  color: isDoneIn ? AppColors.green : AppColors.muted,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Absen Masuk',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      isDoneIn ? '${rec!.masuk} WIB · Tepat waktu' : 'Estimasi 07:30 WIB',
+                      style: const TextStyle(
+                        fontFamily: 'Space Mono',
+                        fontSize: 11,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Item Pulang
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.line)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isDoneOut ? AppColors.greenBg : AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  isDoneOut ? Icons.check_rounded : Icons.radio_button_unchecked_rounded,
+                  size: isDoneOut ? 18 : 14,
+                  color: isDoneOut ? AppColors.green : AppColors.muted,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Absen Pulang',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      isDoneOut ? '${rec!.keluar} WIB' : 'Estimasi 17:00 WIB',
+                      style: const TextStyle(
+                        fontFamily: 'Space Mono',
+                        fontSize: 11,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -283,312 +621,43 @@ class HomePage extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _buildTodayStatus(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
-    return todayAsync.when(
-      loading: () => _buildLoadingCard(height: 100),
-      error: (e, _) => _buildStatusEmptyCard(),
-      data: (record) {
-        if (record == null) return _buildStatusEmptyCard();
-        return AttendanceSummaryCard(record: record);
-      },
+class _RingPainter extends CustomPainter {
+  _RingPainter({required this.progress, required this.ringColor});
+
+  final double progress;
+  final Color ringColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - 8) / 2;
+
+    final trackPaint = Paint()
+      ..color = AppColors.surfaceAlt
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8;
+
+    final fillPaint = Paint()
+      ..color = ringColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    final sweepAngle = 2 * math.pi * progress;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      sweepAngle,
+      false,
+      fillPaint,
     );
   }
 
-  Widget _buildStatusEmptyCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppTheme.softShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStatusRow('Check In', 'Belum', false),
-          const Divider(height: 24, color: AppColors.borderLight),
-          _buildStatusRow('Check Out', 'Belum', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingCard({required double height}) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: const Center(
-        child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5),
-      ),
-    );
-  }
-
-  Widget _buildStatusRow(String label, String value, bool isDone) {
-    final color = isDone ? AppColors.success : AppColors.textMuted;
-    final icon = isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded;
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 12),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCards(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
-    return todayAsync.when(
-      loading: () => Row(
-        children: [
-          Expanded(child: _buildLoadingCard(height: 96)),
-          const SizedBox(width: 12),
-          Expanded(child: _buildLoadingCard(height: 96)),
-        ],
-      ),
-      error: (_, __) => _buildTwoActions(context,
-        left: (Icons.camera_alt_rounded, 'Check In', () => context.push('/check-in'), true),
-        right: (Icons.receipt_long_rounded, 'Riwayat', () => context.go('/history'), true),
-      ),
-      data: (record) {
-        if (record == null || !record.hasCheckedIn) {
-          return _buildTwoActions(context,
-            left: (Icons.camera_alt_rounded, 'Check In', () => context.push('/check-in'), true),
-            right: (Icons.receipt_long_rounded, 'Riwayat', () => context.go('/history'), true),
-          );
-        }
-        if (record.hasCheckedOut) {
-          return _buildTwoActions(context,
-            left: (Icons.check_circle_outline_rounded, 'Selesai', null, false),
-            right: (Icons.receipt_long_rounded, 'Riwayat', () => context.go('/history'), true),
-          );
-        }
-        if (!_isWorkingHours()) {
-          return _buildTwoActions(context,
-            left: (Icons.logout_rounded, 'Check Out', () => context.push('/check-out'), true),
-            right: (Icons.receipt_long_rounded, 'Riwayat', () => context.go('/history'), true),
-          );
-        }
-        return Column(
-          children: [
-            _buildTwoActions(context,
-              left: (Icons.logout_rounded, 'Check Out', null, false),
-              right: (Icons.receipt_long_rounded, 'Riwayat', () => context.go('/history'), true),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.warningLight,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline_rounded, color: AppColors.warningDark, size: 16),
-                  SizedBox(width: 8),
-                  Text(
-                    'Pilih alasan check out awal:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.warningDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            _buildTwoActions(context,
-              left: (Icons.work_history_rounded, 'Lembur', () => _goToCheckOut(context, 'Lembur'), true),
-              right: (Icons.sick_rounded, 'Izin', () => _goToCheckOut(context, 'Izin'), true),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildTwoActions(
-    BuildContext context, {
-    required (IconData, String, VoidCallback?, bool) left,
-    required (IconData, String, VoidCallback?, bool) right,
-  }) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: left.$1,
-            label: left.$2,
-            onTap: left.$3,
-            enabled: left.$4,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: right.$1,
-            label: right.$2,
-            onTap: right.$3,
-            enabled: right.$4,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    VoidCallback? onTap,
-    bool enabled = true,
-  }) {
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.45,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.border),
-              boxShadow: AppTheme.softShadow,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: enabled
-                        ? AppColors.primaryGradient
-                        : null,
-                    color: enabled ? null : AppColors.surfaceAlt,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: enabled
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.25),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: enabled ? Colors.white : AppColors.textMuted,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: enabled ? AppColors.textPrimary : AppColors.textMuted,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  bool _isWorkingHours() {
-    final now = DateTime.now();
-    return now.hour >= 8 && now.hour < 17;
-  }
-
-  void _goToCheckOut(BuildContext context, String reason) {
-    context.push('/check-out', extra: reason);
-  }
-
-  Widget _buildRecentHistory(AsyncValue<List<AttendanceRecord>> historyAsync) {
-    return historyAsync.when(
-      loading: () => const SizedBox(
-        height: 160,
-        child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5)),
-      ),
-      error: (e, _) => const SizedBox(
-        height: 80,
-        child: Center(
-          child: Text('Gagal memuat riwayat', style: TextStyle(color: AppColors.textMuted)),
-        ),
-      ),
-      data: (records) {
-        if (records.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.receipt_long_rounded, size: 44, color: AppColors.textLight),
-                SizedBox(height: 12),
-                Text(
-                  'Belum ada riwayat',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textMuted,
-                    fontSize: 15,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Mulai absen hari ini',
-                  style: TextStyle(color: AppColors.textLight, fontSize: 13),
-                ),
-              ],
-            ),
-          );
-        }
-        final recent = records.take(3).toList();
-        return Column(
-          children: recent
-              .map((r) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: HistoryListItem(record: r),
-                  ))
-              .toList(),
-        );
-      },
-    );
-  }
+  @override
+  bool shouldRepaint(_RingPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.ringColor != ringColor;
 }

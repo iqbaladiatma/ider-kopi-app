@@ -21,8 +21,8 @@ class _AdminShellState extends State<AdminShell> {
   late PageController _pageController;
 
   int _getPageIndex(String path) {
-    if (path == '/admin/users') return 1;
-    if (path == '/admin/attendance') return 2;
+    if (path == '/admin/attendance') return 1;
+    if (path == '/admin/users') return 2;
     if (path == '/admin/profile') return 3;
     return 0; // /admin
   }
@@ -45,7 +45,7 @@ class _AdminShellState extends State<AdminShell> {
       if (currentPage != targetPage) {
         _pageController.animateToPage(
           targetPage,
-          duration: const Duration(milliseconds: 350),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
         );
       }
@@ -67,8 +67,8 @@ class _AdminShellState extends State<AdminShell> {
         physics: const NeverScrollableScrollPhysics(),
         children: const [
           AdminDashboardPage(),
-          AdminUsersPage(),
           AdminAttendancePage(),
+          AdminUsersPage(),
           AdminProfilePage(),
         ],
       ),
@@ -85,118 +85,68 @@ class _AdminBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _NavItem(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard_rounded, label: 'Dashboard', path: '/admin'),
-      _NavItem(icon: Icons.people_outline_rounded, activeIcon: Icons.people_rounded, label: 'User', path: '/admin/users'),
-      _NavItem(icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long_rounded, label: 'Absensi', path: '/admin/attendance'),
-      _NavItem(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profil', path: '/admin/profile'),
+      (icon: Icons.home_rounded, label: 'Beranda', path: '/admin'),
+      (icon: Icons.check_circle_outline_rounded, label: 'Absensi', path: '/admin/attendance'),
+      (icon: Icons.storefront_rounded, label: 'Outlet', path: '/admin/users'),
+      (icon: Icons.person_rounded, label: 'Profil', path: '/admin/profile'),
     ];
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: const BoxDecoration(
+        color: AppColors.white,
         border: Border(
-          top: BorderSide(color: AppColors.border.withValues(alpha: 0.8), width: 1),
+          top: BorderSide(color: AppColors.line, width: 1),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, -4),
-          ),
-        ],
       ),
       child: SafeArea(
         top: false,
-        bottom: true,
         child: Padding(
-          padding: const EdgeInsets.only(top: 6, bottom: 10, left: 8, right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: items.map((item) {
-              final isActive = currentPath == item.path ||
-                  (item.path == '/admin' && currentPath == '/admin');
-              return _buildItem(context, item, isActive);
+              final isActive = currentPath == item.path;
+              return GestureDetector(
+                onTap: () {
+                  if (!isActive) {
+                    HapticFeedback.selectionClick();
+                    context.go(item.path);
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isActive ? AppColors.redLight : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        item.icon,
+                        size: 20,
+                        color: isActive ? AppColors.red : AppColors.muted,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        item.label,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 9.5,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                          color: isActive ? AppColors.red : AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }).toList(),
           ),
         ),
       ),
     );
   }
-
-  Widget _buildItem(BuildContext context, _NavItem item, bool isActive) {
-    return GestureDetector(
-      onTap: () {
-        if (!isActive) {
-          HapticFeedback.selectionClick();
-          context.go(item.path);
-        }
-      },
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 2),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: isActive ? AppColors.primaryLight : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedScale(
-                scale: isActive ? 1.1 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, animation) {
-                    return ScaleTransition(
-                      scale: animation,
-                      child: FadeTransition(opacity: animation, child: child),
-                    );
-                  },
-                  child: Icon(
-                    isActive ? item.activeIcon : item.icon,
-                    key: ValueKey(isActive),
-                    size: 22,
-                    color: isActive ? AppColors.primary : AppColors.textMuted,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 10.5,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? AppColors.primary : AppColors.textMuted,
-              ),
-              child: Text(item.label),
-            ),
-            const SizedBox(height: 2),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final String path;
-
-  _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.path,
-  });
 }

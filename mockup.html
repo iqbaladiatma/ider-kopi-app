@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IderKopi Absensi — Modern Merah Putih</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#E11D2E;
+    --red-dark:#A10E1E;
+    --red-light:#FDECEE;
+    --ink:#101012;
+    --white:#FFFFFF;
+    --surface:#F7F7F8;
+    --muted:#78767A;
+    --line: rgba(16,16,18,0.08);
+    --green:#15803D;
+    --green-bg:#E6F4EA;
+    --amber:#B45309;
+    --amber-bg:#FBF0DE;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:#E9E9EA;
+    font-family:'Inter', sans-serif;
+    padding: 50px 20px 80px; color: var(--ink);
+  }
+  .display{ font-family:'Sora', sans-serif; }
+  .mono{ font-family:'Space Mono', monospace; }
+
+  .group{ max-width: 1400px; margin: 0 auto 8px; }
+  .group-head{ display:flex; align-items:baseline; gap:14px; margin: 0 4px 26px; padding-top: 46px; border-top: 1px solid var(--line); }
+  .group:first-child .group-head{ border-top:none; padding-top:0; }
+  .group-eyebrow{ font-family:'Space Mono'; font-size:10.5px; color:var(--red); font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+  .group-title{ font-family:'Sora'; font-weight:800; font-size:26px; }
+  .group-desc{ font-size:12.5px; color:var(--muted); margin-left:auto; max-width:340px; text-align:right; }
+
+  .stage{ display:flex; gap:26px; flex-wrap:wrap; justify-content:flex-start; align-items:flex-start; }
+  .note{ width:328px; text-align:center; font-family:'Space Mono', monospace; font-size:10px; letter-spacing:0.07em; text-transform:uppercase; color:#89878B; margin-bottom:8px; }
+
+  .phone{ width:328px; height:696px; background: var(--ink); border-radius:38px; padding:10px; box-shadow: 0 24px 46px -20px rgba(16,16,18,0.4); position:relative; }
+  .screen{ width:100%; height:100%; background: var(--white); border-radius:29px; overflow:hidden; position:relative; display:flex; flex-direction:column; }
+  .notch{ position:absolute; top:10px; left:50%; transform:translateX(-50%); width:78px; height:18px; background:var(--ink); border-radius:10px; z-index:6; }
+  .statusbar{ display:flex; justify-content:space-between; padding:16px 22px 0; font-family:'Space Mono',monospace; font-size:10px; font-weight:700; position:relative; z-index:3; }
+  .statusbar.on-red{ color:var(--white); }
+
+  /* ============ color-block header (signature) ============ */
+  .block-header{ background: var(--red); padding-bottom:28px; border-radius: 0 0 26px 26px; position:relative; }
+  .block-header.ink{ background: var(--ink); }
+
+  /* ============ shared nav ============ */
+  .bottom-nav{ display:flex; justify-content:space-around; align-items:center; padding: 10px 10px 16px; background: var(--white); border-top: 1px solid var(--line); }
+  .nav-item{ display:flex; flex-direction:column; align-items:center; gap:4px; color: var(--muted); padding:5px 14px; border-radius:12px; }
+  .nav-item.active{ color: var(--red); background: var(--red-light); }
+  .nav-item svg{ width:19px; height:19px; }
+  .nav-item span{ font-size:9px; font-weight:700; }
+
+  .section-title{ font-family:'Sora'; font-weight:700; font-size:13.5px; padding: 16px 22px 10px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title span.link{ font-size:11px; color:var(--red); font-weight:700; font-family:'Inter'; }
+
+  /* ============ LOGIN ============ */
+  .login-block{ padding: 34px 26px 40px; position:relative; z-index:2; }
+  .logo-badge{ width:44px; height:44px; border-radius:13px; background: var(--white); display:flex; align-items:center; justify-content:center; font-family:'Sora'; font-weight:800; font-size:16px; color:var(--red); }
+  .login-brand{ font-family:'Sora'; font-weight:800; font-size:16px; color:var(--white); margin-top:14px; }
+  .login-tag{ font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:500; margin-top:2px; }
+  .login-sheet{ background:var(--white); margin-top:-20px; border-radius: 24px 24px 0 0; padding: 28px 24px 22px; position:relative; z-index:2; flex:1; display:flex; flex-direction:column; }
+  .login-h1{ font-family:'Sora'; font-weight:700; font-size:21px; }
+  .login-sub{ font-size:12px; color:var(--muted); margin-top:4px; }
+  .field{ margin-top:18px; }
+  .field-label{ font-size:11px; font-weight:700; color: var(--ink); margin-bottom:7px; display:block; }
+  .field-input{ background:var(--surface); border-radius:12px; padding:13px 15px; font-size:14px; color:var(--ink); font-weight:600; border:1px solid var(--line); }
+  .field-input.placeholder{ color: var(--muted); font-weight:500; }
+  .login-btn{ margin-top:22px; height:52px; border-radius:100px; background: var(--red); color:var(--white); font-weight:700; font-size:14.5px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .login-hint{ text-align:center; font-size:11px; color: var(--muted); margin-top:16px; font-weight:500; }
+  .role-toggle{ display:flex; background:var(--surface); border-radius:100px; padding:4px; margin-top:18px; }
+  .role-toggle div{ flex:1; text-align:center; padding:9px 0; border-radius:100px; font-size:11px; font-weight:700; color:var(--muted); }
+  .role-toggle div.active{ background:var(--ink); color:var(--white); }
+
+  /* ============ HOME ============ */
+  .home-header{ padding: 16px 22px 0; display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:2; }
+  .greeting{ font-size:11px; color: rgba(255,255,255,0.75); font-weight:600; }
+  .username{ font-family:'Sora'; font-size:20px; font-weight:700; color:var(--white); margin-top:3px; }
+  .avatar{ width:38px; height:38px; border-radius:12px; background: rgba(255,255,255,0.16); display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:700; font-family:'Sora'; font-size:14px; flex-shrink:0; }
+  .avatar.dark{ background:var(--ink); }
+
+  .ring-card{ background:var(--white); margin: 16px 22px -46px; border-radius:20px; padding:18px 20px; display:flex; align-items:center; gap:16px; position:relative; z-index:3; box-shadow: 0 14px 30px -14px rgba(16,16,18,0.18); }
+  .ring-wrap{ width:74px; height:74px; position:relative; flex-shrink:0; }
+  .ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--surface); stroke-width:8; }
+  .ring-fill{ fill:none; stroke:var(--red); stroke-width:8; stroke-linecap:round; }
+  .ring-label{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Space Mono'; font-weight:700; font-size:13px; }
+  .ring-time{ font-family:'Sora'; font-size:22px; font-weight:700; }
+  .ring-sub{ font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
+
+  .home-body{ padding-top: 60px; flex:1; display:flex; flex-direction:column; }
+
+  .punch-btn{ margin: 8px 22px 4px; height:54px; border-radius:100px; background: var(--red); border:none; color: var(--white); font-family:'Inter'; font-weight:700; font-size:14.5px; display:flex; align-items:center; justify-content:center; gap:9px; }
+  .punch-sub{ text-align:center; font-size:10.5px; color:var(--muted); margin-bottom:6px; font-weight:500; margin-top:8px; }
+
+  .timeline{ padding: 6px 22px 0; flex:1; overflow-y:auto; }
+  .tl-item{ display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); }
+  .tl-dot{ width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tl-dot.done{ background: var(--green-bg); color:var(--green); }
+  .tl-dot.pending{ background:var(--surface); color:var(--muted); }
+  .tl-label{ font-size:13px; font-weight:700; }
+  .tl-time{ font-size:11px; color:var(--muted); font-family:'Space Mono'; margin-top:1px; }
+
+  /* ============ CAMERA ============ */
+  .cam-frame{ flex:1; background: var(--ink); position:relative; display:flex; flex-direction:column; }
+  .cam-topbar{ padding: 15px 20px 0; display:flex; justify-content:space-between; align-items:center; }
+  .cam-close{ width:32px; height:32px; border-radius:10px; background: rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; color:var(--white); font-size:14px; }
+  .cam-title{ color:var(--white); font-weight:700; font-size:12px; }
+  .cam-viewport{ flex:1; margin: 14px 20px; border-radius: 20px; background: linear-gradient(150deg, #2b2b2e, #0a0a0b); position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .cam-face-guide{ width:150px; height:190px; border: 2.5px solid rgba(255,255,255,0.35); border-radius:50%; }
+  .cam-gps{ position:absolute; top:12px; left:12px; right:12px; background: rgba(225,29,46,0.9); border-radius:100px; padding:8px 14px; display:flex; align-items:center; gap:7px; }
+  .cam-gps-dot{ width:6px; height:6px; border-radius:50%; background: var(--white); flex-shrink:0; }
+  .cam-gps span{ color:var(--white); font-size:10.5px; font-weight:700; }
+  .cam-bottom{ padding: 18px 20px 26px; display:flex; align-items:center; justify-content:center; }
+  .shutter{ width:66px; height:66px; border-radius:50%; border:3px solid var(--white); display:flex; align-items:center; justify-content:center; }
+  .shutter-inner{ width:52px; height:52px; border-radius:50%; background: var(--red); }
+
+  /* ============ RIWAYAT ============ */
+  .history-header{ padding: 18px 22px 2px; position:relative; z-index:2; }
+  .history-title{ font-family:'Sora'; font-size:21px; font-weight:800; color:var(--white); }
+  .stats-card{ background:var(--white); margin: 14px 22px -44px; border-radius:18px; padding:16px 18px; display:flex; position:relative; z-index:3; box-shadow: 0 14px 30px -14px rgba(16,16,18,0.18); }
+  .stat-block{ flex:1; }
+  .stat-block:not(:last-child){ border-right:1px solid var(--line); }
+  .stat-num{ font-family:'Sora'; font-weight:800; font-size:19px; }
+  .stat-label{ font-size:9.5px; color:var(--muted); font-weight:700; margin-top:3px; text-transform:uppercase; letter-spacing:0.04em; }
+  .stat-block.hadir .stat-num{ color: var(--green); }
+  .stat-block.telat .stat-num{ color: var(--amber); }
+  .stat-block.absen .stat-num{ color: var(--red); }
+
+  .rec-list{ padding: 62px 22px 0; display:flex; flex-direction:column; gap:9px; flex:1; overflow-y:auto; padding-bottom:16px; }
+  .rec-card{ display:flex; align-items:center; background:var(--white); border-radius:14px; border:1px solid var(--line); overflow:hidden; }
+  .rec-strip{ width:4px; align-self:stretch; }
+  .rec-strip.hadir{ background:var(--green); }
+  .rec-strip.telat{ background:var(--amber); }
+  .rec-strip.absen{ background:var(--red); }
+  .rec-body{ flex:1; padding:12px 14px; }
+  .rec-date{ font-size:12.5px; font-weight:700; }
+  .rec-status{ font-size:10.5px; font-weight:700; margin-top:2px; }
+  .rec-status.hadir{ color: var(--green); }
+  .rec-status.telat{ color: var(--amber); }
+  .rec-status.absen{ color: var(--red); }
+  .rec-times{ padding:12px 14px; text-align:right; }
+  .rec-times .t{ font-family:'Space Mono'; font-size:11px; font-weight:600; }
+  .rec-times .l{ font-size:8.5px; color:var(--muted); font-weight:700; text-transform:uppercase; }
+
+  /* ============ PROFILE ============ */
+  .profile-block{ padding: 30px 24px 46px; display:flex; flex-direction:column; align-items:center; position:relative; z-index:2; }
+  .profile-avatar{ width:66px; height:66px; border-radius:20px; background: rgba(255,255,255,0.16); display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:800; font-family:'Sora'; font-size:23px; }
+  .profile-name{ font-family:'Sora'; font-size:19px; font-weight:800; color: var(--white); margin-top:12px; }
+  .profile-role{ font-size:11.5px; color: rgba(255,255,255,0.75); font-weight:600; margin-top:2px; }
+  .profile-id{ margin-top:10px; background: rgba(255,255,255,0.16); color: var(--white); font-family:'Space Mono'; font-size:10.5px; font-weight:700; padding:5px 12px; border-radius:100px; }
+
+  .stats-card2{ background:var(--white); margin: 14px 22px -44px; border-radius:18px; padding:16px 18px; display:flex; position:relative; z-index:3; box-shadow: 0 14px 30px -14px rgba(16,16,18,0.18); }
+  .mstat{ flex:1; text-align:center; }
+  .mstat:not(:last-child){ border-right:1px solid var(--line); }
+  .mstat-num{ font-family:'Sora'; font-weight:800; font-size:19px; }
+  .mstat-label{ font-size:9px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-top:3px; letter-spacing:0.03em; }
+
+  .menu-list{ padding: 62px 22px 0; display:flex; flex-direction:column; flex:1; gap:8px; }
+  .menu-item{ padding:14px 15px; display:flex; align-items:center; gap:12px; border-radius:13px; background:var(--surface); }
+  .menu-icon{ width:32px; height:32px; border-radius:9px; background:var(--white); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .menu-label{ font-size:13px; font-weight:700; flex:1; }
+
+  /* ============ ADMIN specific ============ */
+  .kpi-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding: 62px 22px 6px; position:relative; z-index:2; }
+  .kpi-card{ background:var(--white); border-radius:14px; padding:14px; box-shadow: 0 10px 22px -14px rgba(16,16,18,0.2); }
+  .kpi-card .top-strip{ width:22px; height:3px; border-radius:100px; margin-bottom:10px; }
+  .kpi-card.hadir .top-strip{ background:var(--green); }
+  .kpi-card.telat .top-strip{ background:var(--amber); }
+  .kpi-card.absen .top-strip{ background:var(--red); }
+  .kpi-card.outlet .top-strip{ background:var(--ink); }
+  .kpi-card .l{ font-family:'Space Mono'; font-size:8.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:700; }
+  .kpi-card .n{ font-family:'Sora'; font-size:23px; font-weight:800; margin-top:6px; }
+  .kpi-card .s{ font-size:9.5px; color:var(--muted); margin-top:2px; }
+
+  .feed-list{ padding: 0 22px; flex:1; overflow-y:auto; }
+  .feed-item{ display:flex; align-items:center; gap:11px; padding: 11px 0; border-bottom:1px solid var(--line); }
+  .feed-photo{ width:36px; height:36px; border-radius:11px; background:var(--surface); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Sora'; font-weight:700; font-size:13px; flex-shrink:0; }
+  .feed-name{ font-size:12.5px; font-weight:700; }
+  .feed-meta{ font-size:10px; color:var(--muted); font-family:'Space Mono'; margin-top:1px; }
+  .feed-status{ margin-left:auto; }
+  .tag{ display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:100px; font-size:10px; font-weight:700; }
+  .tag.hadir{ background:var(--green-bg); color:var(--green); }
+  .tag.telat{ background:var(--amber-bg); color:var(--amber); }
+  .tag.absen{ background:var(--red-light); color:var(--red); }
+  .tag .dot{ width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  .chip-row{ display:flex; gap:8px; padding: 62px 22px 14px; overflow-x:auto; position:relative; z-index:2; }
+  .chip{ flex-shrink:0; padding:8px 16px; border-radius:100px; font-size:11px; font-weight:700; background:var(--white); color:var(--muted); box-shadow: 0 6px 14px -10px rgba(16,16,18,0.3); }
+  .chip.active{ background:var(--ink); color:var(--white); }
+
+  .list-item{ display:flex; align-items:center; gap:11px; background:var(--white); border:1px solid var(--line); border-radius:14px; padding:11px 13px; margin-bottom:9px; }
+  .li-photo{ width:38px; height:38px; border-radius:12px; background:var(--surface); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Sora'; font-weight:700; font-size:14px; flex-shrink:0; }
+  .li-name{ font-size:12.5px; font-weight:700; }
+  .li-outlet{ font-size:10px; color:var(--muted); margin-top:1px; }
+  .li-right{ margin-left:auto; text-align:right; }
+  .li-time{ font-family:'Space Mono'; font-size:11px; font-weight:700; }
+  .li-geo{ font-size:9px; color:var(--green); font-family:'Space Mono'; font-weight:700; margin-top:2px; }
+  .li-geo.warn{ color:var(--amber); }
+  .li-geo.bad{ color:var(--red); }
+
+  .verify-photo{ margin: 16px 22px 0; height:220px; border-radius:20px; background: linear-gradient(150deg,#2b2b2e,#0a0a0b); position:relative; overflow:hidden; }
+  .verify-photo .badge{ position:absolute; top:12px; left:12px; background:rgba(255,255,255,0.9); color:var(--ink); font-family:'Space Mono'; font-size:9.5px; font-weight:700; padding:6px 10px; border-radius:100px; }
+  .verify-info{ padding: 16px 22px 0; }
+  .verify-row{ display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--line); }
+  .verify-row .k{ font-size:11.5px; color:var(--muted); font-weight:600; }
+  .verify-row .v{ font-size:12.5px; font-weight:700; }
+  .verify-row .v.warn{ color:var(--amber); }
+  .verify-actions{ display:flex; gap:10px; padding: 18px 22px 0; margin-top:auto; }
+  .vbtn{ flex:1; height:48px; border-radius:100px; display:flex; align-items:center; justify-content:center; gap:7px; font-weight:700; font-size:12.5px; }
+  .vbtn.primary{ background:var(--red); color:var(--white); }
+  .vbtn.ghost{ background:var(--surface); color:var(--ink); }
+
+  .outlet-card{ background:var(--white); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:10px; }
+  .outlet-top{ display:flex; justify-content:space-between; align-items:center; }
+  .outlet-name{ font-size:14px; font-weight:800; font-family:'Sora'; }
+  .outlet-pct-badge{ font-family:'Space Mono'; font-size:12px; font-weight:700; color:var(--red); }
+  .outlet-addr{ font-size:10.5px; color:var(--muted); margin-top:3px; }
+  .outlet-bar-track{ height:6px; background:var(--surface); border-radius:100px; margin-top:12px; overflow:hidden; }
+  .outlet-bar-fill{ height:100%; background:var(--red); border-radius:100px; }
+  .outlet-foot{ display:flex; justify-content:space-between; margin-top:9px; font-family:'Space Mono'; font-size:9px; color:var(--muted); }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- GROUP 1 — APLIKASI KARYAWAN -->
+  <!-- ============================================================ -->
+  <div class="group">
+    <div class="group-head">
+      <div><div class="group-eyebrow">Peran 01</div><div class="group-title">Aplikasi Karyawan</div></div>
+      <div class="group-desc">Absen masuk/pulang dengan selfie + GPS, lihat riwayat, dan kelola profil sendiri.</div>
+    </div>
+    <div class="stage">
+
+      <!-- LOGIN -->
+      <div>
+        <div class="note">01 — Masuk</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="login-block">
+              <div class="logo-badge">IK</div>
+              <div class="login-brand">IderKopi</div>
+              <div class="login-tag">Absensi Karyawan</div>
+            </div>
+          </div>
+          <div class="login-sheet">
+            <div class="login-h1">Masuk ke akunmu</div>
+            <div class="login-sub">Gunakan email &amp; kata sandi dari admin outlet</div>
+            <div class="field"><span class="field-label">Email</span><div class="field-input placeholder">nama@iderkopi.id</div></div>
+            <div class="field"><span class="field-label">Kata Sandi</span><div class="field-input placeholder">••••••••</div></div>
+            <div class="login-btn">Masuk<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="login-hint">Lupa kata sandi? Hubungi admin outlet</div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- HOME -->
+      <div>
+        <div class="note">02 — Beranda</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="home-header">
+              <div><div class="greeting">Senin, 03 Agustus</div><div class="username">Dewi Anjani</div></div>
+              <div class="avatar">DA</div>
+            </div>
+            <div class="ring-card">
+              <div class="ring-wrap">
+                <svg viewBox="0 0 74 74"><circle class="ring-track" cx="37" cy="37" r="31"/><circle class="ring-fill" cx="37" cy="37" r="31" stroke-dasharray="195" stroke-dashoffset="120"/></svg>
+                <div class="ring-label">38%</div>
+              </div>
+              <div>
+                <div class="ring-time">07:52</div>
+                <div class="ring-sub">3j 8m menuju jam pulang</div>
+              </div>
+            </div>
+          </div>
+          <div class="home-body">
+            <button class="punch-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4"><path d="M12 8v4l3 3M12 22a10 10 0 100-20 10 10 0 000 20z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Absen Pulang
+            </button>
+            <div class="punch-sub">Wajib foto selfie + lokasi GPS</div>
+            <div class="section-title">Aktivitas Hari Ini <span class="link">Riwayat</span></div>
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-dot done"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><div class="tl-label">Absen Masuk</div><div class="tl-time">07:52 WIB · Tepat waktu</div></div></div>
+              <div class="tl-item"><div class="tl-dot pending"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div><div><div class="tl-label">Absen Pulang</div><div class="tl-time">Estimasi 17:00 WIB</div></div></div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3M16 7V3M4 11h16M5 21h14a1 1 0 001-1V7a1 1 0 00-1-1H5a1 1 0 00-1 1v13a1 1 0 001 1z" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Riwayat</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- CAMERA -->
+      <div>
+        <div class="note">03 — Kamera Selfie + GPS</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="cam-frame">
+            <div class="cam-topbar"><div class="cam-close">✕</div><div class="cam-title">Absen Pulang</div><div style="width:32px;"></div></div>
+            <div class="cam-viewport">
+              <div class="cam-gps"><div class="cam-gps-dot"></div><span>Dalam radius outlet · 12m</span></div>
+              <div class="cam-face-guide"></div>
+            </div>
+            <div class="cam-bottom"><div class="shutter"><div class="shutter-inner"></div></div></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- RIWAYAT -->
+      <div>
+        <div class="note">04 — Riwayat</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="history-header"><div class="history-title">Riwayat Absensi</div></div>
+            <div class="stats-card">
+              <div class="stat-block hadir"><div class="stat-num">18</div><div class="stat-label">Hadir</div></div>
+              <div class="stat-block telat"><div class="stat-num">2</div><div class="stat-label">Telat</div></div>
+              <div class="stat-block absen"><div class="stat-num">1</div><div class="stat-label">Absen</div></div>
+            </div>
+          </div>
+          <div class="rec-list">
+            <div class="rec-card"><div class="rec-strip hadir"></div><div class="rec-body"><div class="rec-date">Senin, 03 Agu</div><div class="rec-status hadir">Hadir</div></div><div class="rec-times"><div class="t">07:52</div><div class="l">Masuk</div></div><div class="rec-times"><div class="t">17:04</div><div class="l">Pulang</div></div></div>
+            <div class="rec-card"><div class="rec-strip telat"></div><div class="rec-body"><div class="rec-date">Jumat, 31 Jul</div><div class="rec-status telat">Terlambat</div></div><div class="rec-times"><div class="t">08:41</div><div class="l">Masuk</div></div><div class="rec-times"><div class="t">17:10</div><div class="l">Pulang</div></div></div>
+            <div class="rec-card"><div class="rec-strip hadir"></div><div class="rec-body"><div class="rec-date">Kamis, 30 Jul</div><div class="rec-status hadir">Hadir</div></div><div class="rec-times"><div class="t">07:48</div><div class="l">Masuk</div></div><div class="rec-times"><div class="t">17:02</div><div class="l">Pulang</div></div></div>
+            <div class="rec-card"><div class="rec-strip absen"></div><div class="rec-body"><div class="rec-date">Rabu, 29 Jul</div><div class="rec-status absen">Tidak Hadir</div></div><div class="rec-times"><div class="t">—</div><div class="l">Masuk</div></div><div class="rec-times"><div class="t">—</div><div class="l">Pulang</div></div></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3M16 7V3M4 11h16M5 21h14a1 1 0 001-1V7a1 1 0 00-1-1H5a1 1 0 00-1 1v13a1 1 0 001 1z" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Riwayat</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div>
+        <div class="note">05 — Profil</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="profile-block">
+              <div class="profile-avatar">DA</div>
+              <div class="profile-name">Dewi Anjani</div>
+              <div class="profile-role">Barista · Outlet Malioboro</div>
+              <div class="profile-id">IDR-0012</div>
+            </div>
+            <div class="stats-card2">
+              <div class="mstat"><div class="mstat-num">21</div><div class="mstat-label">Hari Hadir</div></div>
+              <div class="mstat"><div class="mstat-num">96%</div><div class="mstat-label">Ketepatan</div></div>
+              <div class="mstat"><div class="mstat-num">2</div><div class="mstat-label">Terlambat</div></div>
+            </div>
+          </div>
+          <div class="menu-list">
+            <div class="menu-item"><div class="menu-icon">👤</div><span class="menu-label">Data Diri</span><span>›</span></div>
+            <div class="menu-item"><div class="menu-icon">🔔</div><span class="menu-label">Notifikasi</span><span>›</span></div>
+            <div class="menu-item"><div class="menu-icon">🔒</div><span class="menu-label">Ubah Kata Sandi</span><span>›</span></div>
+            <div class="menu-item"><div class="menu-icon">🚪</div><span class="menu-label" style="color:var(--red);">Keluar</span></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3M16 7V3M4 11h16M5 21h14a1 1 0 001-1V7a1 1 0 00-1-1H5a1 1 0 00-1 1v13a1 1 0 001 1z" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Riwayat</span></div>
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- GROUP 2 — APLIKASI ADMIN -->
+  <!-- ============================================================ -->
+  <div class="group">
+    <div class="group-head">
+      <div><div class="group-eyebrow">Peran 02</div><div class="group-title">Aplikasi Admin</div></div>
+      <div class="group-desc">Dipakai Kang Ider/manajer outlet untuk memantau &amp; memverifikasi absensi langsung dari HP.</div>
+    </div>
+    <div class="stage">
+
+      <!-- ADMIN LOGIN -->
+      <div>
+        <div class="note">01 — Masuk Admin</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header ink">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="login-block">
+              <div class="logo-badge">IK</div>
+              <div class="login-brand">IderKopi</div>
+              <div class="login-tag">Portal Admin</div>
+            </div>
+          </div>
+          <div class="login-sheet">
+            <div class="login-h1">Masuk sebagai pengelola</div>
+            <div class="login-sub">Akses khusus admin &amp; pemilik outlet</div>
+            <div class="field"><span class="field-label">Email Admin</span><div class="field-input placeholder">ider@iderkopi.id</div></div>
+            <div class="field"><span class="field-label">Kata Sandi</span><div class="field-input placeholder">••••••••</div></div>
+            <div class="role-toggle"><div class="active">Admin / Owner</div><div>Karyawan</div></div>
+            <div class="login-btn" style="background:var(--ink);">Masuk<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="login-hint">Akun admin dibuat oleh pemilik outlet</div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ADMIN BERANDA -->
+      <div>
+        <div class="note">02 — Ringkasan Harian</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header ink">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="home-header">
+              <div><div class="greeting">Panel Admin</div><div class="username">Senin, 03 Agu</div></div>
+              <div class="avatar">AI</div>
+            </div>
+            <div class="kpi-grid">
+              <div class="kpi-card hadir"><div class="top-strip"></div><div class="l">Hadir</div><div class="n">36</div><div class="s">dari 42 karyawan</div></div>
+              <div class="kpi-card telat"><div class="top-strip"></div><div class="l">Terlambat</div><div class="n">4</div><div class="s">rata² 22 menit</div></div>
+              <div class="kpi-card absen"><div class="top-strip"></div><div class="l">Tidak Hadir</div><div class="n">2</div><div class="s">tanpa keterangan</div></div>
+              <div class="kpi-card outlet"><div class="top-strip"></div><div class="l">Outlet Aktif</div><div class="n">5</div><div class="s">semua normal</div></div>
+            </div>
+          </div>
+          <div class="section-title">Absen Masuk Terbaru <span class="link">Semua</span></div>
+          <div class="feed-list">
+            <div class="feed-item"><div class="feed-photo">DA</div><div><div class="feed-name">Dewi Anjani</div><div class="feed-meta">Malioboro · 07:52</div></div><div class="feed-status"><span class="tag hadir"><span class="dot"></span>Hadir</span></div></div>
+            <div class="feed-item"><div class="feed-photo">RP</div><div><div class="feed-name">Rangga Pradana</div><div class="feed-meta">Malioboro · 08:41</div></div><div class="feed-status"><span class="tag telat"><span class="dot"></span>Telat</span></div></div>
+            <div class="feed-item"><div class="feed-photo">SN</div><div><div class="feed-name">Siti Nuraini</div><div class="feed-meta">Kotabaru · 07:45</div></div><div class="feed-status"><span class="tag hadir"><span class="dot"></span>Hadir</span></div></div>
+            <div class="feed-item"><div class="feed-photo">NA</div><div><div class="feed-name">Nadia Aulia</div><div class="feed-meta">Sudirman · 07:50</div></div><div class="feed-status"><span class="tag hadir"><span class="dot"></span>Hadir</span></div></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Absensi</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Outlet</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ADMIN DAFTAR ABSENSI -->
+      <div>
+        <div class="note">03 — Daftar Absensi</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header ink">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="history-header"><div class="history-title">Daftar Absensi</div></div>
+            <div class="chip-row">
+              <div class="chip active">Semua · 42</div>
+              <div class="chip">Hadir · 36</div>
+              <div class="chip">Telat · 4</div>
+              <div class="chip">Absen · 2</div>
+            </div>
+          </div>
+          <div class="rec-list" style="padding-top:16px;">
+            <div class="list-item"><div class="li-photo">DA</div><div><div class="li-name">Dewi Anjani</div><div class="li-outlet">Malioboro</div></div><div class="li-right"><div class="li-time">07:52</div><div class="li-geo">12m ✓</div></div></div>
+            <div class="list-item"><div class="li-photo">RP</div><div><div class="li-name">Rangga Pradana</div><div class="li-outlet">Malioboro</div></div><div class="li-right"><div class="li-time">08:41</div><div class="li-geo">8m ✓</div></div></div>
+            <div class="list-item"><div class="li-photo">SN</div><div><div class="li-name">Siti Nuraini</div><div class="li-outlet">Kotabaru</div></div><div class="li-right"><div class="li-time">07:45</div><div class="li-geo warn">164m ⚠</div></div></div>
+            <div class="list-item"><div class="li-photo">BF</div><div><div class="li-name">Bagas Firmansyah</div><div class="li-outlet">Kotabaru</div></div><div class="li-right"><div class="li-time">—</div><div class="li-geo bad">Tidak lapor</div></div></div>
+            <div class="list-item"><div class="li-photo">YK</div><div><div class="li-name">Yoga Kurniawan</div><div class="li-outlet">Sudirman</div></div><div class="li-right"><div class="li-time">07:38</div><div class="li-geo">9m ✓</div></div></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Absensi</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Outlet</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ADMIN VERIFIKASI -->
+      <div>
+        <div class="note">04 — Verifikasi Detail</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="cam-topbar" style="padding-top:22px;">
+            <div class="cam-close" style="background:var(--surface); color:var(--ink);">‹</div>
+            <div class="cam-title" style="color:var(--ink);">Verifikasi Absen</div>
+            <div style="width:32px;"></div>
+          </div>
+          <div class="verify-photo"><div class="badge">Foto Selfie · 07:45 WIB</div></div>
+          <div class="verify-info">
+            <div class="verify-row"><span class="k">Nama</span><span class="v">Siti Nuraini</span></div>
+            <div class="verify-row"><span class="k">Outlet</span><span class="v">Kotabaru</span></div>
+            <div class="verify-row"><span class="k">Jarak dari titik outlet</span><span class="v warn">164 meter</span></div>
+            <div class="verify-row"><span class="k">Status GPS</span><span class="v warn">Perlu ditinjau</span></div>
+          </div>
+          <div class="verify-actions">
+            <div class="vbtn ghost">Tandai Tidak Sah</div>
+            <div class="vbtn primary">Sahkan Absen</div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ADMIN OUTLET -->
+      <div>
+        <div class="note">05 — Kelola Outlet</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header ink">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="history-header" style="padding-bottom:20px;"><div class="history-title">Outlet</div></div>
+          </div>
+          <div class="rec-list" style="padding-top:16px; gap:0;">
+            <div class="outlet-card">
+              <div class="outlet-top"><div class="outlet-name">Malioboro</div><div class="outlet-pct-badge">90%</div></div>
+              <div class="outlet-addr">Jl. Malioboro No. 52, Yogyakarta</div>
+              <div class="outlet-bar-track"><div class="outlet-bar-fill" style="width:90%;"></div></div>
+              <div class="outlet-foot"><span>9 / 10 HADIR</span><span>RADIUS 150M</span></div>
+            </div>
+            <div class="outlet-card">
+              <div class="outlet-top"><div class="outlet-name">Kotabaru</div><div class="outlet-pct-badge">78%</div></div>
+              <div class="outlet-addr">Jl. Suroto No. 8, Kotabaru</div>
+              <div class="outlet-bar-track"><div class="outlet-bar-fill" style="width:78%;"></div></div>
+              <div class="outlet-foot"><span>7 / 9 HADIR</span><span>RADIUS 150M</span></div>
+            </div>
+            <div class="outlet-card">
+              <div class="outlet-top"><div class="outlet-name">Sudirman</div><div class="outlet-pct-badge">100%</div></div>
+              <div class="outlet-addr">Jl. Jend. Sudirman No. 21</div>
+              <div class="outlet-bar-track"><div class="outlet-bar-fill" style="width:100%;"></div></div>
+              <div class="outlet-foot"><span>8 / 8 HADIR</span><span>RADIUS 100M</span></div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Absensi</span></div>
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Outlet</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ADMIN PROFIL -->
+      <div>
+        <div class="note">06 — Profil Admin</div>
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="block-header">
+            <div class="statusbar on-red"><span>09:41</span><span>●●●● 100%</span></div>
+            <div class="profile-block">
+              <div class="profile-avatar">AI</div>
+              <div class="profile-name">Kang Ider</div>
+              <div class="profile-role">Pemilik · Semua Outlet</div>
+              <div class="profile-id">OWNER</div>
+            </div>
+            <div class="stats-card2">
+              <div class="mstat"><div class="mstat-num">5</div><div class="mstat-label">Outlet</div></div>
+              <div class="mstat"><div class="mstat-num">42</div><div class="mstat-label">Karyawan</div></div>
+              <div class="mstat"><div class="mstat-num">86%</div><div class="mstat-label">Kehadiran</div></div>
+            </div>
+          </div>
+          <div class="menu-list">
+            <div class="menu-item"><div class="menu-icon">👥</div><span class="menu-label">Kelola Akun Karyawan</span><span>›</span></div>
+            <div class="menu-item"><div class="menu-icon">⏱️</div><span class="menu-label">Jam &amp; Toleransi Shift</span><span>›</span></div>
+            <div class="menu-item"><div class="menu-icon">📤</div><span class="menu-label">Ekspor Rekap Bulanan</span><span>›</span></div>
+            <div class="menu-item"><div class="menu-icon">🚪</div><span class="menu-label" style="color:var(--red);">Keluar</span></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Beranda</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Absensi</span></div>
+            <div class="nav-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Outlet</span></div>
+            <div class="nav-item active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1" stroke-linecap="round"/></svg><span>Profil</span></div>
+          </div>
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/gradient_header.dart';
+import '../../../core/providers/brand_provider.dart';
+import '../../../core/utils/date_utils.dart';
+import '../../attendance/data/attendance_model.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/admin_providers.dart';
 
@@ -15,352 +16,411 @@ class AdminDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(currentUserProvider);
     final userCountAsync = ref.watch(userCountProvider);
-    final todayAttAsync = ref.watch(todayAttendanceCountProvider);
+    final todayAttCountAsync = ref.watch(todayAttendanceCountProvider);
+    final attendanceListAsync = ref.watch(adminAttendanceProvider((date: null, employee: null)));
+    final activeBrand = ref.watch(activeBrandProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      body: SafeArea(
+      backgroundColor: AppColors.white,
+      body: RefreshIndicator(
+        color: AppColors.ink,
+        onRefresh: () async {
+          ref.invalidate(userCountProvider);
+          ref.invalidate(todayAttendanceCountProvider);
+          ref.invalidate(adminAttendanceProvider((date: null, employee: null)));
+        },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting Header
-              GradientHeader(
-                padding: const EdgeInsets.all(24),
+              // Signature Block Header Dark Ink
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                  22,
+                  MediaQuery.of(context).padding.top + 16,
+                  22,
+                  24,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.ink,
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header Row
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.admin_panel_settings_rounded,
-                              color: Colors.white, size: 22),
-                        ),
-                        const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Admin Panel',
-                              style: TextStyle(
+                            Text(
+                              'Panel Admin ${activeBrand.name}',
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            userAsync.when(
-                              data: (user) => Text(
-                                'Halo, ${user?.fullName ?? 'Admin'} 👋',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.3,
-                                ),
+                            const SizedBox(height: 3),
+                            Text(
+                              AppDateUtils.formatFullDate(DateTime.now()),
+                              style: const TextStyle(
+                                fontFamily: 'Sora',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
                               ),
-                              loading: () => const SizedBox(
-                                width: 140,
-                                height: 22,
-                                child: LinearProgressIndicator(
-                                  color: Colors.white,
-                                  backgroundColor: Colors.white24,
-                                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                                ),
+                            ),
+                          ],
+                        ),
+
+                        // Mode Badge Pill & Admin Avatar
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              error: (_, __) => const Text(
-                                'Halo, Admin 👋',
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'AI',
                                 style: TextStyle(
+                                  fontFamily: 'Sora',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
                                 ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(activeBrand.iconData, color: Colors.white, size: 12),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    activeBrand.badgeText,
+                                    style: const TextStyle(
+                                      fontFamily: 'Space Mono',
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
+
+                    const SizedBox(height: 18),
+
+                    // KPI Grid 2x2
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1.45,
+                      children: [
+                        _buildKpiCard(
+                          stripColor: AppColors.green,
+                          label: 'HADIR',
+                          value: todayAttCountAsync.when(
+                            data: (count) => '$count',
+                            loading: () => '...',
+                            error: (_, __) => '0',
+                          ),
+                          sub: userCountAsync.when(
+                            data: (total) => 'dari $total karyawan',
+                            loading: () => 'karyawan',
+                            error: (_, __) => 'karyawan',
+                          ),
+                        ),
+                        _buildKpiCard(
+                          stripColor: AppColors.amber,
+                          label: 'TERLAMBAT',
+                          value: '4',
+                          sub: 'rata² 22 menit',
+                        ),
+                        _buildKpiCard(
+                          stripColor: AppColors.red,
+                          label: 'TIDAK HADIR',
+                          value: '2',
+                          sub: 'tanpa keterangan',
+                        ),
+                        _buildKpiCard(
+                          stripColor: AppColors.ink,
+                          label: 'OUTLET AKTIF',
+                          value: '5',
+                          sub: 'semua normal',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Feed Section Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Absen Masuk Terbaru (${activeBrand.name})',
+                      style: const TextStyle(
+                        fontFamily: 'Sora',
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
                       ),
+                    ),
+                    GestureDetector(
+                      onTap: () => context.go('/admin/attendance'),
                       child: const Text(
-                        'IderKopi Absensi — Dashboard',
+                        'Semua',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
-              const _SectionTitle(title: 'Ringkasan'),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.people_rounded,
-                      label: 'Total User',
-                      value: userCountAsync.when(
-                        data: (count) => count.toString(),
-                        loading: () => '...',
-                        error: (_, __) => '-',
-                      ),
-                      color: AppColors.primary,
-                      gradient: AppColors.primaryGradient,
-                    ),
+
+              const SizedBox(height: 10),
+
+              // Feed List
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: attendanceListAsync.when(
+                  loading: () => const SizedBox(
+                    height: 120,
+                    child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.assignment_turned_in_rounded,
-                      label: 'Absensi Hari Ini',
-                      value: todayAttAsync.when(
-                        data: (count) => count.toString(),
-                        loading: () => '...',
-                        error: (_, __) => '-',
-                      ),
-                      color: AppColors.success,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0F9960), Color(0xFF0A7A4A)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                ],
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (records) {
+                    if (records.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text(
+                            'Belum ada absen masuk hari ini',
+                            style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.muted),
+                          ),
+                        ),
+                      );
+                    }
+
+                    final recentRecords = records.take(6).toList();
+                    return Column(
+                      children: recentRecords.map((rec) => _buildFeedItem(rec)).toList(),
+                    );
+                  },
+                ),
               ),
-              const SizedBox(height: 28),
-              const _SectionTitle(title: 'Manajemen'),
-              const SizedBox(height: 14),
-              _MenuCard(
-                icon: Icons.people_alt_rounded,
-                title: 'Kelola User',
-                subtitle: 'Lihat, tambah, edit, dan hapus user',
-                color: AppColors.primary,
-                onTap: () => context.go('/admin/users'),
-              ),
-              const SizedBox(height: 12),
-              _MenuCard(
-                icon: Icons.receipt_long_rounded,
-                title: 'Riwayat Absensi',
-                subtitle: 'Lihat semua riwayat absensi karyawan',
-                color: AppColors.success,
-                onTap: () => context.go('/admin/attendance'),
-              ),
+
+              const SizedBox(height: 32),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 20,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title,
-          style: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.3,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.gradient,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-  final Gradient gradient;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildKpiCard({
+    required Color stripColor,
+    required String label,
+    required String value,
+    required String sub,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppTheme.softShadow,
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12101012),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 22,
+            height: 3,
             decoration: BoxDecoration(
-              gradient: gradient,
-              borderRadius: BorderRadius.circular(13),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: stripColor,
+              borderRadius: BorderRadius.circular(100),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Text(
-            value,
+            label,
             style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-              letterSpacing: -1.0,
+              fontFamily: 'Space Mono',
+              fontSize: 8.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.muted,
+              letterSpacing: 0.4,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            label,
+            value,
             style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
+              fontFamily: 'Sora',
+              fontSize: 23,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            sub,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 9.5,
+              color: AppColors.muted,
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class _MenuCard extends StatelessWidget {
-  const _MenuCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    required this.color,
-  });
+  Widget _buildFeedItem(AttendanceRecord rec) {
+    final name = rec.kangiderNama ?? 'Karyawan';
+    final initials = name.isNotEmpty
+        ? name.trim().split(' ').map((e) => e[0]).take(2).join()
+        : 'IK';
+    final outlet = rec.outlet ?? 'Malioboro';
+    final timeStr = rec.masuk ?? '--:--';
+    final isLate = rec.isLate ?? false;
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final Color color;
+    final Color tagBg;
+    final Color tagColor;
+    final String tagLabel;
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
-            boxShadow: AppTheme.softShadow,
+    if (isLate) {
+      tagBg = AppColors.amberBg;
+      tagColor = AppColors.amber;
+      tagLabel = 'Telat';
+    } else {
+      tagBg = AppColors.greenBg;
+      tagColor = AppColors.green;
+      tagLabel = 'Hadir';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.line)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              initials.toUpperCase(),
+              style: const TextStyle(
+                fontFamily: 'Sora',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: color.withValues(alpha: 0.2),
-                    width: 1,
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
                   ),
                 ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 1),
+                Text(
+                  '$outlet · $timeStr',
+                  style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 10,
+                    color: AppColors.muted,
+                  ),
                 ),
-              ),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: AppColors.textMuted,
-                  size: 14,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: tagBg,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: tagColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  tagLabel,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: tagColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

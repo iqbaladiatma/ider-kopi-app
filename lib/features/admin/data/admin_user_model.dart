@@ -32,6 +32,12 @@ class AdminUser {
 
   factory AdminUser.fromJson(Map<String, dynamic> json) {
     final role = json['role'] as Map<String, dynamic>?;
+    final rawOutlet = json['outlet']?.toString();
+    // Data dari Directus / Kangider otomatis masuk ke outlet IderKopi
+    final resolvedOutlet = (rawOutlet != null && rawOutlet.isNotEmpty)
+        ? (rawOutlet.contains('IderKopi') ? rawOutlet : 'IderKopi - $rawOutlet')
+        : 'IderKopi';
+
     return AdminUser(
       id: json['id']?.toString() ?? '',
       email: json['email'] ?? '',
@@ -39,7 +45,7 @@ class AdminUser {
       lastName: json['last_name'],
       kangiderId: json['kangider_id']?.toString(),
       kangiderNama: json['kangider_nama'],
-      outlet: json['outlet'],
+      outlet: resolvedOutlet,
       roleName: role?['name'],
       status: json['status'],
       createdAt: json['created_at'] != null
@@ -82,7 +88,7 @@ class CreateUserData {
         'first_name': firstName,
         'last_name': lastName,
         'kangider_nama': kangiderNama,
-        'outlet': outlet,
+        'outlet': outlet ?? 'IderKopi',
         'role': roleId,
       };
 }
