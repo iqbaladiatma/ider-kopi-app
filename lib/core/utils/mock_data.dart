@@ -270,4 +270,61 @@ class MockData {
     {'id': 'role-admin', 'name': 'Admin'},
     {'id': 'role-user', 'name': 'Karyawan'},
   ];
+
+  // Seeded Outlets (IderKopi) — koordinat Yogyakarta area
+  // Dipakai untuk geofencing multi-outlet di v1.1.
+  static List<Map<String, dynamic>> mockOutlets = [
+    {
+      'id': 1,
+      'nama': 'IderKopi - HQ',
+      'alamat': 'Jl. Kaliurang KM 5, Yogyakarta',
+      'latitude': -7.7550,
+      'longitude': 110.4080,
+      'radius_meters': 100.0,
+      'is_active': true,
+    },
+    {
+      'id': 2,
+      'nama': 'IderKopi - Malioboro',
+      'alamat': 'Jl. Malioboro No. 52, Yogyakarta',
+      'latitude': -7.7928,
+      'longitude': 110.3658,
+      'radius_meters': 100.0,
+      'is_active': true,
+    },
+    {
+      'id': 3,
+      'nama': 'IderKopi - Kotabaru',
+      'alamat': 'Jl. C. Simanjuntak No. 18, Yogyakarta',
+      'latitude': -7.7850,
+      'longitude': 110.3720,
+      'radius_meters': 120.0,
+      'is_active': true,
+    },
+    {
+      'id': 4,
+      'nama': 'IderKopi - Sudirman',
+      'alamat': 'Jl. Jend. Sudirman, Yogyakarta',
+      'latitude': -7.7830,
+      'longitude': 110.3750,
+      'radius_meters': 100.0,
+      'is_active': true,
+    },
+  ];
+
+  /// Mock hari libur nasional 2026 (subset).
+  static List<Map<String, dynamic>> mockHolidays = [
+    {'id': 1, 'tanggal': '2026-01-01', 'nama': 'Tahun Baru 2026', 'is_nasional': true},
+    {'id': 2, 'tanggal': '2026-02-17', 'nama': 'Tahun Baru Imlek', 'is_nasional': true},
+    {'id': 3, 'tanggal': '2026-03-03', 'nama': 'Hari Raya Nyepi', 'is_nasional': true},
+    {'id': 4, 'tanggal': '2026-03-31', 'nama': 'Wafat Isa Al Masih', 'is_nasional': true},
+    {'id': 5, 'tanggal': '2026-04-18', 'nama': 'Jumat Agung', 'is_nasional': true},
+    {'id': 6, 'tanggal': '2026-05-01', 'nama': 'Hari Buruh Internasional', 'is_nasional': true},
+    {'id': 7, 'tanggal': '2026-05-21', 'nama': 'Kenaikan Isa Al Masih', 'is_nasional': true},
+    {'id': 8, 'tanggal': '2026-06-01', 'nama': 'Hari Lahir Pancasila', 'is_nasional': true},
+    {'id': 9, 'tanggal': '2026-06-17', 'nama': 'Hari Raya Idul Adha', 'is_nasional': true},
+    {'id': 10, 'tanggal': '2026-08-17', 'nama': 'Hari Kemerdekaan RI', 'is_nasional': true},
+    {'id': 11, 'tanggal': '2026-09-27', 'nama': 'Maulid Nabi Muhammad', 'is_nasional': true},
+    {'id': 12, 'tanggal': '2026-12-25', 'nama': 'Hari Raya Natal', 'is_nasional': true},
+  ];
 }

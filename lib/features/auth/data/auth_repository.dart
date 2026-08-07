@@ -1,3 +1,4 @@
+import '../../../core/config/api_provider.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/network/directus_client.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -17,8 +18,12 @@ class AuthRepository {
       return _mockLogin(email, password);
     }
 
+    final endpoint = AppConfig.apiProvider == ApiProvider.directus
+        ? '/auth/login'
+        : '/api/v1/auth/login';
+
     final response = await _client.post(
-      '/auth/login',
+      endpoint,
       body: {'email': email, 'password': password},
     );
 
@@ -63,9 +68,13 @@ class AuthRepository {
       return _mockGetCurrentUser();
     }
 
-    final response = await _client.get('/users/me', query: {
-      'fields': 'id,email,first_name,last_name,kangider_id,kangider_nama,outlet,role.id,role.name',
-    });
+    final isDirectus = AppConfig.apiProvider == ApiProvider.directus;
+    final endpoint = isDirectus ? '/users/me' : '/api/v1/auth/me';
+    final query = isDirectus
+        ? {'fields': 'id,email,first_name,last_name,kangider_id,kangider_nama,outlet,role.id,role.name'}
+        : null;
+
+    final response = await _client.get(endpoint, query: query);
 
     final data = response.data['data'] as Map<String, dynamic>;
     final profile = UserProfile.fromJson(data);

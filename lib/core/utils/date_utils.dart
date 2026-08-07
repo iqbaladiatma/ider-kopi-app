@@ -28,8 +28,20 @@ class AppDateUtils {
 
   static String _two(int n) => n.toString().padLeft(2, '0');
 
-  static String formatDate(DateTime date) {
-    return '${_days[date.weekday - 1]}, ${_two(date.day)} ${_months[date.month - 1]} ${date.year}';
+  static String formatFullDate(DateTime date) => formatDate(date);
+
+  static String formatDate(dynamic input) {
+    if (input is String) {
+      final dt = DateTime.tryParse(input);
+      if (dt != null) {
+        return '${_days[dt.weekday - 1]}, ${_two(dt.day)} ${_months[dt.month - 1]} ${dt.year}';
+      }
+      return input;
+    }
+    if (input is DateTime) {
+      return '${_days[input.weekday - 1]}, ${_two(input.day)} ${_months[input.month - 1]} ${input.year}';
+    }
+    return input.toString();
   }
 
   static String formatDateShort(DateTime date) {
@@ -52,6 +64,11 @@ class AppDateUtils {
 
   static String formatMonthYear(DateTime date) {
     return '${_months[date.month - 1]} ${date.year}';
+  }
+
+  /// Jumlah hari dalam bulan tertentu.
+  static int daysInMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
   }
 
   static String todayDateString() {

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../config/api_provider.dart';
 import '../config/app_config.dart';
 import '../storage/secure_storage.dart';
 import 'auth_interceptor.dart';
@@ -15,7 +16,7 @@ class DirectusClient {
     if (_instance == null) {
       final storage = SecureStorage();
       final dio = Dio(BaseOptions(
-        baseUrl: AppConfig.directusApiBaseUrl,
+        baseUrl: AppConfig.apiBaseUrl,
         connectTimeout: AppConfig.connectTimeout,
         receiveTimeout: AppConfig.receiveTimeout,
         headers: {
@@ -61,4 +62,22 @@ class DirectusClient {
   }
 
   Dio get dio => _dio;
+
+  /// Cek koneksi ke API server (best-effort, timeout 3 detik).
+  /// Dipakai untuk menampilkan banner offline di UI.
+  static Future<bool> isOnline() async {
+    try {
+      final dio = instance._dio;
+      // Go backend punya /health; Directus pakai endpoint ringan sebagai fallback
+      final healthPath = AppConfig.apiProvider == ApiProvider.directus
+          ? '/items/outlet_ider'
+          : '/health';
+      await dio.get(healthPath, queryParameters: AppConfig.apiProvider == ApiProvider.directus ? {'limit': '1'} : null).timeout(
+        const Duration(seconds: 3),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

@@ -406,7 +406,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                   firstName: firstNameCtrl.text.trim(),
                   lastName: lastNameCtrl.text.trim(),
                   outlet: outletCtrl.text.trim(),
-                  roleId: 2,
+                  roleId: '2',
                 ));
                 ref.invalidate(usersProvider);
               } catch (e) {
@@ -447,10 +447,10 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
               Navigator.pop(dialogCtx);
               try {
                 final repo = ref.read(adminRepositoryProvider);
-                await repo.updateUser(user.id, UpdateUserData(
-                  firstName: firstNameCtrl.text.trim(),
-                  lastName: lastNameCtrl.text.trim(),
-                ));
+                await repo.updateUser(user.id, {
+                  'first_name': firstNameCtrl.text.trim(),
+                  'last_name': lastNameCtrl.text.trim(),
+                });
                 ref.invalidate(usersProvider);
               } catch (e) {
                 if (mounted) {

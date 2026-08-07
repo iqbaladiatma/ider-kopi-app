@@ -21,6 +21,7 @@ Terhubung langsung ke Directus API di `api.iderkopi.id`.
 | HTTP Client | Dio |
 | Navigation | go_router |
 | GPS | geolocator |
+| Maps | Mapbox (via flutter_map) |
 | Camera | camera + image |
 
 ## Setup

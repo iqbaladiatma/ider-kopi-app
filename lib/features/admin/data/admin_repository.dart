@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+import '../../../core/config/api_provider.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/network/directus_client.dart';
 import '../../../core/utils/mock_data.dart';
@@ -12,10 +12,35 @@ class AdminRepository {
 
   final DirectusClient _client = DirectusClient.instance;
 
-  /// Ambil seluruh data karyawan dari Directus API (/users dan /items/karyawan)
+  /// Ambil seluruh data karyawan dari API (/api/v1/employees atau Directus /users)
   Future<List<AdminUser>> getUsers({int limit = 100, int offset = 0}) async {
     if (AppConfig.useMockAuth) {
       return MockData.mockUsers.map((e) => AdminUser.fromJson(e)).toList();
+    }
+
+    final isDirectus = AppConfig.apiProvider == ApiProvider.directus;
+
+    if (!isDirectus) {
+      try {
+        final response = await _client.get('/api/v1/employees');
+        final data = response.data['data'] as List;
+        return data.map((e) {
+          final map = e as Map<String, dynamic>;
+          final dept = map['department'] is Map ? map['department']['name']?.toString() : null;
+          return AdminUser(
+            id: map['id']?.toString() ?? '',
+            email: map['email']?.toString() ?? 'karyawan@iderkopi.id',
+            firstName: map['full_name']?.toString(),
+            kangiderId: map['employee_code']?.toString() ?? map['external_kangider_id']?.toString(),
+            kangiderNama: map['full_name']?.toString(),
+            outlet: dept ?? 'IderKopi',
+            status: (map['is_active'] == true) ? 'active' : 'inactive',
+            roleName: map['position'] is Map ? map['position']['name']?.toString() : 'Karyawan',
+          );
+        }).toList();
+      } catch (_) {
+        return MockData.mockUsers.map((e) => AdminUser.fromJson(e)).toList();
+      }
     }
 
     try {
@@ -228,5 +253,11 @@ class AdminRepository {
     }
 
     return records;
+  }
+
+  Future<int> getTodayAttendanceCount() async {
+    final today = DateTime.now().toString().split(' ').first;
+    final records = await getAllAttendance(dateFilter: today);
+    return records.length;
   }
 }

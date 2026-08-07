@@ -40,8 +40,22 @@ class AppColors {
   static const Color warning = amber;
   static const Color warningLight = amberBg;
 
+  static const Color primaryLighter = redLight;
+
+  // Grays
+  static const Color gray100 = Color(0xFFF3F4F6);
+  static const Color gray300 = Color(0xFFD1D5DB);
+
+  // Dark variant aliases for status
+  static const Color successDark = green;
+  static const Color warningDark = amber;
+  static const Color errorDark = redDark;
+
   static const Color error = red;
   static const Color errorLight = redLight;
+
+  static const Color background = surfaceAlt;
+  static const Color gray900 = Color(0xFF111827);
 
   // Shadow definitions
   static const Color cardShadow = Color(0x14101012);
@@ -54,6 +68,16 @@ class AppColors {
     color: Color(0x2E101012),
     blurRadius: 30,
     offset: Offset(0, 14),
+  );
+  static const BoxShadow buttonShadow = BoxShadow(
+    color: Color(0x2E101012),
+    blurRadius: 12,
+    offset: Offset(0, 4),
+  );
+  static const BoxShadow gradientShadow = BoxShadow(
+    color: Color(0x33E11D2E),
+    blurRadius: 16,
+    offset: Offset(0, 6),
   );
 
   // Gradients

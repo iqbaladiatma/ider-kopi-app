@@ -14,6 +14,9 @@ class AttendanceRecord {
   final double? latitudePulang;
   final double? longitudePulang;
   final String? selfiePulangFileId;
+  final String? kangiderNama;
+  final String? outlet;
+  final int? outletId;
 
   AttendanceRecord({
     this.id,
@@ -29,10 +32,15 @@ class AttendanceRecord {
     this.latitudePulang,
     this.longitudePulang,
     this.selfiePulangFileId,
+    this.kangiderNama,
+    this.outlet,
+    this.outletId,
   });
 
   bool get hasCheckedIn => masuk != null && masuk!.isNotEmpty;
   bool get hasCheckedOut => pulang != null && pulang!.isNotEmpty;
+  String? get keluar => pulang;
+  bool get isLate => status == AttendanceStatus.terlambat;
 
   AttendanceStatus get status {
     if (!hasCheckedIn) return AttendanceStatus.alpha;
@@ -62,20 +70,56 @@ class AttendanceRecord {
   }
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) {
+    // Extract Check In Time (formatted HH:mm:ss if ISO timestamp string)
+    String? masukTime = json['masuk']?.toString();
+    if (masukTime == null && json['check_in_time'] != null) {
+      final rawStr = json['check_in_time'].toString();
+      if (rawStr.contains('T')) {
+        final dt = DateTime.tryParse(rawStr)?.toLocal();
+        if (dt != null) {
+          masukTime = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+        }
+      } else {
+        masukTime = rawStr;
+      }
+    }
+
+    // Extract Check Out Time (formatted HH:mm:ss if ISO timestamp string)
+    String? pulangTime = json['pulang']?.toString();
+    if (pulangTime == null && json['check_out_time'] != null) {
+      final rawStr = json['check_out_time'].toString();
+      if (rawStr.contains('T')) {
+        final dt = DateTime.tryParse(rawStr)?.toLocal();
+        if (dt != null) {
+          pulangTime = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+        }
+      } else {
+        pulangTime = rawStr;
+      }
+    }
+
+    final rawDate = json['tanggal_absensi']?.toString() ?? json['attendance_date']?.toString() ?? '';
+    final formattedDate = rawDate.contains('T') ? rawDate.split('T').first : rawDate;
+
     return AttendanceRecord(
       id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
-      tanggalAbsensi: json['tanggal_absensi'] ?? '',
-      masuk: json['masuk'],
-      pulang: json['pulang'],
-      kangider: json['kangider']?.toString(),
-      keterangan: json['keterangan'],
+      tanggalAbsensi: formattedDate,
+      masuk: masukTime,
+      pulang: pulangTime,
+      kangider: json['kangider']?.toString() ?? json['employee_id']?.toString(),
+      keterangan: json['keterangan'] ?? json['status'],
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       selfieFileId: json['selfie_file_id'],
-      checkInSource: json['check_in_source'],
+      checkInSource: json['check_in_source'] ?? json['source'],
       latitudePulang: (json['latitude_pulang'] as num?)?.toDouble(),
       longitudePulang: (json['longitude_pulang'] as num?)?.toDouble(),
       selfiePulangFileId: json['selfie_pulang_file_id'],
+      kangiderNama: json['kangider_nama'] ?? json['employee_name'] ?? (json['kangider'] is Map ? json['kangider']['nama'] : null),
+      outlet: json['outlet']?.toString() ?? (json['kangider'] is Map ? json['kangider']['outlet']?.toString() : null),
+      outletId: json['outlet_id'] != null
+          ? int.tryParse(json['outlet_id'].toString())
+          : null,
     );
   }
 
@@ -93,6 +137,7 @@ class AttendanceRecord {
       'latitude_pulang': latitudePulang,
       'longitude_pulang': longitudePulang,
       'selfie_pulang_file_id': selfiePulangFileId,
+      if (outletId != null) 'outlet_id': outletId,
     };
   }
 }
@@ -105,6 +150,7 @@ class CheckInRequest {
   final double longitude;
   final String selfieFileId;
   final String? keterangan;
+  final int? outletId;
 
   CheckInRequest({
     required this.tanggalAbsensi,
@@ -114,6 +160,7 @@ class CheckInRequest {
     required this.longitude,
     required this.selfieFileId,
     this.keterangan,
+    this.outletId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -125,6 +172,7 @@ class CheckInRequest {
         'selfie_file_id': selfieFileId,
         'check_in_source': 'app',
         'keterangan': keterangan,
+        if (outletId != null) 'outlet_id': outletId,
       };
 }
 

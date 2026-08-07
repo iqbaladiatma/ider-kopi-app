@@ -14,7 +14,14 @@ import '../../features/attendance/presentation/check_in_page.dart';
 import '../../features/attendance/presentation/check_out_page.dart';
 import '../../features/attendance/presentation/history_page.dart';
 import '../../features/attendance/presentation/home_page.dart';
+import '../../features/kpi/presentation/kpi_page.dart';
+import '../../features/leave/presentation/leave_approval_page.dart';
+import '../../features/leave/presentation/leave_form_page.dart';
+import '../../features/leave/presentation/leave_list_page.dart';
 import '../../features/profile/presentation/profile_page.dart';
+import '../../features/recap/presentation/recap_page.dart';
+import '../../features/settings/presentation/settings_page.dart';
+import '../../features/shift/presentation/shift_schedule_page.dart';
 import '../../shared/widgets/admin_nav_bar.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
 
@@ -176,6 +183,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             builder: (_, __) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (_, __) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/leave',
+            builder: (_, __) => const LeaveListPage(),
+          ),
+          GoRoute(
+            path: '/leave/form',
+            builder: (_, __) => const LeaveFormPage(),
+          ),
+          GoRoute(
+            path: '/leave/approval',
+            builder: (_, __) => const LeaveApprovalPage(),
+          ),
+          GoRoute(
+            path: '/kpi',
+            builder: (_, __) => const KpiPage(),
+          ),
+          GoRoute(
+            path: '/recap',
+            builder: (_, __) => const RecapPage(),
+          ),
+          GoRoute(
+            path: '/shift',
+            builder: (_, __) => const ShiftSchedulePage(),
           ),
         ],
       ),

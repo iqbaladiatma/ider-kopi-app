@@ -9,11 +9,17 @@ import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/image_utils.dart';
 import '../../../core/utils/location_utils.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../outlet/data/outlet_model.dart';
+import '../../outlet/presentation/outlet_map_widget.dart';
+import '../../outlet/presentation/outlet_picker_sheet.dart';
+import '../../outlet/providers/outlet_providers.dart';
+import '../../sync/providers/sync_providers.dart';
 import '../data/attendance_model.dart';
 import '../providers/attendance_providers.dart';
 
 class CheckOutPage extends ConsumerStatefulWidget {
-  const CheckOutPage({super.key});
+  final String? reason;
+  const CheckOutPage({super.key, this.reason});
 
   @override
   ConsumerState<CheckOutPage> createState() => _CheckOutPageState();
@@ -29,8 +35,11 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
   bool? _isWithinRadius;
   bool _isLocationLoading = true;
   String? _locationError;
+  double? _distanceToOutlet;
   XFile? _capturedSelfie;
   bool _isSubmitting = false;
+
+  Outlet? _selectedOutlet;
 
   @override
   void initState() {
@@ -70,15 +79,23 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
     try {
       final position = await LocationUtils.getCurrentLocation();
-      final withinRadius = LocationUtils.isWithinOfficeRadius(
-        position.latitude,
-        position.longitude,
-      );
       if (!mounted) return;
+
+      final distances = await ref.read(outletDistancesProvider(
+        (lat: position.latitude, lng: position.longitude),
+      ).future);
+
+      final nearest = distances.isEmpty ? null : distances.first;
+      final withinAny = distances.any((d) => d.isWithinRadius);
+
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
-        _isWithinRadius = withinRadius;
+        _isWithinRadius = withinAny;
+        _distanceToOutlet = nearest?.distanceMeters;
+        if (_selectedOutlet == null && nearest != null && nearest.isWithinRadius) {
+          _selectedOutlet = nearest.outlet;
+        }
         _isLocationLoading = false;
       });
     } catch (e) {
@@ -88,6 +105,39 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
         _isLocationLoading = false;
       });
     }
+  }
+
+  Future<void> _openOutletPicker() async {
+    if (_latitude == null || _longitude == null) {
+      _showError('GPS belum siap, tunggu sebentar...');
+      return;
+    }
+    final picked = await showOutletPickerSheet(
+      context,
+      userLatitude: _latitude!,
+      userLongitude: _longitude!,
+      selectedOutletId: _selectedOutlet?.id,
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedOutlet = picked;
+        if (_latitude != null && _longitude != null) {
+          final d = LocationUtils.distanceTo(
+            _latitude!,
+            _longitude!,
+            picked.latitude,
+            picked.longitude,
+          );
+          _distanceToOutlet = d;
+          _isWithinRadius = d <= picked.radiusMeters;
+        }
+      });
+    }
+  }
+
+  String _distanceLabel(double meters) {
+    if (meters < 1000) return '${meters.round()}m';
+    return '${(meters / 1000).toStringAsFixed(1)}km';
   }
 
   Future<void> _takePhoto() async {
@@ -121,7 +171,6 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
       final repo = ref.read(attendanceRepositoryProvider);
       final compressedFile = await ImageUtils.compressImage(_capturedSelfie!);
-      final fileId = await repo.uploadSelfie(compressedFile);
 
       final todayRecord = await ref.read(todayAttendanceProvider.future);
       if (todayRecord == null) {
@@ -131,20 +180,40 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
       final now = DateTime.now();
       final request = CheckOutRequest(
-        id: todayRecord.id,
-        keluar: AppDateUtils.formatTime(now),
-        latitude: _latitude!,
-        longitude: _longitude!,
-        selfieFileId: fileId,
+        pulang: AppDateUtils.formatTime(now),
+        latitudePulang: _latitude,
+        longitudePulang: _longitude,
+        selfiePulangFileId: 'pending',
+        keterangan: widget.reason,
       );
 
-      await repo.checkOut(request);
+      try {
+        // Coba online
+        final fileId = await repo.uploadSelfie(compressedFile);
+        final onlineRequest = CheckOutRequest(
+          pulang: request.pulang,
+          latitudePulang: request.latitudePulang,
+          longitudePulang: request.longitudePulang,
+          selfiePulangFileId: fileId,
+          keterangan: request.keterangan,
+        );
+        await repo.checkOut(todayRecord.id ?? 0, onlineRequest);
 
-      ref.invalidate(todayAttendanceProvider);
-      ref.invalidate(historyProvider);
+        ref.invalidate(todayAttendanceProvider);
+        ref.invalidate(historyProvider);
 
-      if (mounted) {
-        _showSuccessDialog();
+        if (mounted) _showSuccessDialog();
+      } catch (onlineError) {
+        // Offline fallback: enqueue
+        final syncRepo = ref.read(syncRepositoryProvider);
+        await syncRepo.enqueueCheckOut(
+          recordId: todayRecord.id ?? 0,
+          request: request,
+          selfiePath: compressedFile.path,
+        );
+        ref.invalidate(pendingSyncCountProvider);
+
+        if (mounted) _showOfflineSuccessDialog();
       }
     } catch (e) {
       _showError('Gagal mengirim absensi pulang: $e');
@@ -194,6 +263,40 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
     );
   }
 
+  void _showOfflineSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.cloud_off_rounded, color: AppColors.amber, size: 28),
+            SizedBox(width: 10),
+            Text('Tersimpan Offline', style: TextStyle(fontFamily: 'Sora', fontSize: 18, fontWeight: FontWeight.w700)),
+          ],
+        ),
+        content: const Text(
+          'Absen pulang kamu disimpan lokal dan akan otomatis ter-sync '
+          'saat koneksi internet tersedia.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/home');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.amber,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+            ),
+            child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _cameraController?.dispose();
@@ -205,8 +308,11 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
     final gpsStatusText = _isLocationLoading
         ? 'Mendapatkan GPS...'
         : (_isWithinRadius == true
-            ? 'Dalam radius outlet · 12m'
-            : (_locationError != null ? 'GPS Gagal' : 'Luar radius outlet'));
+            ? 'Dalam radius ${_selectedOutlet?.shortName ?? 'outlet'}'
+                '${_distanceToOutlet != null ? ' · ${_distanceLabel(_distanceToOutlet!)}' : ''}'
+            : (_locationError != null
+                ? 'GPS Gagal'
+                : 'Luar radius ${_selectedOutlet?.shortName ?? 'outlet'}'));
 
     return Scaffold(
       backgroundColor: AppColors.ink,
@@ -245,6 +351,102 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
                 ],
               ),
             ),
+
+            // Outlet Selector
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: GestureDetector(
+                onTap: _isLocationLoading ? null : _openOutletPicker,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _isWithinRadius == true
+                          ? AppColors.green.withValues(alpha: 0.5)
+                          : Colors.white.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.red.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: const Icon(Icons.storefront_rounded,
+                            color: Colors.white, size: 16),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedOutlet?.shortName ??
+                                  (_isLocationLoading
+                                      ? 'Mencari outlet terdekat...'
+                                      : 'Pilih outlet'),
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            if (_distanceToOutlet != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  '${_distanceLabel(_distanceToOutlet!)} dari kamu'
+                                  '${_isWithinRadius == true ? ' · dalam radius' : ''}',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    color: _isWithinRadius == true
+                                        ? AppColors.green
+                                        : Colors.white.withValues(alpha: 0.6),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.unfold_more_rounded,
+                          color: Colors.white54, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Map preview outlet
+            if (_latitude != null && _longitude != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+                child: _MapPreview(
+                  userLatitude: _latitude!,
+                  userLongitude: _longitude!,
+                  selectedOutlet: _selectedOutlet,
+                  onOutletTap: (outlet) {
+                    setState(() {
+                      _selectedOutlet = outlet;
+                      final d = LocationUtils.distanceTo(
+                        _latitude!,
+                        _longitude!,
+                        outlet.latitude,
+                        outlet.longitude,
+                      );
+                      _distanceToOutlet = d;
+                      _isWithinRadius = d <= outlet.radiusMeters;
+                    });
+                  },
+                ),
+              ),
+            ],
 
             // Camera Viewport Frame
             Expanded(
@@ -387,6 +589,62 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Map preview yang watch outlet provider dari Riverpod.
+class _MapPreview extends ConsumerWidget {
+  const _MapPreview({
+    required this.userLatitude,
+    required this.userLongitude,
+    required this.selectedOutlet,
+    required this.onOutletTap,
+  });
+
+  final double userLatitude;
+  final double userLongitude;
+  final Outlet? selectedOutlet;
+  final ValueChanged<Outlet> onOutletTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final outletsAsync = ref.watch(outletsProvider);
+
+    return outletsAsync.when(
+      data: (outlets) => OutletMapWidget(
+        outlets: outlets,
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+        selectedOutlet: selectedOutlet,
+        height: 140,
+        onOutletTap: onOutletTap,
+      ),
+      loading: () => Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        alignment: Alignment.center,
+        child: const SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            color: Colors.white54,
+            strokeWidth: 2,
+          ),
+        ),
+      ),
+      error: (e, _) => Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.map_outlined, color: Colors.white30, size: 32),
       ),
     );
   }

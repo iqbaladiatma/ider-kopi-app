@@ -365,28 +365,28 @@ class AppTheme {
       ];
 
   static List<BoxShadow> get buttonShadow => [
-        const BoxShadow(
-          color: AppColors.buttonShadow,
+        BoxShadow(
+          color: AppColors.buttonShadow.color,
           blurRadius: 16,
-          offset: Offset(0, 6),
+          offset: const Offset(0, 6),
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: AppColors.buttonShadow.withValues(alpha: 0.3),
+          color: AppColors.buttonShadow.color.withValues(alpha: 0.3),
           blurRadius: 6,
           offset: const Offset(0, 2),
         ),
       ];
 
   static List<BoxShadow> get gradientShadow => [
-        const BoxShadow(
-          color: AppColors.gradientShadow,
+        BoxShadow(
+          color: AppColors.gradientShadow.color,
           blurRadius: 24,
-          offset: Offset(0, 10),
+          offset: const Offset(0, 10),
           spreadRadius: -4,
         ),
         BoxShadow(
-          color: AppColors.gradientShadow.withValues(alpha: 0.4),
+          color: AppColors.gradientShadow.color.withValues(alpha: 0.4),
           blurRadius: 10,
           offset: const Offset(0, 4),
         ),

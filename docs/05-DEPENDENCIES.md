@@ -29,8 +29,9 @@ dependencies:
   image: ^4.1.0                    # Image processing/compress
   path_provider: ^2.1.0            # File system paths
 
-  # Maps (optional for MVP)
-  google_maps_flutter: ^2.5.0      # Map preview
+  # Maps (Mapbox)
+  flutter_map: ^7.0.2              # Mapbox tile renderer
+  latlong2: ^0.9.1                 # Geo coordinates & distance
 
   # Utilities
   intl: ^0.18.0                    # Date/number formatting

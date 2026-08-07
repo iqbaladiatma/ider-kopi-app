@@ -7,6 +7,9 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/brand_provider.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../holiday/data/holiday_model.dart';
+import '../../holiday/providers/holiday_providers.dart';
+import '../../sync/presentation/widgets/pending_sync_badge.dart';
 import '../data/attendance_model.dart';
 import '../providers/attendance_providers.dart';
 
@@ -18,6 +21,7 @@ class HomePage extends ConsumerWidget {
     final userAsync = ref.watch(currentUserProvider);
     final todayAsync = ref.watch(todayAttendanceProvider);
     final activeBrand = ref.watch(activeBrandProvider);
+    final todayHolidayAsync = ref.watch(todayHolidayProvider);
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -179,6 +183,51 @@ class HomePage extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Column(
                   children: [
+                    // Holiday banner (muncul jika hari ini hari libur)
+                    todayHolidayAsync.when(
+                      data: (holiday) => holiday == null
+                          ? const SizedBox.shrink()
+                          : Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 10),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.amber.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.amber.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.celebration_rounded,
+                                      color: AppColors.amber, size: 18),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Hari Libur: ${holiday.nama}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.amber,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    // Pending sync badge (muncul jika ada absensi offline)
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: PendingSyncBadge(),
+                    ),
+                    const SizedBox(height: 8),
+
                     // Punch Button (Absen Masuk / Absen Pulang)
                     _buildPunchButton(context, todayAsync, activeBrand),
 

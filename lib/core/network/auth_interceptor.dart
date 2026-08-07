@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../config/api_provider.dart';
+import '../config/app_config.dart';
 import '../storage/secure_storage.dart';
 
 class AuthInterceptor extends Interceptor {
@@ -49,21 +51,35 @@ class AuthInterceptor extends Interceptor {
       final refreshToken = await storage.getRefreshToken();
       if (refreshToken == null) return false;
 
+      // Pilih endpoint refresh sesuai provider aktif
+      final refreshEndpoint = AppConfig.apiProvider == ApiProvider.directus
+          ? '/auth/refresh'
+          : '/api/v1/auth/refresh';
+
       final response = await dio.post(
-        '/auth/refresh',
+        refreshEndpoint,
         data: {'refresh_token': refreshToken},
       );
 
-      if (response.statusCode == 200 && response.data['data'] != null) {
-        final data = response.data['data'];
-        await storage.saveTokens(
-          accessToken: data['access_token'],
-          refreshToken: data['refresh_token'],
-          expiresAt: DateTime.now().add(
-            Duration(seconds: data['expires'] ?? 900),
-          ),
-        );
-        return true;
+      if (response.statusCode == 200 && response.data != null) {
+        final rawData = response.data;
+        // Directus: { data: { access_token, refresh_token, expires } }
+        // Go backend: { success: true, data: { access_token } }
+        final data = rawData['data'] ?? rawData;
+        final newAccessToken = data['access_token'];
+        final newRefreshToken = data['refresh_token'] ?? refreshToken;
+        final expires = data['expires'];
+
+        if (newAccessToken != null) {
+          await storage.saveTokens(
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            expiresAt: DateTime.now().add(
+              Duration(seconds: expires is int ? expires : 900),
+            ),
+          );
+          return true;
+        }
       }
       return false;
     } catch (e) {

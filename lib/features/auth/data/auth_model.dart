@@ -1,4 +1,4 @@
-wclass AuthTokens {
+class AuthTokens {
   final String accessToken;
   final String refreshToken;
   final DateTime expiresAt;
@@ -10,10 +10,15 @@ wclass AuthTokens {
   });
 
   factory AuthTokens.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
+    // Directus: { data: { access_token, refresh_token, expires } }
+    // Go backend: { success: true, data: { access_token, refresh_token, user: {...} } }
+    final data = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
+
     return AuthTokens(
       accessToken: data['access_token'] as String,
-      refreshToken: data['refresh_token'] as String,
+      refreshToken: (data['refresh_token'] as String?) ?? '',
       expiresAt: DateTime.now().add(
         Duration(seconds: (data['expires'] as int?) ?? 900),
       ),
@@ -64,9 +69,14 @@ class UserProfile {
   bool get isAdmin => roleName?.toLowerCase() == 'admin';
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
-    final role = json['role'] as Map<String, dynamic>?;
-    final rawOutlet = json['outlet']?.toString();
-    // Data dari Directus / Kangider otomatis masuk ke outlet IderKopi
+    final roleObj = json['role'] is Map<String, dynamic> ? json['role'] as Map<String, dynamic> : null;
+    final roleStr = json['role'] is String ? json['role'] as String : roleObj?['name'];
+
+    final rawName = (json['first_name'] != null || json['last_name'] != null)
+        ? null
+        : (json['full_name'] as String?);
+
+    final rawOutlet = json['outlet']?.toString() ?? json['department_name']?.toString();
     final resolvedOutlet = (rawOutlet != null && rawOutlet.isNotEmpty)
         ? (rawOutlet.contains('IderKopi') ? rawOutlet : 'IderKopi - $rawOutlet')
         : 'IderKopi';
@@ -74,13 +84,13 @@ class UserProfile {
     return UserProfile(
       id: json['id']?.toString() ?? '',
       email: json['email'] ?? '',
-      firstName: json['first_name'],
+      firstName: json['first_name'] ?? rawName,
       lastName: json['last_name'],
-      kangiderId: json['kangider_id']?.toString(),
-      kangiderNama: json['kangider_nama'],
+      kangiderId: json['kangider_id']?.toString() ?? json['external_kangider_id']?.toString(),
+      kangiderNama: json['kangider_nama'] ?? json['full_name'],
       outlet: resolvedOutlet,
-      roleId: role?['id']?.toString(),
-      roleName: role?['name'],
+      roleId: roleObj?['id']?.toString(),
+      roleName: roleStr,
     );
   }
 }

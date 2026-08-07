@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 
+import '../../../core/config/api_provider.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/network/directus_client.dart';
 import '../../../core/utils/date_utils.dart';
@@ -25,11 +26,17 @@ class AttendanceRepository {
       return record.isEmpty ? null : AttendanceRecord.fromJson(record);
     }
 
-    final response = await _client.get('/items/absensi_ider', query: {
-      'filter[kangider][_eq]': kangiderId,
-      'filter[tanggal_absensi][_eq]': today,
-      'limit': 1,
-    });
+    final isDirectus = AppConfig.apiProvider == ApiProvider.directus;
+    final endpoint = isDirectus ? '/items/absensi_ider' : '/api/v1/attendance/logs/me';
+    final query = isDirectus
+        ? {
+            'filter[kangider][_eq]': kangiderId,
+            'filter[tanggal_absensi][_eq]': today,
+            'limit': 1,
+          }
+        : null;
+
+    final response = await _client.get(endpoint, query: query);
 
     final data = response.data['data'] as List;
     if (data.isEmpty) return null;
@@ -47,8 +54,12 @@ class AttendanceRepository {
       return AttendanceRecord.fromJson(newRecord);
     }
 
+    final endpoint = AppConfig.apiProvider == ApiProvider.directus
+        ? '/items/absensi_ider'
+        : '/api/v1/attendance/logs';
+
     final response = await _client.post(
-      '/items/absensi_ider',
+      endpoint,
       body: req.toJson(),
     );
 
@@ -72,10 +83,12 @@ class AttendanceRepository {
       return AttendanceRecord.fromJson(record);
     }
 
-    final response = await _client.patch(
-      '/items/absensi_ider/$id',
-      body: req.toJson(),
-    );
+    final isDirectus = AppConfig.apiProvider == ApiProvider.directus;
+    final endpoint = isDirectus ? '/items/absensi_ider/$id' : '/api/v1/attendance/logs/$id';
+
+    final response = isDirectus
+        ? await _client.patch(endpoint, body: req.toJson())
+        : await _client.post(endpoint, body: req.toJson());
 
     final data = response.data['data'] as Map<String, dynamic>;
     return AttendanceRecord.fromJson(data);
@@ -100,11 +113,17 @@ class AttendanceRepository {
           .toList();
     }
 
-    final response = await _client.get('/items/absensi_ider', query: {
-      'filter[kangider][_eq]': kangiderId,
-      'sort[]': '-tanggal_absensi',
-      'limit': limit,
-    });
+    final isDirectus = AppConfig.apiProvider == ApiProvider.directus;
+    final endpoint = isDirectus ? '/items/absensi_ider' : '/api/v1/attendance/logs/me';
+    final query = isDirectus
+        ? {
+            'filter[kangider][_eq]': kangiderId,
+            'sort[]': '-tanggal_absensi',
+            'limit': limit,
+          }
+        : null;
+
+    final response = await _client.get(endpoint, query: query);
 
     final data = response.data['data'] as List;
     return data

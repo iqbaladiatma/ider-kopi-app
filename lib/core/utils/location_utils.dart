@@ -86,4 +86,27 @@ class LocationUtils {
       {double radiusMeters = AppConfig.officeRadiusMeters}) {
     return distanceToOffice(lat, lng) <= radiusMeters;
   }
+
+  // --- Multi-outlet helpers (v1.1) ---
+
+  /// Jarak (meter) antara 2 titik koordinat.
+  static double distanceTo(
+    double fromLat,
+    double fromLng,
+    double toLat,
+    double toLng,
+  ) {
+    return Geolocator.distanceBetween(fromLat, fromLng, toLat, toLng);
+  }
+
+  /// Cek apakah posisi user dalam radius sebuah outlet.
+  static bool isWithinOutletRadius({
+    required double userLat,
+    required double userLng,
+    required double outletLat,
+    required double outletLng,
+    required double radiusMeters,
+  }) {
+    return distanceTo(userLat, userLng, outletLat, outletLng) <= radiusMeters;
+  }
 }

@@ -82,7 +82,7 @@ class ProfilePage extends ConsumerWidget {
                           : 'DA';
                       final outlet = profile?.outlet ?? 'Outlet Malioboro';
                       final role = profile?.kangiderNama ?? 'Barista';
-                      final empId = profile?.nip ?? 'IDR-0012';
+                      final empId = profile?.kangiderId ?? profile?.id ?? 'IDR-0012';
 
                       return Column(
                         mainAxisSize: MainAxisSize.min,
@@ -98,7 +98,7 @@ class ProfilePage extends ConsumerWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(activeBrand.icon, style: const TextStyle(fontSize: 11)),
+                                Icon(activeBrand.iconData, size: 12, color: Colors.white),
                                 const SizedBox(width: 5),
                                 Text(
                                   activeBrand.badgeText,
@@ -225,8 +225,32 @@ class ProfilePage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.notifications_none_rounded,
-                    label: 'Notifikasi',
-                    onTap: () {},
+                    label: 'Pengaturan Notifikasi',
+                    onTap: () => context.push('/settings'),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    iconData: Icons.event_available_rounded,
+                    label: 'Pengajuan Izin',
+                    onTap: () => context.push('/leave'),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    iconData: Icons.insights_rounded,
+                    label: 'KPI Saya',
+                    onTap: () => context.push('/kpi'),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    iconData: Icons.bar_chart_rounded,
+                    label: 'Rekap Bulanan',
+                    onTap: () => context.push('/recap'),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    iconData: Icons.schedule_rounded,
+                    label: 'Jadwal Shift',
+                    onTap: () => context.push('/shift'),
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(

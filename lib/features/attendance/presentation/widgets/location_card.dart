@@ -272,7 +272,7 @@ class _LocationCardState extends State<LocationCard> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: AppColors.gray100,
-                        child: const Center(
+                        child: Center(
                           child: Icon(Icons.map_outlined, color: AppColors.gray300),
                         ),
                       ),

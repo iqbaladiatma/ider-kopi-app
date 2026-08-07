@@ -151,7 +151,7 @@ class HistoryListItem extends StatelessWidget {
       width: 52,
       height: 52,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [AppColors.surfaceAlt, AppColors.gray100],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
