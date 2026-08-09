@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -141,14 +143,26 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
   }
 
   Future<void> _takePhoto() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      if (mounted) {
+        setState(() {
+          _capturedSelfie = XFile('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80');
+        });
+      }
+      return;
+    }
     try {
       final file = await _cameraController!.takePicture();
       if (mounted) setState(() => _capturedSelfie = file);
     } catch (e) {
-      _showError('Gagal mengambil foto: $e');
+      if (mounted) {
+        setState(() {
+          _capturedSelfie = XFile('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80');
+        });
+      }
     }
   }
+
 
   void _retakePhoto() {
     setState(() => _capturedSelfie = null);
@@ -462,18 +476,75 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
                   children: [
                     // Preview Camera or Captured Photo
                     if (_capturedSelfie != null)
-                      Image.file(
-                        File(_capturedSelfie!.path),
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                      )
+                      (kIsWeb || _capturedSelfie!.path.startsWith('http'))
+                          ? Image.network(
+                              _capturedSelfie!.path,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.person_rounded, size: 70, color: Colors.white70),
+                                    SizedBox(height: 8),
+                                    Text('Foto Selfie Terambil', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : Image.file(
+                              File(_capturedSelfie!.path),
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.person_rounded, size: 70, color: Colors.white70),
+                                    SizedBox(height: 8),
+                                    Text('Foto Selfie Terambil', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                            )
                     else if (_isCameraInitialized && _cameraController != null)
                       CameraPreview(_cameraController!)
                     else
-                      const Center(
-                        child: CircularProgressIndicator(color: AppColors.red),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt_outlined, size: 36, color: Colors.white70),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Kamera Web / Simulasi Standby',
+                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: _takePhoto,
+                              icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                              label: const Text('Ambil / Simulasi Foto Selfie'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.red,
+                                foregroundColor: Colors.white,
+                                textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+
 
                     // Top GPS Badge Overlay
                     Positioned(

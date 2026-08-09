@@ -43,6 +43,7 @@ final goDioProvider = Provider<Dio>((ref) {
 final attendanceDataSourceProvider = Provider<AttendanceDataSource>((ref) {
   switch (AppConfig.apiProvider) {
     case ApiProvider.directus:
+    case ApiProvider.customWeb:
       return DirectusAttendanceDataSource(AttendanceRepository());
     case ApiProvider.goBackend:
       return GoAttendanceDataSource(
@@ -50,6 +51,7 @@ final attendanceDataSourceProvider = Provider<AttendanceDataSource>((ref) {
         storage: SecureStorage(),
       );
   }
+
 });
 
 /// Provider untuk `AttendanceRepository` yang pakai data source aktif.

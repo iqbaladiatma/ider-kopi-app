@@ -7,6 +7,8 @@ import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../attendance/data/attendance_model.dart';
 import '../providers/admin_providers.dart';
+import 'admin_attendance_detail_page.dart';
+
 
 class AdminAttendancePage extends ConsumerStatefulWidget {
   const AdminAttendancePage({super.key});
@@ -189,86 +191,99 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
       geoColor = AppColors.green;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 9),
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initials.toUpperCase(),
-              style: const TextStyle(
-                fontFamily: 'Sora',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AdminAttendanceDetailPage(record: record),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  outlet,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 10,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                timeStr,
+              alignment: Alignment.center,
+              child: Text(
+                initials.toUpperCase(),
                 style: const TextStyle(
-                  fontFamily: 'Space Mono',
-                  fontSize: 11,
+                  fontFamily: 'Sora',
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                geoText,
-                style: TextStyle(
-                  fontFamily: 'Space Mono',
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: geoColor,
-                ),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    outlet,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  timeStr,
+                  style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  geoText,
+                  style: TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: geoColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 18),
+          ],
+        ),
       ),
     );
   }
+
 }

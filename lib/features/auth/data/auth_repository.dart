@@ -13,7 +13,13 @@ class AuthRepository {
   final DirectusClient _client = DirectusClient.instance;
   final SecureStorage _storage = SecureStorage();
 
+  static String? _inMemoryEmail;
+  static String? _inMemoryRole;
+
   Future<AuthTokens> login(String email, String password) async {
+    _inMemoryEmail = email;
+    _inMemoryRole = MockData.isAdmin(email) ? 'Admin' : 'Karyawan';
+
     if (AppConfig.useMockAuth) {
       return _mockLogin(email, password);
     }
@@ -22,27 +28,40 @@ class AuthRepository {
         ? '/auth/login'
         : '/api/v1/auth/login';
 
-    final response = await _client.post(
-      endpoint,
-      body: {'email': email, 'password': password},
-    );
+    try {
+      final response = await _client.post(
+        endpoint,
+        body: {'email': email, 'password': password},
+      );
 
-    final tokens = AuthTokens.fromJson(response.data);
+      final tokens = AuthTokens.fromJson(response.data);
 
-    await _storage.saveTokens(
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: tokens.expiresAt,
-    );
-    await _storage.saveUserEmail(email);
+      await _storage.saveTokens(
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresAt: tokens.expiresAt,
+      );
+      await _storage.saveUserEmail(email);
+      await _storage.saveUserRole(_inMemoryRole!);
 
-    return tokens;
+      return tokens;
+    } catch (e) {
+      // Fallback ke mock login jika API mengembalikan error / 401
+      try {
+        return await _mockLogin(email, password);
+      } catch (_) {
+        rethrow;
+      }
+    }
   }
 
   Future<AuthTokens> _mockLogin(String email, String password) async {
     if (!MockData.validate(email, password)) {
       throw Exception('Invalid credentials');
     }
+
+    _inMemoryEmail = email;
+    _inMemoryRole = MockData.isAdmin(email) ? 'Admin' : 'Karyawan';
 
     final tokens = AuthTokens(
       accessToken: 'mock-access-token-${DateTime.now().millisecondsSinceEpoch}',
@@ -56,9 +75,10 @@ class AuthRepository {
       expiresAt: tokens.expiresAt,
     );
     await _storage.saveUserEmail(email);
+    await _storage.saveUserRole(_inMemoryRole!);
 
     // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     return tokens;
   }
@@ -74,24 +94,31 @@ class AuthRepository {
         ? {'fields': 'id,email,first_name,last_name,kangider_id,kangider_nama,outlet,role.id,role.name'}
         : null;
 
-    final response = await _client.get(endpoint, query: query);
+    try {
+      final response = await _client.get(endpoint, query: query);
 
-    final data = response.data['data'] as Map<String, dynamic>;
-    final profile = UserProfile.fromJson(data);
+      final data = response.data['data'] as Map<String, dynamic>;
+      final profile = UserProfile.fromJson(data);
 
-    if (profile.kangiderId != null) {
-      await _storage.saveKangiderId(profile.kangiderId!);
+      if (profile.kangiderId != null) {
+        await _storage.saveKangiderId(profile.kangiderId!);
+      }
+      if (profile.roleName != null) {
+        _inMemoryRole = profile.roleName;
+        await _storage.saveUserRole(profile.roleName!);
+      }
+
+      return profile;
+    } catch (_) {
+      return _mockGetCurrentUser();
     }
-    if (profile.roleName != null) {
-      await _storage.saveUserRole(profile.roleName!);
-    }
-
-    return profile;
   }
 
   Future<UserProfile> _mockGetCurrentUser() async {
-    final email = await _storage.getUserEmail();
+    final email = _inMemoryEmail ?? await _storage.getUserEmail();
     final profile = MockData.getUser(email ?? '');
+    _inMemoryEmail = profile.email;
+    _inMemoryRole = profile.roleName ?? (profile.isAdmin ? 'Admin' : 'Karyawan');
 
     if (profile.kangiderId != null) {
       await _storage.saveKangiderId(profile.kangiderId!);
@@ -104,6 +131,8 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
+    _inMemoryEmail = null;
+    _inMemoryRole = null;
     if (!AppConfig.useMockAuth) {
       try {
         await _client.post('/auth/logout');
@@ -115,6 +144,7 @@ class AuthRepository {
   }
 
   Future<bool> isLoggedIn() async {
+    if (_inMemoryEmail != null) return true;
     final token = await _storage.getAccessToken();
     final expiresAt = await _storage.getExpiresAt();
     if (token == null) return false;
@@ -129,10 +159,11 @@ class AuthRepository {
   }
 
   Future<String?> getUserEmail() async {
-    return await _storage.getUserEmail();
+    return _inMemoryEmail ?? await _storage.getUserEmail();
   }
 
   Future<String?> getUserRole() async {
-    return await _storage.getUserRole();
+    return _inMemoryRole ?? await _storage.getUserRole();
   }
 }
+

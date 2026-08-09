@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
 import '../data/recap_model.dart';
 import '../providers/recap_providers.dart';
 import 'widgets/attendance_bar_chart.dart';
 import 'widgets/status_pie_chart.dart';
+
 
 class RecapPage extends ConsumerStatefulWidget {
   const RecapPage({super.key});
@@ -40,8 +43,9 @@ class _RecapPageState extends ConsumerState<RecapPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
         ),
+
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

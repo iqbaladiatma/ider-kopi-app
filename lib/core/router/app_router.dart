@@ -27,17 +27,15 @@ import '../../shared/widgets/bottom_nav_bar.dart';
 
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(this._ref) {
+    debugPrint('DEBUG: _RouterNotifier init');
     _ref.read(authInitProvider);
-    _ref.listen(authStateProvider, (_, __) => notifyListeners());
-    _ref.listen(userRoleProvider, (_, __) => notifyListeners());
-    _ref.listen(authInitProvider, (_, __) => notifyListeners());
+    _ref.listen(authStateProvider, (_, __) { debugPrint('DEBUG: authState changed'); notifyListeners(); });
+    _ref.listen(userRoleProvider, (_, __) { debugPrint('DEBUG: userRole changed'); notifyListeners(); });
   }
 
   final Ref _ref;
 
-  bool get isInitializing =>
-      _ref.read(authInitProvider).isLoading ||
-      _ref.read(authStateProvider) == AuthStatus.initial;
+  bool get isInitializing => _ref.read(authStateProvider) == AuthStatus.initial;
 
   bool get isLoggedIn =>
       _ref.read(authStateProvider) == AuthStatus.authenticated;
@@ -47,6 +45,7 @@ class _RouterNotifier extends ChangeNotifier {
     return role?.toLowerCase() == 'admin';
   }
 }
+
 
 final _routerNotifierProvider = Provider<_RouterNotifier>((ref) {
   return _RouterNotifier(ref);
@@ -80,11 +79,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(_routerNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/login',
     refreshListenable: notifier,
     redirect: (context, state) {
       final isSplashRoute = state.matchedLocation == '/splash';
       final isLoginRoute = state.matchedLocation == '/login';
+      final isRootRoute = state.matchedLocation == '/';
+
+      debugPrint('DEBUG: redirect — location=${state.matchedLocation}, isInitializing=${notifier.isInitializing}, isLoggedIn=${notifier.isLoggedIn}');
+
+      if (isRootRoute) return '/login';
 
       if (notifier.isInitializing) {
         return isSplashRoute ? null : '/splash';
@@ -95,6 +99,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ? (notifier.isAdmin ? '/admin' : '/home')
             : '/login';
       }
+
 
       final isLoggedIn = notifier.isLoggedIn;
       final isAdmin = notifier.isAdmin;

@@ -5,7 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/brand_provider.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../kpi/presentation/kpi_page.dart';
+import '../../leave/presentation/leave_list_page.dart';
+import '../../recap/presentation/recap_page.dart';
+import '../../settings/presentation/settings_page.dart';
+import '../../shift/presentation/shift_schedule_page.dart';
 import '../providers/profile_providers.dart';
+
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -203,61 +209,186 @@ class ProfilePage extends ConsumerWidget {
               child: Column(
                 children: [
                   _buildMenuItem(
-                    iconData: activeBrand.iconData,
-                    label: 'Ganti Mode Outlet (${activeBrand.name})',
+                    iconData: Icons.person_outline_rounded,
+                    label: 'Data Diri & Profil Karyawan',
                     onTap: () {
-                      ref.read(activeBrandProvider.notifier).toggleBrand();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Mode berhasil diubah ke ${ref.read(activeBrandProvider).name}'),
-                          backgroundColor: ref.read(activeBrandProvider).primaryColor,
-                          duration: const Duration(seconds: 2),
+                      final profile = profileAsync.valueOrNull;
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          title: const Row(
+                            children: [
+                              Icon(Icons.badge_rounded, color: AppColors.red, size: 22),
+                              SizedBox(width: 8),
+                              Text('Data Diri Karyawan', style: TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildInfoRow('Nama Lengkap', profile?.fullName ?? 'Dewi Anjani'),
+                              const SizedBox(height: 10),
+                              _buildInfoRow('NIP / ID Karyawan', profile?.kangiderId ?? 'IDR-0012'),
+                              const SizedBox(height: 10),
+                              _buildInfoRow('Outlet Penugasan', profile?.outlet ?? 'IderKopi - Malioboro'),
+                              const SizedBox(height: 10),
+                              _buildInfoRow('Peran / Jabatan', profile?.kangiderNama ?? 'Barista'),
+                              const SizedBox(height: 10),
+                              _buildInfoRow('Status Akun', 'Aktif (Terverifikasi)'),
+                            ],
+                          ),
+                          actions: [
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.red,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                              ),
+                              child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            ),
+                          ],
                         ),
                       );
                     },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
-                    iconData: Icons.person_outline_rounded,
-                    label: 'Data Diri',
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 8),
-                  _buildMenuItem(
                     iconData: Icons.notifications_none_rounded,
                     label: 'Pengaturan Notifikasi',
-                    onTap: () => context.push('/settings'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SettingsPage()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.event_available_rounded,
                     label: 'Pengajuan Izin',
-                    onTap: () => context.push('/leave'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LeaveListPage()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.insights_rounded,
                     label: 'KPI Saya',
-                    onTap: () => context.push('/kpi'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const KpiPage()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.bar_chart_rounded,
                     label: 'Rekap Bulanan',
-                    onTap: () => context.push('/recap'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RecapPage()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.schedule_rounded,
                     label: 'Jadwal Shift',
-                    onTap: () => context.push('/shift'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ShiftSchedulePage()),
+                      );
+                    },
                   ),
+
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.lock_outline_rounded,
                     label: 'Ubah Kata Sandi',
-                    onTap: () {},
+                    onTap: () {
+                      final oldPassCtrl = TextEditingController();
+                      final newPassCtrl = TextEditingController();
+                      final confirmPassCtrl = TextEditingController();
+                      showDialog(
+                        context: context,
+                        builder: (dCtx) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          title: const Row(
+                            children: [
+                              Icon(Icons.lock_reset_rounded, color: AppColors.red, size: 22),
+                              SizedBox(width: 8),
+                              Text('Ubah Kata Sandi', style: TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: oldPassCtrl,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  labelText: 'Kata Sandi Lama',
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: newPassCtrl,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  labelText: 'Kata Sandi Baru',
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: confirmPassCtrl,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  labelText: 'Konfirmasi Kata Sandi Baru',
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Batal')),
+                            ElevatedButton(
+                              onPressed: () {
+                                if (newPassCtrl.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Kata sandi baru tidak boleh kosong'), backgroundColor: AppColors.red),
+                                  );
+                                  return;
+                                }
+                                if (newPassCtrl.text != confirmPassCtrl.text) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Konfirmasi kata sandi tidak cocok'), backgroundColor: AppColors.red),
+                                  );
+                                  return;
+                                }
+                                Navigator.pop(dCtx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Kata sandi berhasil diperbarui'), backgroundColor: AppColors.green),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+                              child: const Text('Simpan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
+
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.logout_rounded,
@@ -268,6 +399,7 @@ class ProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
+
 
             const SizedBox(height: 32),
           ],
@@ -393,4 +525,32 @@ class ProfilePage extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.muted,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
+        ),
+      ],
+    );
+  }
 }
+

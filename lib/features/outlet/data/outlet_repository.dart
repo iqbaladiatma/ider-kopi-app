@@ -64,6 +64,39 @@ class OutletRepository {
     }
   }
 
+  /// Tambah outlet baru.
+  Future<void> addOutlet(Outlet outlet) async {
+    final outlets = await getOutlets();
+    outlets.add(outlet);
+    await _saveToCache(outlets);
+
+    if (!AppConfig.useMockAuth && AppConfig.apiProvider == ApiProvider.directus) {
+      try {
+        await _client.post('/items/outlet_ider', body: outlet.toJson());
+      } catch (_) {}
+    }
+  }
+
+  /// Update outlet yang sudah ada.
+  Future<void> updateOutlet(Outlet outlet) async {
+    final outlets = await getOutlets();
+    final index = outlets.indexWhere((o) => o.id == outlet.id);
+    if (index != -1) {
+      outlets[index] = outlet;
+    } else {
+      outlets.add(outlet);
+    }
+    await _saveToCache(outlets);
+
+    if (!AppConfig.useMockAuth && AppConfig.apiProvider == ApiProvider.directus) {
+      try {
+        await _client.patch('/items/outlet_ider/${outlet.id}', body: outlet.toJson());
+      } catch (_) {}
+    }
+  }
+
+
+
   /// Fetch langsung dari API (Directus atau Go backend) atau mock jika useMockAuth.
   /// Tidak membaca cache. Hasil disimpan ke cache.
   Future<List<Outlet>> _refreshFromApi() async {

@@ -61,7 +61,34 @@ class AdminUser {
         'kangider_nama': kangiderNama,
         'outlet': outlet,
       };
+
+  AdminUser copyWith({
+    String? id,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? kangiderId,
+    String? kangiderNama,
+    String? outlet,
+    String? roleName,
+    String? status,
+    DateTime? createdAt,
+  }) {
+    return AdminUser(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      kangiderId: kangiderId ?? this.kangiderId,
+      kangiderNama: kangiderNama ?? this.kangiderNama,
+      outlet: outlet ?? this.outlet,
+      roleName: roleName ?? this.roleName,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
+
 
 class CreateUserData {
   final String email;

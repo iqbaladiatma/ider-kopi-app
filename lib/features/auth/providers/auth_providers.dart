@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/auth_model.dart';
@@ -14,11 +15,35 @@ final authStateProvider = StateProvider<AuthStatus>((ref) {
 });
 
 final authInitProvider = FutureProvider<AuthStatus>((ref) async {
+  debugPrint('DEBUG: authInitProvider start');
+  
+  // Web: langsung skip ke unauthenticated (storage belum reliable di web)
+  if (kIsWeb) {
+    debugPrint('DEBUG: authInitProvider web skip — unauthenticated');
+    ref.read(authStateProvider.notifier).state = AuthStatus.unauthenticated;
+    return AuthStatus.unauthenticated;
+  }
+  
   final repo = ref.read(authRepositoryProvider);
-  final isLoggedIn = await repo.isLoggedIn();
-  final status = isLoggedIn ? AuthStatus.authenticated : AuthStatus.unauthenticated;
-  ref.read(authStateProvider.notifier).state = status;
-  return status;
+  try {
+    final isLoggedIn = await repo.isLoggedIn().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        debugPrint('DEBUG: authInitProvider timeout — assuming not logged in');
+        return false;
+      },
+    );
+    debugPrint('DEBUG: authInitProvider isLoggedIn=$isLoggedIn');
+    final status =
+        isLoggedIn ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+    ref.read(authStateProvider.notifier).state = status;
+    debugPrint('DEBUG: authInitProvider done, status=$status');
+    return status;
+  } catch (e) {
+    debugPrint('DEBUG: authInitProvider error: $e');
+    ref.read(authStateProvider.notifier).state = AuthStatus.unauthenticated;
+    return AuthStatus.unauthenticated;
+  }
 });
 
 final currentUserProvider = FutureProvider<UserProfile?>((ref) async {

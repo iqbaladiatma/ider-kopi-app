@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/brand_provider.dart';
+import '../../../shared/widgets/outlet_mode_sheet.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../recap/presentation/admin_export_recap_page.dart';
+import '../../shift/presentation/admin_shift_settings_page.dart';
+
 
 class AdminProfilePage extends ConsumerWidget {
   const AdminProfilePage({super.key});
@@ -83,28 +87,33 @@ class AdminProfilePage extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Mode Pill Top
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(100),
-                              border: Border.all(color: Colors.white30),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(activeBrand.iconData, color: Colors.white, size: 12),
-                                const SizedBox(width: 5),
-                                Text(
-                                  activeBrand.badgeText,
-                                  style: const TextStyle(
-                                    fontFamily: 'Space Mono',
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                          GestureDetector(
+                            onTap: () => showOutletModeSheet(context, ref),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(100),
+                                border: Border.all(color: Colors.white30),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(activeBrand.iconData, color: Colors.white, size: 12),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    activeBrand.badgeText,
+                                    style: const TextStyle(
+                                      fontFamily: 'Space Mono',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.arrow_drop_down_rounded, color: Colors.white, size: 16),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 14),
@@ -200,16 +209,7 @@ class AdminProfilePage extends ConsumerWidget {
                   _buildMenuItem(
                     iconData: activeBrand.iconData,
                     label: 'Ganti Mode Outlet (${activeBrand.name})',
-                    onTap: () {
-                      ref.read(activeBrandProvider.notifier).toggleBrand();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Mode berhasil diubah ke ${ref.read(activeBrandProvider).name}'),
-                          backgroundColor: ref.read(activeBrandProvider).primaryColor,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
+                    onTap: () => showOutletModeSheet(context, ref),
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
@@ -221,13 +221,23 @@ class AdminProfilePage extends ConsumerWidget {
                   _buildMenuItem(
                     iconData: Icons.access_time_rounded,
                     label: 'Jam & Toleransi Shift',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminShiftSettingsPage()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.upload_file_rounded,
                     label: 'Ekspor Rekap Bulanan',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminExportRecapPage()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildMenuItem(
@@ -239,6 +249,7 @@ class AdminProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
+
 
             const SizedBox(height: 32),
           ],

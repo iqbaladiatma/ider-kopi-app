@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../providers/settings_providers.dart';
 
@@ -21,9 +23,10 @@ class SettingsPage extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
         ),
       ),
+
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

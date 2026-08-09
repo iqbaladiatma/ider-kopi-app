@@ -42,9 +42,16 @@ class AppConfig {
   static bool get hasMapboxToken => mapboxAccessToken.isNotEmpty;
 
   /// API provider aktif.
-  /// Default: `ApiProvider.customWeb` (http://100.90.46.31:9000).
-  static final ApiProvider apiProvider =
-      ApiProviderX.fromString(String.fromEnvironment('API_PROVIDER', defaultValue: 'customWeb'));
+  /// Set via --dart-define=API_PROVIDER=directus|gobackend|customweb
+  static const String _apiProviderStr =
+      String.fromEnvironment('API_PROVIDER', defaultValue: 'directus');
+
+  static const ApiProvider apiProvider =
+      _apiProviderStr == 'gobackend' || _apiProviderStr == 'go'
+          ? ApiProvider.goBackend
+          : _apiProviderStr == 'customweb' || _apiProviderStr == 'customWeb' || _apiProviderStr == 'custom' || _apiProviderStr == 'web'
+              ? ApiProvider.customWeb
+              : ApiProvider.directus;
 
   /// Base URL untuk provider aktif.
   static String get apiBaseUrl {

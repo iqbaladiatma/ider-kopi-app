@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/brand_provider.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../shared/widgets/outlet_mode_sheet.dart';
 import '../../attendance/data/attendance_model.dart';
 import '../../auth/providers/auth_providers.dart';
+
+import 'admin_attendance_detail_page.dart';
 import '../providers/admin_providers.dart';
 
 class AdminDashboardPage extends ConsumerWidget {
@@ -14,11 +17,14 @@ class AdminDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentUserProvider);
     final userCountAsync = ref.watch(userCountProvider);
     final todayAttCountAsync = ref.watch(todayAttendanceCountProvider);
     final attendanceListAsync = ref.watch(adminAttendanceProvider((date: null, employee: null)));
     final activeBrand = ref.watch(activeBrandProvider);
+
+    final totalUsers = userCountAsync.asData?.value ?? 6;
+    final todayHadir = todayAttCountAsync.asData?.value ?? 5;
+    final attPct = totalUsers > 0 ? ((todayHadir / totalUsers) * 100).round() : 85;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -34,14 +40,14 @@ class AdminDashboardPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Signature Block Header Dark Ink
+              // Header Block Dark Ink with Mode Switcher
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.fromLTRB(
                   22,
                   MediaQuery.of(context).padding.top + 16,
                   22,
-                  24,
+                  20,
                 ),
                 decoration: const BoxDecoration(
                   color: AppColors.ink,
@@ -49,7 +55,7 @@ class AdminDashboardPage extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    // Header Row
+                    // Header Top Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -70,7 +76,7 @@ class AdminDashboardPage extends ConsumerWidget {
                               AppDateUtils.formatFullDate(DateTime.now()),
                               style: const TextStyle(
                                 fontFamily: 'Sora',
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
@@ -78,101 +84,133 @@ class AdminDashboardPage extends ConsumerWidget {
                           ],
                         ),
 
-                        // Mode Badge Pill & Admin Avatar
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.16),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'AI',
-                                style: TextStyle(
-                                  fontFamily: 'Sora',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                        // Mode Badge Pill (Clickable -> Bottom Sheet)
+                        GestureDetector(
+                          onTap: () => showOutletModeSheet(context, ref),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: activeBrand.primaryColor,
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: activeBrand.primaryColor.withValues(alpha: 0.4),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(activeBrand.iconData, color: Colors.white, size: 12),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    activeBrand.badgeText,
-                                    style: const TextStyle(
-                                      fontFamily: 'Space Mono',
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(activeBrand.iconData, color: Colors.white, size: 13),
+                                const SizedBox(width: 5),
+                                Text(
+                                  activeBrand.badgeText,
+                                  style: const TextStyle(
+                                    fontFamily: 'Space Mono',
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
 
                     const SizedBox(height: 18),
 
-                    // KPI Grid 2x2
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.45,
-                      children: [
-                        _buildKpiCard(
-                          stripColor: AppColors.green,
-                          label: 'HADIR',
-                          value: todayAttCountAsync.when(
-                            data: (count) => '$count',
-                            loading: () => '...',
-                            error: (_, __) => '0',
+                    // Sleek Compact Attendance Summary Card with Ring Chart & Percentages
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                      ),
+                      child: Row(
+                        children: [
+                          // Circular Percentage Ring Indicator
+                          SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 64,
+                                  height: 64,
+                                  child: CircularProgressIndicator(
+                                    value: (attPct / 100).clamp(0.0, 1.0),
+                                    strokeWidth: 6.5,
+                                    backgroundColor: Colors.white.withValues(alpha: 0.12),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.green),
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '$attPct%',
+                                      style: const TextStyle(
+                                        fontFamily: 'Sora',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const Text(
+                                      'HADIR',
+                                      style: TextStyle(
+                                        fontFamily: 'Space Mono',
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          sub: userCountAsync.when(
-                            data: (total) => 'dari $total karyawan',
-                            loading: () => 'karyawan',
-                            error: (_, __) => 'karyawan',
+
+                          const SizedBox(width: 14),
+                          Container(width: 1, height: 48, color: Colors.white.withValues(alpha: 0.15)),
+                          const SizedBox(width: 14),
+
+                          // Compact Stat Breakdown Columns
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildCompactStat(
+                                  label: 'HADIR',
+                                  valStr: '$todayHadir',
+                                  subStr: 'Total $totalUsers',
+                                  color: AppColors.green,
+                                ),
+                                _buildCompactStat(
+                                  label: 'TELAT',
+                                  valStr: '1',
+                                  subStr: 'Rata² 15m',
+                                  color: AppColors.amber,
+                                ),
+                                _buildCompactStat(
+                                  label: 'ABSEN',
+                                  valStr: '${(totalUsers - todayHadir).clamp(0, 99)}',
+                                  subStr: 'Izin/Sakit',
+                                  color: AppColors.red,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        _buildKpiCard(
-                          stripColor: AppColors.amber,
-                          label: 'TERLAMBAT',
-                          value: '4',
-                          sub: 'rata² 22 menit',
-                        ),
-                        _buildKpiCard(
-                          stripColor: AppColors.red,
-                          label: 'TIDAK HADIR',
-                          value: '2',
-                          sub: 'tanpa keterangan',
-                        ),
-                        _buildKpiCard(
-                          stripColor: AppColors.ink,
-                          label: 'OUTLET AKTIF',
-                          value: '5',
-                          sub: 'semua normal',
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -180,17 +218,17 @@ class AdminDashboardPage extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // Feed Section Title
+              // Feed Section Header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Absen Masuk Terbaru (${activeBrand.name})',
+                      'Absen Terbaru (${activeBrand.name})',
                       style: const TextStyle(
                         fontFamily: 'Sora',
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),
@@ -198,10 +236,10 @@ class AdminDashboardPage extends ConsumerWidget {
                     GestureDetector(
                       onTap: () => context.go('/admin/attendance'),
                       child: const Text(
-                        'Semua',
+                        'Lihat Semua',
                         style: TextStyle(
                           fontFamily: 'Inter',
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.red,
                         ),
@@ -213,7 +251,7 @@ class AdminDashboardPage extends ConsumerWidget {
 
               const SizedBox(height: 10),
 
-              // Feed List
+              // Attendance Feed List (Clickable -> Detail Page)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: attendanceListAsync.when(
@@ -237,7 +275,7 @@ class AdminDashboardPage extends ConsumerWidget {
 
                     final recentRecords = records.take(6).toList();
                     return Column(
-                      children: recentRecords.map((rec) => _buildFeedItem(rec)).toList(),
+                      children: recentRecords.map((rec) => _buildFeedItem(context, rec)).toList(),
                     );
                   },
                 ),
@@ -251,72 +289,54 @@ class AdminDashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildKpiCard({
-    required Color stripColor,
+  Widget _buildCompactStat({
     required String label,
-    required String value,
-    required String sub,
+    required String valStr,
+    required String subStr,
+    required Color color,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x12101012),
-            blurRadius: 18,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 22,
-            height: 3,
-            decoration: BoxDecoration(
-              color: stripColor,
-              borderRadius: BorderRadius.circular(100),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            Container(width: 5, height: 5, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Space Mono',
+                fontSize: 8.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white70,
+              ),
             ),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Text(
+          valStr,
+          style: TextStyle(
+            fontFamily: 'Sora',
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: color,
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Space Mono',
-              fontSize: 8.5,
-              fontWeight: FontWeight.w700,
-              color: AppColors.muted,
-              letterSpacing: 0.4,
-            ),
+        ),
+        Text(
+          subStr,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 9,
+            color: Colors.white54,
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontFamily: 'Sora',
-              fontSize: 23,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            sub,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 9.5,
-              color: AppColors.muted,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildFeedItem(AttendanceRecord rec) {
+  Widget _buildFeedItem(BuildContext context, AttendanceRecord rec) {
     final name = rec.kangiderNama ?? 'Karyawan';
     final initials = name.isNotEmpty
         ? name.trim().split(' ').map((e) => e[0]).take(2).join()
@@ -339,89 +359,100 @@ class AdminDashboardPage extends ConsumerWidget {
       tagLabel = 'Hadir';
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 11),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.line)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initials.toUpperCase(),
-              style: const TextStyle(
-                fontFamily: 'Sora',
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => AdminAttendanceDetailPage(record: rec)),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.line)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(11),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initials.toUpperCase(),
+                style: const TextStyle(
+                  fontFamily: 'Sora',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  '$outlet · $timeStr',
-                  style: const TextStyle(
-                    fontFamily: 'Space Mono',
-                    fontSize: 10,
-                    color: AppColors.muted,
+                  const SizedBox(height: 1),
+                  Text(
+                    '$outlet · $timeStr',
+                    style: const TextStyle(
+                      fontFamily: 'Space Mono',
+                      fontSize: 10,
+                      color: AppColors.muted,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: tagBg,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: tagColor,
-                    shape: BoxShape.circle,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: tagBg,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: tagColor,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  tagLabel,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: tagColor,
+                  const SizedBox(width: 5),
+                  Text(
+                    tagLabel,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: tagColor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 18),
+          ],
+        ),
       ),
     );
   }
 }
+

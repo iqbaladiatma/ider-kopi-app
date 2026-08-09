@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _emailController.text = _isAdminMode ? 'ider@iderkopi.id' : 'dewi@iderkopi.id';
+    _passwordController.text = 'iderkopiku123';
+  }
+
+  void _updateRoleMode(bool isAdmin) {
+    setState(() {
+      _isAdminMode = isAdmin;
+      _emailController.text = isAdmin ? 'ider@iderkopi.id' : 'dewi@iderkopi.id';
+      _passwordController.text = 'iderkopiku123';
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -32,6 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
+
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
@@ -49,9 +66,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       final repo = ref.read(authRepositoryProvider);
+      debugPrint('DEBUG: login() calling repo.login()');
       await repo.login(email, password);
-
+      debugPrint('DEBUG: login() success, getting user');
       final user = await repo.getCurrentUser();
+      debugPrint('DEBUG: getCurrentUser() success, isAdmin=${user.isAdmin}');
       ref.read(authStateProvider.notifier).state = AuthStatus.authenticated;
       ref.invalidate(userRoleProvider);
 
@@ -59,8 +78,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         context.go(user.isAdmin ? '/admin' : '/home');
       }
     } catch (e) {
+      debugPrint('DEBUG: login error: $e');
       setState(() {
-        _errorMessage = 'Email atau password salah. Coba lagi.';
+        _errorMessage = 'Email atau password salah. Coba lagi.\n${kDebugMode ? e.toString() : ''}';
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -299,9 +319,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                         child: Row(
                           children: [
-                            Expanded(
+                             Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => _isAdminMode = false),
+                                onTap: () => _updateRoleMode(false),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   padding: const EdgeInsets.symmetric(vertical: 9),
@@ -324,8 +344,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => _isAdminMode = true),
+                                onTap: () => _updateRoleMode(true),
                                 child: AnimatedContainer(
+
                                   duration: const Duration(milliseconds: 200),
                                   padding: const EdgeInsets.symmetric(vertical: 9),
                                   decoration: BoxDecoration(

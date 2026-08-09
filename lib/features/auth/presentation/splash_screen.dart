@@ -3,14 +3,21 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/config/app_config.dart';
 
-class SplashScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/constants/app_colors.dart';
+import '../../../core/config/app_config.dart';
+import '../providers/auth_providers.dart';
+
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _textController;
@@ -65,7 +72,21 @@ class _SplashScreenState extends State<SplashScreen>
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) _textController.forward();
     });
+
+    // Navigation fallback: auto-navigate to /login or /home after 1200ms
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted && context.mounted) {
+        final authState = ref.read(authStateProvider);
+        if (authState == AuthStatus.authenticated) {
+          final role = ref.read(userRoleProvider).asData?.value;
+          context.go(role?.toLowerCase() == 'admin' ? '/admin' : '/home');
+        } else {
+          context.go('/login');
+        }
+      }
+    });
   }
+
 
   @override
   void dispose() {

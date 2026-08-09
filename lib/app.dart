@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,6 +27,7 @@ class _IderKopiAppState extends ConsumerState<IderKopiApp> {
   }
 
   void _initConnectivityListener() {
+    if (kIsWeb) return;
     try {
       final connectivity = Connectivity();
       _connectivitySub = connectivity.onConnectivityChanged.listen((

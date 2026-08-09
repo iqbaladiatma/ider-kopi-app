@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../data/leave_model.dart';
 import '../providers/leave_providers.dart';
+import 'leave_form_page.dart';
+
 
 class LeaveListPage extends ConsumerWidget {
   const LeaveListPage({super.key});
@@ -23,8 +25,9 @@ class LeaveListPage extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
         ),
+
       ),
       body: leavesAsync.when(
         data: (leaves) => leaves.isEmpty
@@ -43,10 +46,16 @@ class LeaveListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/leave/form'),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const LeaveFormPage()),
+          );
+        },
         backgroundColor: AppColors.red,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
+
     );
   }
 

@@ -4,8 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../outlet/data/outlet_model.dart';
+import '../../outlet/presentation/admin_outlet_edit_page.dart';
+import '../../outlet/providers/outlet_providers.dart';
 import '../data/admin_user_model.dart';
 import '../providers/admin_providers.dart';
+import 'admin_user_detail_page.dart';
+import 'admin_user_form_page.dart';
 
 class AdminUsersPage extends ConsumerStatefulWidget {
   const AdminUsersPage({super.key});
@@ -17,15 +22,33 @@ class AdminUsersPage extends ConsumerStatefulWidget {
 class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
   int _activeTab = 0; // 0: Outlet, 1: Karyawan
 
+  void _onAddPressed() {
+    if (_activeTab == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminOutletEditPage()),
+      ).then((_) => ref.invalidate(outletsProvider));
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminUserFormPage()),
+      ).then((_) => ref.invalidate(usersProvider));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
+    final outletsAsync = ref.watch(outletsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.white,
       body: RefreshIndicator(
         color: AppColors.ink,
-        onRefresh: () async => ref.invalidate(usersProvider),
+        onRefresh: () async {
+          ref.invalidate(usersProvider);
+          ref.invalidate(outletsProvider);
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -60,7 +83,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () => _showAddUserDialog(context),
+                          onPressed: _onAddPressed,
                           icon: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
@@ -140,7 +163,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: _activeTab == 0
-                    ? _buildOutletTab()
+                    ? _buildOutletTab(outletsAsync)
                     : _buildUserTab(usersAsync),
               ),
 
@@ -152,108 +175,147 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
     );
   }
 
-  Widget _buildOutletTab() {
-    final outlets = [
-      (name: 'Malioboro', pct: 90, addr: 'Jl. Malioboro No. 52, Yogyakarta', info: '9 / 10 HADIR', radius: 'RADIUS 150M'),
-      (name: 'Kotabaru', pct: 78, addr: 'Jl. Suroto No. 8, Kotabaru', info: '7 / 9 HADIR', radius: 'RADIUS 150M'),
-      (name: 'Sudirman', pct: 100, addr: 'Jl. Jend. Sudirman No. 21', info: '8 / 8 HADIR', radius: 'RADIUS 100M'),
-      (name: 'Seturan', pct: 85, addr: 'Jl. Seturan Raya No. 12', info: '6 / 7 HADIR', radius: 'RADIUS 150M'),
-    ];
-
-    return Column(
-      children: outlets.map((o) => _buildOutletCard(o)).toList(),
+  Widget _buildOutletTab(AsyncValue<List<Outlet>> outletsAsync) {
+    return outletsAsync.when(
+      loading: () => const SizedBox(
+        height: 150,
+        child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+      ),
+      error: (e, _) => ErrorView(
+        message: 'Gagal memuat outlet',
+        onRetry: () => ref.invalidate(outletsProvider),
+      ),
+      data: (outlets) {
+        if (outlets.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: EmptyView(
+              icon: Icons.storefront_rounded,
+              title: 'Belum ada outlet',
+              subtitle: 'Tambah outlet baru melalui tombol + di atas',
+            ),
+          );
+        }
+        return Column(
+          children: outlets.map((o) => _buildOutletCard(o)).toList(),
+        );
+      },
     );
   }
 
-  Widget _buildOutletCard(({String name, int pct, String addr, String info, String radius}) o) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                o.name,
-                style: const TextStyle(
-                  fontFamily: 'Sora',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
-              ),
-              Text(
-                '${o.pct}%',
-                style: const TextStyle(
-                  fontFamily: 'Space Mono',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.red,
-                ),
-              ),
-            ],
+  Widget _buildOutletCard(Outlet outlet) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AdminOutletEditPage(outlet: outlet),
           ),
-          const SizedBox(height: 3),
-          Text(
-            o.addr,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 10.5,
-              color: AppColors.muted,
+        ).then((_) => ref.invalidate(outletsProvider));
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  outlet.nama,
+                  style: const TextStyle(
+                    fontFamily: 'Sora',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: outlet.isActive ? AppColors.greenBg : AppColors.surfaceAlt,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        outlet.isActive ? 'AKTIF' : 'NONAKTIF',
+                        style: TextStyle(
+                          fontFamily: 'Space Mono',
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: outlet.isActive ? AppColors.green : AppColors.muted,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 18),
+                  ],
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          // Progress Bar Track & Fill
-          Container(
-            height: 6,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: o.pct / 100.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.red,
-                  borderRadius: BorderRadius.circular(100),
-                ),
+            const SizedBox(height: 3),
+            Text(
+              outlet.alamat ?? '',
+              style: const TextStyle(
+
+                fontFamily: 'Inter',
+                fontSize: 10.5,
+                color: AppColors.muted,
               ),
             ),
-          ),
-          const SizedBox(height: 9),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                o.info,
-                style: const TextStyle(
-                  fontFamily: 'Space Mono',
-                  fontSize: 9,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w700,
+            const SizedBox(height: 12),
+            Container(
+              height: 6,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: 0.88,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.red,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
                 ),
               ),
-              Text(
-                o.radius,
-                style: const TextStyle(
-                  fontFamily: 'Space Mono',
-                  fontSize: 9,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w700,
+            ),
+            const SizedBox(height: 9),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'KOORDINAT: ${outlet.latitude.toStringAsFixed(4)}, ${outlet.longitude.toStringAsFixed(4)}',
+                  style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 9,
+                    color: AppColors.muted,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                Text(
+                  'RADIUS ${outlet.radiusMeters.round()}M',
+                  style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 9,
+                    color: AppColors.red,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -295,204 +357,75 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
     final outlet = user.outlet ?? 'HQ';
     final role = user.roleName ?? 'Karyawan';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 9),
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initials.toUpperCase(),
-              style: const TextStyle(
-                fontFamily: 'Sora',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AdminUserDetailPage(user: user),
+          ),
+        ).then((_) => ref.invalidate(usersProvider));
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initials.toUpperCase(),
+                style: const TextStyle(
+                  fontFamily: 'Sora',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  '$role · $outlet',
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 10,
-                    color: AppColors.muted,
+                  const SizedBox(height: 1),
+                  Text(
+                    '$role · $outlet',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10,
+                      color: AppColors.muted,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (val) {
-              if (val == 'edit') _showEditUserDialog(context, user);
-              if (val == 'delete') _confirmDelete(context, user);
-            },
-            itemBuilder: (ctx) => [
-              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuItem(value: 'delete', child: Text('Hapus', style: TextStyle(color: AppColors.red))),
-            ],
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.muted, size: 20),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddUserDialog(BuildContext context) {
-    final emailCtrl = TextEditingController();
-    final passwordCtrl = TextEditingController();
-    final firstNameCtrl = TextEditingController();
-    final lastNameCtrl = TextEditingController();
-    final outletCtrl = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Tambah Karyawan', style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email')),
-              const SizedBox(height: 10),
-              TextField(controller: passwordCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
-              const SizedBox(height: 10),
-              TextField(controller: firstNameCtrl, decoration: const InputDecoration(labelText: 'Nama Depan')),
-              const SizedBox(height: 10),
-              TextField(controller: lastNameCtrl, decoration: const InputDecoration(labelText: 'Nama Belakang')),
-              const SizedBox(height: 10),
-              TextField(controller: outletCtrl, decoration: const InputDecoration(labelText: 'Outlet')),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              try {
-                final repo = ref.read(adminRepositoryProvider);
-                await repo.createUser(CreateUserData(
-                  email: emailCtrl.text.trim(),
-                  password: passwordCtrl.text,
-                  firstName: firstNameCtrl.text.trim(),
-                  lastName: lastNameCtrl.text.trim(),
-                  outlet: outletCtrl.text.trim(),
-                  roleId: '2',
-                ));
-                ref.invalidate(usersProvider);
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menambah user: $e')));
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
-            child: const Text('Simpan', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditUserDialog(BuildContext context, AdminUser user) {
-    final firstNameCtrl = TextEditingController(text: user.firstName);
-    final lastNameCtrl = TextEditingController(text: user.lastName);
-
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Edit User', style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: firstNameCtrl, decoration: const InputDecoration(labelText: 'Nama Depan')),
-            const SizedBox(height: 10),
-            TextField(controller: lastNameCtrl, decoration: const InputDecoration(labelText: 'Nama Belakang')),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 20),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              try {
-                final repo = ref.read(adminRepositoryProvider);
-                await repo.updateUser(user.id, {
-                  'first_name': firstNameCtrl.text.trim(),
-                  'last_name': lastNameCtrl.text.trim(),
-                });
-                ref.invalidate(usersProvider);
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal mengubah user: $e')));
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
-            child: const Text('Simpan', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, AdminUser user) {
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Hapus User'),
-        content: Text('Yakin ingin menghapus ${user.fullName}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              try {
-                final repo = ref.read(adminRepositoryProvider);
-                await repo.deleteUser(user.id);
-                ref.invalidate(usersProvider);
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus user: $e')));
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
-            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }
 }
+
