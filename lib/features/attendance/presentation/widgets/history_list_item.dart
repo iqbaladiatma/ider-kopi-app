@@ -16,7 +16,8 @@ class HistoryListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = DateTime.tryParse(record.tanggalAbsensi);
-    final dateLabel = date != null ? AppDateUtils.formatDate(date) : record.tanggalAbsensi;
+    final dateLabel =
+        date != null ? AppDateUtils.formatDate(date) : record.tanggalAbsensi;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -49,7 +50,8 @@ class HistoryListItem extends StatelessWidget {
                         ),
                       ),
                     ),
-                    StatusBadge(status: record.status, size: StatusBadgeSize.small),
+                    StatusBadge(
+                        status: record.status, size: StatusBadgeSize.small),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -70,11 +72,13 @@ class HistoryListItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (record.keterangan != null && record.keterangan!.isNotEmpty) ...[
+                if (record.keterangan != null &&
+                    record.keterangan!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.notes_rounded, size: 13, color: AppColors.primary),
+                      const Icon(Icons.notes_rounded,
+                          size: 13, color: AppColors.primary),
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
@@ -99,11 +103,10 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeChip(IconData icon, String time, bool isDone, {required bool isCheckIn}) {
+  Widget _buildTimeChip(IconData icon, String time, bool isDone,
+      {required bool isCheckIn}) {
     final color = isDone ? AppColors.success : AppColors.textMuted;
-    final bgColor = isDone
-        ? AppColors.successLight
-        : AppColors.surfaceAlt;
+    final bgColor = isDone ? AppColors.successLight : AppColors.surfaceAlt;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -151,7 +154,7 @@ class HistoryListItem extends StatelessWidget {
       width: 52,
       height: 52,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [AppColors.surfaceAlt, AppColors.gray100],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -159,7 +162,8 @@ class HistoryListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Icon(Icons.person_rounded, size: 24, color: AppColors.textLight),
+      child: const Icon(Icons.person_rounded,
+          size: 24, color: AppColors.textLight),
     );
   }
 }

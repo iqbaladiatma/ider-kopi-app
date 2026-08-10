@@ -101,8 +101,10 @@ class AttendanceBarChart extends StatelessWidget {
                       },
                     ),
                   ),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                 ),
                 gridData: FlGridData(
                   show: true,
@@ -154,13 +156,13 @@ class AttendanceBarChart extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           // Legend
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _LegendDot(color: AppColors.green, label: 'Tepat'),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               _LegendDot(color: AppColors.amber, label: 'Terlambat'),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               _LegendDot(color: AppColors.red, label: 'Alpha'),
             ],
           ),

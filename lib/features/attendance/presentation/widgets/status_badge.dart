@@ -17,29 +17,29 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bgColor, textColor, label, icon) = switch (status) {
       AttendanceStatus.tepatWaktu => (
-        AppColors.successLight,
-        AppColors.successDark,
-        'Tepat Waktu',
-        Icons.check_circle_rounded,
-      ),
+          AppColors.successLight,
+          AppColors.successDark,
+          'Tepat Waktu',
+          Icons.check_circle_rounded,
+        ),
       AttendanceStatus.terlambat => (
-        AppColors.warningLight,
-        AppColors.warningDark,
-        'Terlambat',
-        Icons.schedule_rounded,
-      ),
+          AppColors.warningLight,
+          AppColors.warningDark,
+          'Terlambat',
+          Icons.schedule_rounded,
+        ),
       AttendanceStatus.alpha => (
-        AppColors.errorLight,
-        AppColors.errorDark,
-        'Alpha',
-        Icons.cancel_rounded,
-      ),
+          AppColors.errorLight,
+          AppColors.errorDark,
+          'Alpha',
+          Icons.cancel_rounded,
+        ),
       AttendanceStatus.belumAbsen => (
-        AppColors.surfaceAlt,
-        AppColors.textMuted,
-        'Belum Absen',
-        Icons.radio_button_unchecked_rounded,
-      ),
+          AppColors.surfaceAlt,
+          AppColors.textMuted,
+          'Belum Absen',
+          Icons.radio_button_unchecked_rounded,
+        ),
     };
 
     final (hPad, vPad, fontSize, radius, iconSize) = switch (size) {

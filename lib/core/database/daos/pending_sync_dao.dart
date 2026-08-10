@@ -14,7 +14,7 @@ enum PendingStatus { pending, syncing, synced, failed }
 class PendingSyncEntry {
   final int? localId;
   final PendingOperation operation;
-  final int? recordId;
+  final String? recordId;
   final Map<String, dynamic> payload;
   final String? selfiePath;
   final PendingStatus status;
@@ -39,7 +39,7 @@ class PendingSyncEntry {
   PendingSyncEntry copyWith({
     int? localId,
     PendingOperation? operation,
-    int? recordId,
+    String? recordId,
     Map<String, dynamic>? payload,
     String? selfiePath,
     PendingStatus? status,
@@ -68,9 +68,7 @@ class PendingSyncEntry {
       operation: row['operation'].toString() == 'check_in'
           ? PendingOperation.checkIn
           : PendingOperation.checkOut,
-      recordId: row['record_id'] != null
-          ? int.tryParse(row['record_id'].toString())
-          : null,
+      recordId: row['record_id']?.toString(),
       payload: jsonDecode(row['payload'].toString()) as Map<String, dynamic>,
       selfiePath: row['selfie_path']?.toString(),
       status: _parseStatus(row['status'].toString()),

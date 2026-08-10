@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iderkopi_absensi/core/database/daos/pending_sync_dao.dart';
-import 'package:iderkopi_absensi/core/database/daos/sync_log_dao.dart';
-import 'package:iderkopi_absensi/features/attendance/data/attendance_repository.dart';
 import 'package:iderkopi_absensi/features/sync/data/sync_repository.dart';
 import 'package:iderkopi_absensi/features/sync/presentation/widgets/pending_sync_badge.dart';
 import 'package:iderkopi_absensi/features/sync/providers/sync_providers.dart';

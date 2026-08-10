@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 /// Model shift kerja (v2.0).
 class Shift {
-  final int? id;
+  final String? id;
   final String name;
   final TimeOfDay startTime;
   final TimeOfDay endTime;
-  final int? outletId;
+  final String? outletId;
   final String? outletName;
   final bool isActive;
 
@@ -44,11 +44,11 @@ class Shift {
   }
 
   Shift copyWith({
-    int? id,
+    String? id,
     String? name,
     TimeOfDay? startTime,
     TimeOfDay? endTime,
-    int? outletId,
+    String? outletId,
     String? outletName,
     bool? isActive,
   }) {
@@ -65,13 +65,11 @@ class Shift {
 
   factory Shift.fromJson(Map<String, dynamic> json) {
     return Shift(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
+      id: json['id']?.toString(),
       name: json['name']?.toString() ?? '',
       startTime: _parseTime(json['start_time']?.toString()),
       endTime: _parseTime(json['end_time']?.toString()),
-      outletId: json['outlet_id'] != null
-          ? int.tryParse(json['outlet_id'].toString())
-          : null,
+      outletId: json['outlet_id']?.toString(),
       outletName: json['outlet_name']?.toString(),
       isActive: json['is_active'] != false,
     );
@@ -104,15 +102,16 @@ class Shift {
   }
 
   @override
-  String toString() => 'Shift($name, ${_formatTime(startTime)}-${_formatTime(endTime)})';
+  String toString() =>
+      'Shift($name, ${_formatTime(startTime)}-${_formatTime(endTime)})';
 }
 
 /// Penugasan shift ke user untuk tanggal tertentu.
 class UserShift {
-  final int? id;
+  final String? id;
   final String userId;
   final String? userName;
-  final int shiftId;
+  final String shiftId;
   final Shift? shift;
   final DateTime date;
 
@@ -127,10 +126,10 @@ class UserShift {
 
   factory UserShift.fromJson(Map<String, dynamic> json) {
     return UserShift(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
+      id: json['id']?.toString(),
       userId: json['user_id']?.toString() ?? '',
       userName: json['user_name']?.toString(),
-      shiftId: int.tryParse(json['shift_id']?.toString() ?? '0') ?? 0,
+      shiftId: json['shift_id']?.toString() ?? '',
       shift: json['shift'] != null
           ? Shift.fromJson(json['shift'] as Map<String, dynamic>)
           : null,
@@ -143,7 +142,8 @@ class UserShift {
       if (id != null) 'id': id,
       'user_id': userId,
       'shift_id': shiftId,
-      'date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'date':
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
     };
   }
 

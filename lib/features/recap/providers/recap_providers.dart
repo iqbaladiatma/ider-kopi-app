@@ -10,7 +10,8 @@ final recapRepositoryProvider = Provider<RecapRepository>((ref) {
 
 /// Recap summary untuk user login, bulan & tahun tertentu.
 final monthlyRecapProvider =
-    FutureProvider.family<RecapSummary, ({int year, int month})>((ref, params) async {
+    FutureProvider.family<RecapSummary, ({int year, int month})>(
+        (ref, params) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null) {
     throw Exception('User tidak teridentifikasi');
@@ -27,5 +28,6 @@ final monthlyRecapProvider =
 /// Recap summary untuk user login, bulan & tahun saat ini.
 final currentMonthRecapProvider = FutureProvider<RecapSummary>((ref) async {
   final now = DateTime.now();
-  return ref.watch(monthlyRecapProvider((year: now.year, month: now.month)).future);
+  return ref
+      .watch(monthlyRecapProvider((year: now.year, month: now.month)).future);
 });

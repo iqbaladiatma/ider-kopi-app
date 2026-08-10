@@ -9,8 +9,7 @@ final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
   return AttendanceRepository();
 });
 
-final todayAttendanceProvider =
-    FutureProvider<AttendanceRecord?>((ref) async {
+final todayAttendanceProvider = FutureProvider<AttendanceRecord?>((ref) async {
   final kangiderId = await ref.watch(kangiderIdProvider.future);
   if (kangiderId == null) return null;
 
@@ -33,8 +32,7 @@ final todayAttendanceProvider =
 /// 1. Coba baca dari SQLite cache → return langsung (cepat)
 /// 2. Fetch dari API di background → update cache → invalidate
 /// 3. Jika API gagal, cache tetap dipakai (offline mode)
-final historyProvider =
-    FutureProvider<List<AttendanceRecord>>((ref) async {
+final historyProvider = FutureProvider<List<AttendanceRecord>>((ref) async {
   final kangiderId = await ref.watch(kangiderIdProvider.future);
   if (kangiderId == null) return [];
 
@@ -80,7 +78,8 @@ final monthlyHistoryProvider =
   } catch (_) {}
 
   try {
-    final fresh = await repo.getMonthlyHistory(kangiderId, params.year, params.month);
+    final fresh =
+        await repo.getMonthlyHistory(kangiderId, params.year, params.month);
     await dao.upsertAll(fresh);
     return fresh;
   } catch (_) {

@@ -37,7 +37,8 @@ void main() {
 
     // Section header
     expect(find.text('Reminder Absensi'), findsOneWidget);
-    expect(find.text('Atur pengingat check-in & check-out harian'), findsOneWidget);
+    expect(find.text('Atur pengingat check-in & check-out harian'),
+        findsOneWidget);
 
     // Reminder cards
     expect(find.text('Reminder Check-In'), findsOneWidget);

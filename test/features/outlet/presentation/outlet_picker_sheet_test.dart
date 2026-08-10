@@ -8,7 +8,7 @@ import 'package:iderkopi_absensi/features/outlet/providers/outlet_providers.dart
 /// Mock outlets untuk widget test (tidak butuh SharedPreferences).
 final _mockOutlets = <Outlet>[
   const Outlet(
-    id: 1,
+    id: '1',
     nama: 'IderKopi - HQ',
     alamat: 'Jl. Kaliurang',
     latitude: -7.755,
@@ -16,7 +16,7 @@ final _mockOutlets = <Outlet>[
     radiusMeters: 100,
   ),
   const Outlet(
-    id: 2,
+    id: '2',
     nama: 'IderKopi - Malioboro',
     alamat: 'Jl. Malioboro',
     latitude: -7.7928,
@@ -33,7 +33,7 @@ void main() {
         overrides: [
           outletsProvider.overrideWith((ref) async => _mockOutlets),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           home: Scaffold(
             body: OutletPickerSheet(
               userLatitude: -7.7928,
@@ -64,7 +64,7 @@ void main() {
         overrides: [
           outletsProvider.overrideWith((ref) async => _mockOutlets),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           home: Scaffold(
             body: OutletPickerSheet(
               userLatitude: -7.7928,

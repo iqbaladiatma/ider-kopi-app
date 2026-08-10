@@ -83,11 +83,13 @@ class ErrorView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     splashColor: Colors.white.withValues(alpha: 0.2),
                     child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 28, vertical: 13),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.refresh_rounded, color: Colors.white, size: 18),
+                          Icon(Icons.refresh_rounded,
+                              color: Colors.white, size: 18),
                           SizedBox(width: 8),
                           Text(
                             'Coba Lagi',

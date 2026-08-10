@@ -1,12 +1,11 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
@@ -84,21 +83,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     });
 
     try {
-      final position = await LocationUtils.getCurrentLocation().timeout(
-        const Duration(seconds: 4),
-        onTimeout: () => Position(
-          longitude: 110.3658,
-          latitude: -7.7928,
-          timestamp: DateTime.now(),
-          accuracy: 10.0,
-          altitude: 0.0,
-          altitudeAccuracy: 0.0,
-          heading: 0.0,
-          headingAccuracy: 0.0,
-          speed: 0.0,
-          speedAccuracy: 0.0,
-        ),
-      );
+      final position = await LocationUtils.getCurrentLocation();
 
       if (!mounted) return;
 
@@ -112,8 +97,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
-        _isWithinRadius = withinAny || true; // Default true for smooth testing
-        _distanceToOutlet = nearest?.distanceMeters ?? 12.0;
+        _isWithinRadius = withinAny;
+        _distanceToOutlet = nearest?.distanceMeters;
         if (_selectedOutlet == null && nearest != null) {
           _selectedOutlet = nearest.outlet;
         }
@@ -122,15 +107,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _latitude = -7.7928;
-        _longitude = 110.3658;
-        _isWithinRadius = true;
-        _distanceToOutlet = 12.0;
+        _locationError = e.toString();
+        _isWithinRadius = false;
         _isLocationLoading = false;
       });
     }
   }
-
 
   Future<void> _openOutletPicker() async {
     if (_latitude == null || _longitude == null) {
@@ -163,29 +145,20 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
   Future<void> _takePhoto() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      if (mounted) {
-        setState(() {
-          _capturedSelfie = XFile('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80');
-        });
-      }
+      _showError('Kamera depan belum siap');
       return;
     }
     try {
       final file = await _cameraController!.takePicture();
       if (mounted) setState(() => _capturedSelfie = file);
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _capturedSelfie = XFile('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80');
-        });
-      }
+      _showError('Gagal mengambil selfie: $e');
     }
   }
 
   void _retakePhoto() {
     setState(() => _capturedSelfie = null);
   }
-
 
   Future<void> _handleSubmit() async {
     if (_capturedSelfie == null || _latitude == null || _longitude == null) {
@@ -245,7 +218,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         ref.invalidate(historyProvider);
 
         if (mounted) _showSuccessDialog();
-      } catch (onlineError) {
+      } on DioException catch (onlineError) {
+        if (!_isOfflineError(onlineError)) rethrow;
         // Offline fallback: enqueue ke pending sync
         final syncRepo = ref.read(syncRepositoryProvider);
         await syncRepo.enqueueCheckIn(
@@ -264,6 +238,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
+
+  bool _isOfflineError(DioException error) =>
+      error.type == DioExceptionType.connectionError ||
+      error.type == DioExceptionType.connectionTimeout ||
+      error.type == DioExceptionType.receiveTimeout ||
+      error.type == DioExceptionType.sendTimeout;
 
   void _showError(String message) {
     if (!mounted) return;
@@ -285,10 +265,15 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           children: [
             Icon(Icons.check_circle_rounded, color: AppColors.green, size: 28),
             SizedBox(width: 10),
-            Text('Absen Masuk Sah!', style: TextStyle(fontFamily: 'Sora', fontSize: 18, fontWeight: FontWeight.w700)),
+            Text('Absen Masuk Sah!',
+                style: TextStyle(
+                    fontFamily: 'Sora',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700)),
           ],
         ),
-        content: const Text('Foto selfie dan lokasi GPS telah berhasil dikirim.'),
+        content:
+            const Text('Foto selfie dan lokasi GPS telah berhasil dikirim.'),
         actions: [
           ElevatedButton(
             onPressed: () {
@@ -297,9 +282,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100)),
             ),
-            child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: const Text('OK',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -316,7 +304,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           children: [
             Icon(Icons.cloud_off_rounded, color: AppColors.amber, size: 28),
             SizedBox(width: 10),
-            Text('Tersimpan Offline', style: TextStyle(fontFamily: 'Sora', fontSize: 18, fontWeight: FontWeight.w700)),
+            Text('Tersimpan Offline',
+                style: TextStyle(
+                    fontFamily: 'Sora',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700)),
           ],
         ),
         content: const Text(
@@ -331,9 +323,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.amber,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100)),
             ),
-            child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: const Text('OK',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -383,7 +378,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
-                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                      child: const Icon(Icons.close_rounded,
+                          color: Colors.white, size: 18),
                     ),
                   ),
                   const Text(
@@ -409,7 +405,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
               child: GestureDetector(
                 onTap: _isLocationLoading ? null : _openOutletPicker,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
@@ -523,9 +520,14 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.person_rounded, size: 70, color: Colors.white70),
+                                    Icon(Icons.person_rounded,
+                                        size: 70, color: Colors.white70),
                                     SizedBox(height: 8),
-                                    Text('Foto Selfie Terambil', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                    Text('Foto Selfie Terambil',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600)),
                                   ],
                                 ),
                               ),
@@ -539,9 +541,14 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.person_rounded, size: 70, color: Colors.white70),
+                                    Icon(Icons.person_rounded,
+                                        size: 70, color: Colors.white70),
                                     SizedBox(height: 8),
-                                    Text('Foto Selfie Terambil', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                    Text('Foto Selfie Terambil',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600)),
                                   ],
                                 ),
                               ),
@@ -559,35 +566,43 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                                 color: Colors.white.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.camera_alt_outlined, size: 36, color: Colors.white70),
+                              child: const Icon(Icons.camera_alt_outlined,
+                                  size: 36, color: Colors.white70),
                             ),
                             const SizedBox(height: 12),
                             const Text(
                               'Kamera Web / Simulasi Standby',
-                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
+                              style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white70),
                             ),
                             const SizedBox(height: 12),
                             ElevatedButton.icon(
                               onPressed: _takePhoto,
-                              icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                              icon: const Icon(Icons.camera_alt_rounded,
+                                  size: 16),
                               label: const Text('Ambil / Simulasi Foto Selfie'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.red,
                                 foregroundColor: Colors.white,
-                                textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                textStyle: const TextStyle(
+                                    fontSize: 11, fontWeight: FontWeight.w700),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(100)),
                               ),
                             ),
                           ],
                         ),
                       ),
 
-
                     // Top GPS Badge Overlay
                     Positioned(
                       top: 14,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppColors.red.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(100),
@@ -670,9 +685,13 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                               onPressed: _retakePhoto,
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: Colors.white24),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(100)),
                               ),
-                              child: const Text('Ulangi Foto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                              child: const Text('Ulangi Foto',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
                             ),
                           ),
                         ),
@@ -684,11 +703,19 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                               onPressed: _isSubmitting ? null : _handleSubmit,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.red,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(100)),
                               ),
                               child: _isSubmitting
-                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : const Text('Kirim Absen', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white, strokeWidth: 2))
+                                  : const Text('Kirim Absen',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700)),
                             ),
                           ),
                         ),

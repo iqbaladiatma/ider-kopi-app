@@ -20,7 +20,7 @@ class AdminUsersPage extends ConsumerStatefulWidget {
 }
 
 class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
-  int _activeTab = 0; // 0: Outlet, 1: Karyawan
+  int _activeTab = 0; // 0: Outlet, 1: Karyawan, 2: Admin
 
   void _onAddPressed() {
     if (_activeTab == 0) {
@@ -28,7 +28,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
         context,
         MaterialPageRoute(builder: (_) => const AdminOutletEditPage()),
       ).then((_) => ref.invalidate(outletsProvider));
-    } else {
+    } else if (_activeTab == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const AdminUserFormPage()),
@@ -39,6 +39,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
+    final employeeAccountsAsync = ref.watch(employeeAccountsProvider);
     final outletsAsync = ref.watch(outletsProvider);
 
     return Scaffold(
@@ -47,6 +48,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
         color: AppColors.ink,
         onRefresh: () async {
           ref.invalidate(usersProvider);
+          ref.invalidate(employeeAccountsProvider);
           ref.invalidate(outletsProvider);
         },
         child: SingleChildScrollView(
@@ -65,7 +67,8 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                 ),
                 decoration: const BoxDecoration(
                   color: AppColors.ink,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(26)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,17 +85,19 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                             color: Colors.white,
                           ),
                         ),
-                        IconButton(
-                          onPressed: _onAddPressed,
-                          icon: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.16),
-                              shape: BoxShape.circle,
+                        if (_activeTab != 1)
+                          IconButton(
+                            onPressed: _onAddPressed,
+                            icon: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.16),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.add_rounded,
+                                  color: Colors.white, size: 20),
                             ),
-                            child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 14),
@@ -110,9 +115,12 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                             child: GestureDetector(
                               onTap: () => setState(() => _activeTab = 0),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: _activeTab == 0 ? Colors.white : Colors.transparent,
+                                  color: _activeTab == 0
+                                      ? Colors.white
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                                 alignment: Alignment.center,
@@ -122,7 +130,9 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                                     fontFamily: 'Inter',
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: _activeTab == 0 ? AppColors.ink : Colors.white,
+                                    color: _activeTab == 0
+                                        ? AppColors.ink
+                                        : Colors.white,
                                   ),
                                 ),
                               ),
@@ -132,9 +142,12 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                             child: GestureDetector(
                               onTap: () => setState(() => _activeTab = 1),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: _activeTab == 1 ? Colors.white : Colors.transparent,
+                                  color: _activeTab == 1
+                                      ? Colors.white
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                                 alignment: Alignment.center,
@@ -144,7 +157,36 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                                     fontFamily: 'Inter',
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: _activeTab == 1 ? AppColors.ink : Colors.white,
+                                    color: _activeTab == 1
+                                        ? AppColors.ink
+                                        : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _activeTab = 2),
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: _activeTab == 2
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Akun Admin',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: _activeTab == 2
+                                        ? AppColors.ink
+                                        : Colors.white,
                                   ),
                                 ),
                               ),
@@ -164,7 +206,9 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: _activeTab == 0
                     ? _buildOutletTab(outletsAsync)
-                    : _buildUserTab(usersAsync),
+                    : _activeTab == 1
+                        ? _buildEmployeeTab(employeeAccountsAsync)
+                        : _buildUserTab(usersAsync),
               ),
 
               const SizedBox(height: 32),
@@ -240,9 +284,12 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: outlet.isActive ? AppColors.greenBg : AppColors.surfaceAlt,
+                        color: outlet.isActive
+                            ? AppColors.greenBg
+                            : AppColors.surfaceAlt,
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Text(
@@ -251,12 +298,15 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                           fontFamily: 'Space Mono',
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
-                          color: outlet.isActive ? AppColors.green : AppColors.muted,
+                          color: outlet.isActive
+                              ? AppColors.green
+                              : AppColors.muted,
                         ),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 18),
+                    const Icon(Icons.chevron_right_rounded,
+                        color: AppColors.muted, size: 18),
                   ],
                 ),
               ],
@@ -265,7 +315,6 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
             Text(
               outlet.alamat ?? '',
               style: const TextStyle(
-
                 fontFamily: 'Inter',
                 fontSize: 10.5,
                 color: AppColors.muted,
@@ -327,7 +376,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
         child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
       ),
       error: (e, _) => ErrorView(
-        message: 'Gagal memuat data karyawan: $e',
+        message: 'Gagal memuat akun Admin: $e',
         onRetry: () => ref.invalidate(usersProvider),
       ),
       data: (users) {
@@ -336,8 +385,8 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
             padding: EdgeInsets.symmetric(vertical: 40),
             child: EmptyView(
               icon: Icons.people_outline_rounded,
-              title: 'Belum ada data karyawan',
-              subtitle: 'Tambahkan karyawan baru dengan tombol + di atas',
+              title: 'Belum ada akun Admin',
+              subtitle: 'Tambahkan Admin baru dengan tombol + di atas',
             ),
           );
         }
@@ -354,8 +403,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
     final initials = name.isNotEmpty
         ? name.trim().split(' ').map((e) => e[0]).take(2).join()
         : 'IK';
-    final outlet = user.outlet ?? 'HQ';
-    final role = user.roleName ?? 'Karyawan';
+    final role = user.roleName ?? 'Admin';
 
     return InkWell(
       onTap: () {
@@ -411,7 +459,7 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    '$role · $outlet',
+                    '$role · ${user.isActive ? 'Aktif' : 'Nonaktif'}',
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 10,
@@ -421,11 +469,206 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 20),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.muted, size: 20),
           ],
         ),
       ),
     );
   }
-}
 
+  Widget _buildEmployeeTab(
+    AsyncValue<List<MobileEmployeeAccount>> accountsAsync,
+  ) {
+    return accountsAsync.when(
+      loading: () => const SizedBox(
+        height: 150,
+        child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+      ),
+      error: (e, _) => ErrorView(
+        message: 'Gagal memuat akun Karyawan: $e',
+        onRetry: () => ref.invalidate(employeeAccountsProvider),
+      ),
+      data: (accounts) {
+        if (accounts.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: EmptyView(
+              icon: Icons.badge_outlined,
+              title: 'Belum ada akun Karyawan',
+              subtitle: 'Sinkronkan dan provision akun dari API Karyawan',
+            ),
+          );
+        }
+        return Column(children: accounts.map(_buildEmployeeCard).toList());
+      },
+    );
+  }
+
+  Widget _buildEmployeeCard(MobileEmployeeAccount account) {
+    final initials = account.fullName.isEmpty
+        ? 'IK'
+        : account.fullName
+            .trim()
+            .split(RegExp(r'\s+'))
+            .map((part) => part[0])
+            .take(2)
+            .join();
+    final active = account.accountActive == true;
+    return InkWell(
+      onTap: account.hasAccount ? () => _showEmployeeActions(account) : null,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active ? AppColors.greenBg : AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                initials.toUpperCase(),
+                style: const TextStyle(
+                  fontFamily: 'Sora',
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(account.fullName,
+                      style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink)),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${account.employeeCode} · ${account.brand} · ${active ? 'Aktif' : 'Nonaktif'}',
+                    style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 10,
+                        color: AppColors.muted),
+                  ),
+                  if (account.mustChangePassword == true)
+                    const Text('Wajib ganti password saat login',
+                        style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 9.5,
+                            color: AppColors.red)),
+                ],
+              ),
+            ),
+            if (account.hasAccount)
+              const Icon(Icons.more_vert_rounded,
+                  color: AppColors.muted, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEmployeeActions(MobileEmployeeAccount account) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(account.accountActive == true
+                  ? Icons.block_rounded
+                  : Icons.check_circle_outline_rounded),
+              title: Text(account.accountActive == true
+                  ? 'Nonaktifkan akun login'
+                  : 'Aktifkan akun login'),
+              onTap: () => Navigator.pop(context, 'toggle'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.password_rounded),
+              title: const Text('Reset password'),
+              onTap: () => Navigator.pop(context, 'reset'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    try {
+      final repo = ref.read(adminRepositoryProvider);
+      if (action == 'toggle') {
+        await repo.setEmployeeAccountActive(
+          account.employeeId,
+          active: account.accountActive != true,
+        );
+      } else {
+        final password = await _requestNewPassword();
+        if (password == null) return;
+        await repo.resetEmployeePassword(account.employeeId, password);
+      }
+      ref.invalidate(employeeAccountsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Akun Karyawan berhasil diperbarui'),
+          backgroundColor: AppColors.green,
+        ));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Gagal memperbarui akun: $error'),
+          backgroundColor: AppColors.red,
+        ));
+      }
+    }
+  }
+
+  Future<String?> _requestNewPassword() async {
+    final controller = TextEditingController();
+    final password = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Password Karyawan'),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Password awal baru',
+            helperText: 'Minimal 8 karakter; Karyawan wajib menggantinya',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (controller.text.length >= 8) {
+                Navigator.pop(context, controller.text);
+              }
+            },
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return password;
+  }
+}

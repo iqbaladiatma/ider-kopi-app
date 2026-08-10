@@ -1,40 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iderkopi_absensi/core/config/api_provider.dart';
+import 'package:iderkopi_absensi/core/config/app_config.dart';
 
 void main() {
-  group('ApiProviderX', () {
-    test('fromString returns directus for null', () {
-      expect(ApiProviderX.fromString(null), ApiProvider.directus);
-    });
-
-    test('fromString returns directus for empty', () {
-      expect(ApiProviderX.fromString(''), ApiProvider.directus);
-    });
-
-    test('fromString returns directus for unknown', () {
-      expect(ApiProviderX.fromString('unknown'), ApiProvider.directus);
-    });
-
-    test('fromString returns goBackend for "gobackend"', () {
-      expect(ApiProviderX.fromString('gobackend'), ApiProvider.goBackend);
-    });
-
-    test('fromString returns goBackend for "GOBACKEND" (case insensitive)', () {
-      expect(ApiProviderX.fromString('GOBACKEND'), ApiProvider.goBackend);
-    });
-
-    test('fromString returns goBackend for "go"', () {
-      expect(ApiProviderX.fromString('go'), ApiProvider.goBackend);
-    });
-  });
-
-  group('ApiProvider.label', () {
-    test('directus label', () {
-      expect(ApiProvider.directus.label, 'Directus');
-    });
-
-    test('goBackend label', () {
-      expect(ApiProvider.goBackend.label, 'Go Backend');
-    });
+  test('core and auth API base URLs use separate services', () {
+    expect(
+      AppConfig.coreApiBaseUrl,
+      'https://iderkopi.tailcbf3a3.ts.net:8443/core/api/v1/',
+    );
+    expect(
+      AppConfig.authApiBaseUrl,
+      'https://iderkopi.tailcbf3a3.ts.net:8443/employee-auth/api/v1/',
+    );
+    expect(AppConfig.apiBaseUrl, AppConfig.coreApiBaseUrl);
+    expect('/api/v1'.allMatches(AppConfig.coreApiBaseUrl).length, 1);
+    expect('/api/v1'.allMatches(AppConfig.authApiBaseUrl).length, 1);
   });
 }

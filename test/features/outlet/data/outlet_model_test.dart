@@ -16,7 +16,7 @@ void main() {
 
       final outlet = Outlet.fromJson(json);
 
-      expect(outlet.id, 2);
+      expect(outlet.id, '2');
       expect(outlet.nama, 'IderKopi - Malioboro');
       expect(outlet.alamat, 'Jl. Malioboro No. 52');
       expect(outlet.latitude, -7.7928);
@@ -36,7 +36,7 @@ void main() {
 
       final outlet = Outlet.fromJson(json);
 
-      expect(outlet.id, 5);
+      expect(outlet.id, '5');
       expect(outlet.nama, 'Outlet Tanpa Alamat');
       expect(outlet.alamat, isNull);
       expect(outlet.radiusMeters, 100.0); // default
@@ -78,7 +78,7 @@ void main() {
 
     test('shortName strips "IderKopi - " prefix', () {
       const outlet = Outlet(
-        id: 1,
+        id: '1',
         nama: 'IderKopi - Malioboro',
         latitude: 0,
         longitude: 0,
@@ -88,7 +88,7 @@ void main() {
 
     test('shortName returns full nama when no prefix', () {
       const outlet = Outlet(
-        id: 1,
+        id: '1',
         nama: 'Malioboro',
         latitude: 0,
         longitude: 0,
@@ -98,7 +98,7 @@ void main() {
 
     test('toJson round-trips correctly', () {
       const outlet = Outlet(
-        id: 3,
+        id: '3',
         nama: 'IderKopi - Kotabaru',
         alamat: 'Jl. Simanjuntak',
         latitude: -7.785,
@@ -107,7 +107,7 @@ void main() {
         isActive: true,
       );
       final json = outlet.toJson();
-      expect(json['id'], 3);
+      expect(json['id'], '3');
       expect(json['nama'], 'IderKopi - Kotabaru');
       expect(json['latitude'], -7.785);
       expect(json['longitude'], 110.372);
@@ -126,7 +126,7 @@ void main() {
   group('OutletDistance', () {
     test('distanceLabel formats meters correctly', () {
       const d = OutletDistance(
-        outlet: Outlet(id: 1, nama: 'X', latitude: 0, longitude: 0),
+        outlet: Outlet(id: '1', nama: 'X', latitude: 0, longitude: 0),
         distanceMeters: 12.4,
         isWithinRadius: true,
       );
@@ -135,7 +135,7 @@ void main() {
 
     test('distanceLabel formats kilometers correctly', () {
       const d = OutletDistance(
-        outlet: Outlet(id: 1, nama: 'X', latitude: 0, longitude: 0),
+        outlet: Outlet(id: '1', nama: 'X', latitude: 0, longitude: 0),
         distanceMeters: 1350.0,
         isWithinRadius: false,
       );
@@ -144,7 +144,7 @@ void main() {
 
     test('distanceLabel rounds 999.4m to "999 m"', () {
       const d = OutletDistance(
-        outlet: Outlet(id: 1, nama: 'X', latitude: 0, longitude: 0),
+        outlet: Outlet(id: '1', nama: 'X', latitude: 0, longitude: 0),
         distanceMeters: 999.4,
         isWithinRadius: false,
       );

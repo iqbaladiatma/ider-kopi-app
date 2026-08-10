@@ -68,23 +68,26 @@ class _CustomButtonState extends State<CustomButton>
   EdgeInsets get _effectivePadding {
     if (widget.padding != null) return widget.padding!;
     return switch (widget.size) {
-      ButtonSize.small => const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      ButtonSize.normal => const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
-      ButtonSize.large => const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+      ButtonSize.small =>
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      ButtonSize.normal =>
+        const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+      ButtonSize.large =>
+        const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
     };
   }
 
   double get _fontSize => switch (widget.size) {
-    ButtonSize.small => 13,
-    ButtonSize.normal => 15,
-    ButtonSize.large => 17,
-  };
+        ButtonSize.small => 13,
+        ButtonSize.normal => 15,
+        ButtonSize.large => 17,
+      };
 
   double get _iconSize => switch (widget.size) {
-    ButtonSize.small => 16,
-    ButtonSize.normal => 19,
-    ButtonSize.large => 22,
-  };
+        ButtonSize.small => 16,
+        ButtonSize.normal => 19,
+        ButtonSize.large => 22,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -146,9 +149,8 @@ class _CustomButtonState extends State<CustomButton>
           width: widget.fullWidth ? double.infinity : null,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            boxShadow: (isDisabled || widget.isLoading)
-                ? null
-                : AppTheme.buttonShadow,
+            boxShadow:
+                (isDisabled || widget.isLoading) ? null : AppTheme.buttonShadow,
             gradient: isDisabled
                 ? null
                 : const LinearGradient(
@@ -158,7 +160,9 @@ class _CustomButtonState extends State<CustomButton>
                   ),
           ),
           child: Material(
-            color: isDisabled ? AppColors.primary.withValues(alpha: 0.35) : Colors.transparent,
+            color: isDisabled
+                ? AppColors.primary.withValues(alpha: 0.35)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
             child: InkWell(
               onTap: isDisabled || widget.isLoading ? null : widget.onPressed,
@@ -168,11 +172,15 @@ class _CustomButtonState extends State<CustomButton>
                 padding: _effectivePadding,
                 child: DefaultTextStyle(
                   style: TextStyle(
-                    color: isDisabled ? Colors.white.withValues(alpha: 0.65) : Colors.white,
+                    color: isDisabled
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : Colors.white,
                   ),
                   child: IconTheme(
                     data: IconThemeData(
-                      color: isDisabled ? Colors.white.withValues(alpha: 0.65) : Colors.white,
+                      color: isDisabled
+                          ? Colors.white.withValues(alpha: 0.65)
+                          : Colors.white,
                     ),
                     child: _buildButtonContent(),
                   ),

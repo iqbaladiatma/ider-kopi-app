@@ -8,7 +8,6 @@ import '../../../core/utils/date_utils.dart';
 import '../data/shift_model.dart';
 import '../providers/shift_providers.dart';
 
-
 class ShiftSchedulePage extends ConsumerStatefulWidget {
   const ShiftSchedulePage({super.key});
 
@@ -41,9 +40,9 @@ class _ShiftSchedulePageState extends ConsumerState<ShiftSchedulePage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/profile'),
         ),
-
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -117,8 +116,8 @@ class _ShiftSchedulePageState extends ConsumerState<ShiftSchedulePage> {
   }
 
   Widget _buildCalendar(List<UserShift> shifts) {
-    final daysInMonth = AppDateUtils.daysInMonth(
-        _selectedMonth.year, _selectedMonth.month);
+    final daysInMonth =
+        AppDateUtils.daysInMonth(_selectedMonth.year, _selectedMonth.month);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -168,7 +167,8 @@ class _ShiftSchedulePageState extends ConsumerState<ShiftSchedulePage> {
               return const SizedBox.shrink();
             }
             final day = index - _firstWeekdayOffset() + 1;
-            final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
+            final date =
+                DateTime(_selectedMonth.year, _selectedMonth.month, day);
             final isToday = date == today;
             final isPast = date.isBefore(today);
             final isWeekend = date.weekday == DateTime.saturday ||
@@ -205,10 +205,11 @@ class _ShiftSchedulePageState extends ConsumerState<ShiftSchedulePage> {
       spacing: 16,
       runSpacing: 8,
       children: [
-        _LegendItem(color: AppColors.green, label: 'Pagi'),
-        _LegendItem(color: AppColors.amber, label: 'Siang'),
-        _LegendItem(color: AppColors.ink, label: 'Malam'),
-        _LegendItem(color: AppColors.ink.withValues(alpha: 0.1), label: 'Libur'),
+        const _LegendItem(color: AppColors.green, label: 'Pagi'),
+        const _LegendItem(color: AppColors.amber, label: 'Siang'),
+        const _LegendItem(color: AppColors.ink, label: 'Malam'),
+        _LegendItem(
+            color: AppColors.ink.withValues(alpha: 0.1), label: 'Libur'),
       ],
     );
   }
@@ -280,9 +281,7 @@ class _CalendarCell extends StatelessWidget {
       decoration: BoxDecoration(
         color: shift != null ? _shiftColor.withValues(alpha: 0.1) : null,
         borderRadius: BorderRadius.circular(8),
-        border: isToday
-            ? Border.all(color: AppColors.red, width: 2)
-            : null,
+        border: isToday ? Border.all(color: AppColors.red, width: 2) : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

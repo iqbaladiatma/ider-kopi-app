@@ -63,12 +63,10 @@ class NotificationSettings {
 
   static Future<NotificationSettings> load(SharedPreferences prefs) async {
     return NotificationSettings(
-      checkInReminderEnabled:
-          prefs.getBool(_keyCheckInEnabled) ?? true,
+      checkInReminderEnabled: prefs.getBool(_keyCheckInEnabled) ?? true,
       checkInReminderHour: prefs.getInt(_keyCheckInHour) ?? 8,
       checkInReminderMinute: prefs.getInt(_keyCheckInMinute) ?? 0,
-      checkOutReminderEnabled:
-          prefs.getBool(_keyCheckOutEnabled) ?? true,
+      checkOutReminderEnabled: prefs.getBool(_keyCheckOutEnabled) ?? true,
       checkOutReminderHour: prefs.getInt(_keyCheckOutHour) ?? 17,
       checkOutReminderMinute: prefs.getInt(_keyCheckOutMinute) ?? 0,
     );
@@ -76,13 +74,13 @@ class NotificationSettings {
 }
 
 /// Provider SharedPreferences (lazy singleton).
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+final sharedPreferencesProvider =
+    FutureProvider<SharedPreferences>((ref) async {
   return SharedPreferences.getInstance();
 });
 
 /// State notifier untuk notification settings.
-class NotificationSettingsNotifier
-    extends StateNotifier<NotificationSettings> {
+class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   final SharedPreferences _prefs;
   final NotificationService _notificationService;
 
@@ -170,8 +168,7 @@ final notificationSettingsProvider =
 
   // Default state sampai prefs loaded
   return prefsAsync.maybeWhen(
-    data: (prefs) =>
-        NotificationSettingsNotifier(prefs, notificationService),
+    data: (prefs) => NotificationSettingsNotifier(prefs, notificationService),
     orElse: () => NotificationSettingsNotifier(
       _NullPrefs(),
       notificationService,

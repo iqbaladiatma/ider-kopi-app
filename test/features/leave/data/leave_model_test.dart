@@ -43,7 +43,7 @@ void main() {
         'created_at': '2026-08-01T09:00:00Z',
       };
       final leave = LeaveRequest.fromJson(json);
-      expect(leave.id, 1);
+      expect(leave.id, '1');
       expect(leave.userId, 'usr-0012');
       expect(leave.type, LeaveType.sakit);
       expect(leave.startDate, DateTime(2026, 8, 3));
@@ -76,8 +76,10 @@ void main() {
 
     test('canEdit is true only when pending', () {
       final pending = LeaveRequest(
-        userId: 'u', type: LeaveType.izin,
-        startDate: DateTime.now(), endDate: DateTime.now(),
+        userId: 'u',
+        type: LeaveType.izin,
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
       );
       expect(pending.canEdit, isTrue);
 
@@ -87,7 +89,7 @@ void main() {
 
     test('toJson round-trips', () {
       final leave = LeaveRequest(
-        id: 5,
+        id: '5',
         userId: 'usr-0012',
         type: LeaveType.cuti,
         startDate: DateTime(2026, 8, 15),
@@ -95,7 +97,7 @@ void main() {
         reason: 'Cuti tahunan',
       );
       final json = leave.toJson();
-      expect(json['id'], 5);
+      expect(json['id'], '5');
       expect(json['user_id'], 'usr-0012');
       expect(json['type'], 'cuti');
       expect(json['start_date'], '2026-08-15');
@@ -105,7 +107,8 @@ void main() {
 
     test('copyWith updates only specified fields', () {
       final original = LeaveRequest(
-        userId: 'u', type: LeaveType.izin,
+        userId: 'u',
+        type: LeaveType.izin,
         startDate: DateTime(2026, 1, 1),
         endDate: DateTime(2026, 1, 2),
       );

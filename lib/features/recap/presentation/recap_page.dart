@@ -10,7 +10,6 @@ import '../providers/recap_providers.dart';
 import 'widgets/attendance_bar_chart.dart';
 import 'widgets/status_pie_chart.dart';
 
-
 class RecapPage extends ConsumerStatefulWidget {
   const RecapPage({super.key});
 
@@ -43,9 +42,9 @@ class _RecapPageState extends ConsumerState<RecapPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/profile'),
         ),
-
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -267,13 +266,20 @@ class _DetailRow extends StatelessWidget {
 
   Color get _statusColor {
     switch (day.status) {
-      case RecapStatus.present: return AppColors.green;
-      case RecapStatus.late: return AppColors.amber;
-      case RecapStatus.absent: return AppColors.red;
-      case RecapStatus.leave: return AppColors.ink;
-      case RecapStatus.holiday: return AppColors.ink;
-      case RecapStatus.weekend: return AppColors.ink;
-      case RecapStatus.noData: return AppColors.ink;
+      case RecapStatus.present:
+        return AppColors.green;
+      case RecapStatus.late:
+        return AppColors.amber;
+      case RecapStatus.absent:
+        return AppColors.red;
+      case RecapStatus.leave:
+        return AppColors.ink;
+      case RecapStatus.holiday:
+        return AppColors.ink;
+      case RecapStatus.weekend:
+        return AppColors.ink;
+      case RecapStatus.noData:
+        return AppColors.ink;
     }
   }
 

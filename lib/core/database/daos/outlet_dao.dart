@@ -36,7 +36,7 @@ class OutletDao {
     return rows.map(_fromRow).toList();
   }
 
-  Future<Outlet?> getById(int id) async {
+  Future<Outlet?> getById(String id) async {
     final db = await _database;
     final rows = await db.query(
       _table,
@@ -68,7 +68,7 @@ class OutletDao {
 
   Outlet _fromRow(Map<String, dynamic> row) {
     return Outlet(
-      id: (row['id'] as num).toInt(),
+      id: row['id'].toString(),
       nama: row['nama'].toString(),
       alamat: row['alamat']?.toString(),
       latitude: (row['latitude'] as num).toDouble(),

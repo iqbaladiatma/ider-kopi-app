@@ -86,7 +86,11 @@ class _AdminBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       (icon: Icons.home_rounded, label: 'Beranda', path: '/admin'),
-      (icon: Icons.check_circle_outline_rounded, label: 'Absensi', path: '/admin/attendance'),
+      (
+        icon: Icons.check_circle_outline_rounded,
+        label: 'Absensi',
+        path: '/admin/attendance'
+      ),
       (icon: Icons.storefront_rounded, label: 'Outlet', path: '/admin/users'),
       (icon: Icons.person_rounded, label: 'Profil', path: '/admin/profile'),
     ];
@@ -116,7 +120,8 @@ class _AdminBottomNav extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: isActive ? AppColors.redLight : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
@@ -135,7 +140,8 @@ class _AdminBottomNav extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 9.5,
-                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight:
+                              isActive ? FontWeight.w700 : FontWeight.w500,
                           color: isActive ? AppColors.red : AppColors.muted,
                         ),
                       ),

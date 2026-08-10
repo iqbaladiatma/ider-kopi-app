@@ -1,9 +1,8 @@
 import '../../features/auth/data/auth_model.dart';
+import '../config/app_config.dart';
 
 class MockData {
   MockData._();
-
-  static const String defaultPassword = 'iderkopiku123';
 
   // Seeded User Profiles (KangIder -> Otomatis ke Outlet IderKopi)
   static final List<UserProfile> _seededProfiles = [
@@ -87,10 +86,8 @@ class MockData {
   ];
 
   static bool validate(String email, String password) {
-    if (password == defaultPassword || password == 'admin123' || password == 'user123') {
-      return true;
-    }
-    return true;
+    const configuredPassword = AppConfig.mockAuthPassword;
+    return configuredPassword.isNotEmpty && password == configuredPassword;
   }
 
   static bool isAdmin(String email) {
@@ -314,17 +311,77 @@ class MockData {
 
   /// Mock hari libur nasional 2026 (subset).
   static List<Map<String, dynamic>> mockHolidays = [
-    {'id': 1, 'tanggal': '2026-01-01', 'nama': 'Tahun Baru 2026', 'is_nasional': true},
-    {'id': 2, 'tanggal': '2026-02-17', 'nama': 'Tahun Baru Imlek', 'is_nasional': true},
-    {'id': 3, 'tanggal': '2026-03-03', 'nama': 'Hari Raya Nyepi', 'is_nasional': true},
-    {'id': 4, 'tanggal': '2026-03-31', 'nama': 'Wafat Isa Al Masih', 'is_nasional': true},
-    {'id': 5, 'tanggal': '2026-04-18', 'nama': 'Jumat Agung', 'is_nasional': true},
-    {'id': 6, 'tanggal': '2026-05-01', 'nama': 'Hari Buruh Internasional', 'is_nasional': true},
-    {'id': 7, 'tanggal': '2026-05-21', 'nama': 'Kenaikan Isa Al Masih', 'is_nasional': true},
-    {'id': 8, 'tanggal': '2026-06-01', 'nama': 'Hari Lahir Pancasila', 'is_nasional': true},
-    {'id': 9, 'tanggal': '2026-06-17', 'nama': 'Hari Raya Idul Adha', 'is_nasional': true},
-    {'id': 10, 'tanggal': '2026-08-17', 'nama': 'Hari Kemerdekaan RI', 'is_nasional': true},
-    {'id': 11, 'tanggal': '2026-09-27', 'nama': 'Maulid Nabi Muhammad', 'is_nasional': true},
-    {'id': 12, 'tanggal': '2026-12-25', 'nama': 'Hari Raya Natal', 'is_nasional': true},
+    {
+      'id': 1,
+      'tanggal': '2026-01-01',
+      'nama': 'Tahun Baru 2026',
+      'is_nasional': true
+    },
+    {
+      'id': 2,
+      'tanggal': '2026-02-17',
+      'nama': 'Tahun Baru Imlek',
+      'is_nasional': true
+    },
+    {
+      'id': 3,
+      'tanggal': '2026-03-03',
+      'nama': 'Hari Raya Nyepi',
+      'is_nasional': true
+    },
+    {
+      'id': 4,
+      'tanggal': '2026-03-31',
+      'nama': 'Wafat Isa Al Masih',
+      'is_nasional': true
+    },
+    {
+      'id': 5,
+      'tanggal': '2026-04-18',
+      'nama': 'Jumat Agung',
+      'is_nasional': true
+    },
+    {
+      'id': 6,
+      'tanggal': '2026-05-01',
+      'nama': 'Hari Buruh Internasional',
+      'is_nasional': true
+    },
+    {
+      'id': 7,
+      'tanggal': '2026-05-21',
+      'nama': 'Kenaikan Isa Al Masih',
+      'is_nasional': true
+    },
+    {
+      'id': 8,
+      'tanggal': '2026-06-01',
+      'nama': 'Hari Lahir Pancasila',
+      'is_nasional': true
+    },
+    {
+      'id': 9,
+      'tanggal': '2026-06-17',
+      'nama': 'Hari Raya Idul Adha',
+      'is_nasional': true
+    },
+    {
+      'id': 10,
+      'tanggal': '2026-08-17',
+      'nama': 'Hari Kemerdekaan RI',
+      'is_nasional': true
+    },
+    {
+      'id': 11,
+      'tanggal': '2026-09-27',
+      'nama': 'Maulid Nabi Muhammad',
+      'is_nasional': true
+    },
+    {
+      'id': 12,
+      'tanggal': '2026-12-25',
+      'nama': 'Hari Raya Natal',
+      'is_nasional': true
+    },
   ];
 }

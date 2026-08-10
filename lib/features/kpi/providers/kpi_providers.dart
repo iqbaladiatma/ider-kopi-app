@@ -10,7 +10,8 @@ final kpiRepositoryProvider = Provider<KpiRepository>((ref) {
 
 /// KPI summary untuk user login, bulan & tahun tertentu.
 final myKpiProvider =
-    FutureProvider.family<KpiSummary, ({int year, int month})>((ref, params) async {
+    FutureProvider.family<KpiSummary, ({int year, int month})>(
+        (ref, params) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null) {
     throw Exception('User tidak teridentifikasi');

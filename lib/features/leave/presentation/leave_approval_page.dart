@@ -35,7 +35,8 @@ class LeaveApprovalPage extends ConsumerWidget {
                 itemBuilder: (_, i) => _PendingLeaveCard(leave: leaves[i]),
               ),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.red, strokeWidth: 2),
+          child:
+              CircularProgressIndicator(color: AppColors.red, strokeWidth: 2),
         ),
         error: (e, _) => Center(
           child: Text('Gagal memuat data: $e',
@@ -91,7 +92,8 @@ class _PendingLeaveCard extends ConsumerWidget {
                   color: AppColors.amber.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(leave.type.icon, style: const TextStyle(fontSize: 20)),
+                child:
+                    Text(leave.type.icon, style: const TextStyle(fontSize: 20)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -139,7 +141,8 @@ class _PendingLeaveCard extends ConsumerWidget {
                   label: const Text('Tolak'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.red,
-                    side: BorderSide(color: AppColors.red.withValues(alpha: 0.3)),
+                    side:
+                        BorderSide(color: AppColors.red.withValues(alpha: 0.3)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100),
                     ),

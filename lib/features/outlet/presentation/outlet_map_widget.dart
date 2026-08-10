@@ -1,11 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/map_constants.dart';
+import '../../../core/utils/location_utils.dart';
 import '../data/outlet_model.dart';
 
 /// Map preview interaktif dengan marker semua outlet + lokasi user.
@@ -82,16 +81,13 @@ class _OutletMapWidgetState extends State<OutletMapWidget> {
   }
 
   bool _isWithinOutlet(Outlet outlet) {
-    const earthRadius = 6371000.0;
-    final dLat =
-        (outlet.latitude - widget.userLatitude) * (pi / 180.0);
-    final dLng =
-        (outlet.longitude - widget.userLongitude) * (pi / 180.0);
-    final lat1 = widget.userLatitude * (pi / 180.0);
-    final x = dLng * earthRadius * cos(lat1);
-    final y = dLat * earthRadius;
-    final dist = sqrt(x * x + y * y);
-    return dist <= outlet.radiusMeters;
+    return LocationUtils.isWithinOutletRadius(
+      userLat: widget.userLatitude,
+      userLng: widget.userLongitude,
+      outletLat: outlet.latitude,
+      outletLng: outlet.longitude,
+      radiusMeters: outlet.radiusMeters,
+    );
   }
 
   @override
@@ -99,9 +95,9 @@ class _OutletMapWidgetState extends State<OutletMapWidget> {
     final userLatLng = LatLng(widget.userLatitude, widget.userLongitude);
 
     // Filter tile URL: gunakan Mapbox jika belum error, sebaliknya fallback ke OSM
-    final tileUrl = _tileError
-        ? MapConstants.osmTileUrl
-        : MapConstants.mapboxTileUrl;
+    final tileUrl =
+        _tileError ? MapConstants.osmTileUrl : MapConstants.mapboxTileUrl;
+    final isMapbox = tileUrl != MapConstants.osmTileUrl;
 
     return SizedBox(
       height: widget.height,
@@ -139,7 +135,8 @@ class _OutletMapWidgetState extends State<OutletMapWidget> {
                 CircleLayer(
                   circles: widget.outlets.map((outlet) {
                     final isWithin = _isWithinOutlet(outlet);
-                    final circleColor = isWithin ? AppColors.success : AppColors.warning;
+                    final circleColor =
+                        isWithin ? AppColors.success : AppColors.warning;
 
                     return CircleMarker(
                       point: LatLng(outlet.latitude, outlet.longitude),
@@ -207,13 +204,13 @@ class _OutletMapWidgetState extends State<OutletMapWidget> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      _tileError ? Icons.map_outlined : Icons.map_rounded,
+                      isMapbox ? Icons.map_rounded : Icons.map_outlined,
                       size: 10,
                       color: Colors.white70,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _tileError ? 'OpenStreetMap' : 'Mapbox',
+                      isMapbox ? 'Mapbox' : 'OpenStreetMap',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,

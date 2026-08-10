@@ -13,7 +13,7 @@ void main() {
         'outlet_id': 2,
       };
       final r = AttendanceRecord.fromJson(json);
-      expect(r.outletId, 2);
+      expect(r.outletId, '2');
     });
 
     test('fromJson returns null outletId when absent', () {
@@ -28,15 +28,34 @@ void main() {
       expect(r.outletId, isNull);
     });
 
+    test('fromJson parses nested employee and backend outlet name', () {
+      final r = AttendanceRecord.fromJson({
+        'id': 'attendance-1',
+        'employee_id': 'employee-uuid',
+        'attendance_date': '2026-08-10',
+        'outlet_id': 'outlet-uuid',
+        'outlet_name': 'IDER KOPI Gejayan',
+        'employee': {
+          'employee_code': 'IKI0033',
+          'full_name': 'Nama Karyawan Aktual',
+        },
+      });
+
+      expect(r.kangider, 'IKI0033');
+      expect(r.kangiderNama, 'Nama Karyawan Aktual');
+      expect(r.outletId, 'outlet-uuid');
+      expect(r.outlet, 'IDER KOPI Gejayan');
+    });
+
     test('toJson includes outlet_id only when not null', () {
       final r = AttendanceRecord(
         tanggalAbsensi: '2026-08-05',
         masuk: '08:00:00',
         kangider: 'IDR-0012',
-        outletId: 3,
+        outletId: '3',
       );
       final json = r.toJson();
-      expect(json['outlet_id'], 3);
+      expect(json['outlet_id'], '3');
     });
 
     test('toJson omits outlet_id when null', () {
@@ -103,10 +122,10 @@ void main() {
         latitude: -7.79,
         longitude: 110.36,
         selfieFileId: 'file-123',
-        outletId: 2,
+        outletId: '2',
       );
       final json = req.toJson();
-      expect(json['outlet_id'], 2);
+      expect(json['outlet_id'], '2');
       expect(json['check_in_source'], 'app');
       expect(json['selfie_file_id'], 'file-123');
     });

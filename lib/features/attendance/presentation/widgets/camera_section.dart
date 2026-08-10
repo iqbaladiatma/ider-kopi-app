@@ -248,7 +248,8 @@ class _CameraSectionState extends State<CameraSection> {
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(Icons.camera_rounded, color: Colors.white, size: 20),
+                        : const Icon(Icons.camera_rounded,
+                            color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       _isCapturing ? 'Mengambil...' : 'Ambil Foto',

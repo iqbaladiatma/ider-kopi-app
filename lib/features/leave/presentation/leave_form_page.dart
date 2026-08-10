@@ -207,7 +207,8 @@ class _LeaveFormPageState extends ConsumerState<LeaveFormPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.red, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: AppColors.red, width: 1.5),
                 ),
               ),
             ),
@@ -285,7 +286,9 @@ class _DateField extends StatelessWidget {
             child: Row(
               children: [
                 Icon(Icons.calendar_today_rounded,
-                    color: value != null ? AppColors.red : AppColors.ink.withValues(alpha: 0.4),
+                    color: value != null
+                        ? AppColors.red
+                        : AppColors.ink.withValues(alpha: 0.4),
                     size: 18),
                 const SizedBox(width: 12),
                 Text(

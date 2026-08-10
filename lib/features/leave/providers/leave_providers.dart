@@ -22,7 +22,13 @@ final myLeavesProvider = FutureProvider<List<LeaveRequest>>((ref) async {
 final pendingLeavesProvider = FutureProvider<List<LeaveRequest>>((ref) async {
   // Hanya manager/admin yang boleh akses
   final role = await ref.watch(userRoleProvider.future);
-  if (role != 'manager' && role != 'admin') return [];
+  if (!const {
+    'super_admin',
+    'hr_admin',
+    'manager',
+  }.contains(role?.toLowerCase())) {
+    return [];
+  }
 
   final repo = ref.read(leaveRepositoryProvider);
   return repo.getPendingLeaves();
@@ -39,9 +45,8 @@ final submitLeaveProvider =
 });
 
 /// Approve pengajuan (manager).
-final approveLeaveProvider =
-    FutureProvider.family<LeaveRequest, ({int leaveId, String approverId, String? note})>(
-        (ref, params) async {
+final approveLeaveProvider = FutureProvider.family<LeaveRequest,
+    ({String leaveId, String approverId, String? note})>((ref, params) async {
   final repo = ref.read(leaveRepositoryProvider);
   final result = await repo.approve(
     params.leaveId,
@@ -54,9 +59,8 @@ final approveLeaveProvider =
 });
 
 /// Reject pengajuan (manager).
-final rejectLeaveProvider =
-    FutureProvider.family<LeaveRequest, ({int leaveId, String approverId, String? note})>(
-        (ref, params) async {
+final rejectLeaveProvider = FutureProvider.family<LeaveRequest,
+    ({String leaveId, String approverId, String? note})>((ref, params) async {
   final repo = ref.read(leaveRepositoryProvider);
   final result = await repo.reject(
     params.leaveId,

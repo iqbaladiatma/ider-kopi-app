@@ -8,10 +8,12 @@ class AdminShiftSettingsPage extends ConsumerStatefulWidget {
   const AdminShiftSettingsPage({super.key});
 
   @override
-  ConsumerState<AdminShiftSettingsPage> createState() => _AdminShiftSettingsPageState();
+  ConsumerState<AdminShiftSettingsPage> createState() =>
+      _AdminShiftSettingsPageState();
 }
 
-class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage> {
+class _AdminShiftSettingsPageState
+    extends ConsumerState<AdminShiftSettingsPage> {
   TimeOfDay _jamMasuk = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _jamPulang = const TimeOfDay(hour: 17, minute: 0);
   int _toleransiMenit = 15;
@@ -60,14 +62,19 @@ class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage>
         scrolledUnderElevation: 0,
         title: const Text(
           'Jam & Toleransi Shift',
-          style: TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.ink),
+          style: TextStyle(
+              fontFamily: 'Sora',
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink),
-          onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : context.go('/admin/profile'),
+          onPressed: () => Navigator.canPop(context)
+              ? Navigator.pop(context)
+              : context.go('/admin/profile'),
         ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -93,10 +100,18 @@ class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage>
               ),
               tileColor: AppColors.surfaceAlt,
               leading: const Icon(Icons.login_rounded, color: AppColors.green),
-              title: const Text('Jam Masuk Shift Standar', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700)),
+              title: const Text('Jam Masuk Shift Standar',
+                  style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
               trailing: Text(
                 _jamMasuk.format(context),
-                style: const TextStyle(fontFamily: 'Space Mono', fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink),
               ),
               onTap: () => _selectTime(true),
             ),
@@ -111,10 +126,18 @@ class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage>
               ),
               tileColor: AppColors.surfaceAlt,
               leading: const Icon(Icons.logout_rounded, color: AppColors.red),
-              title: const Text('Jam Pulang Shift Standar', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700)),
+              title: const Text('Jam Pulang Shift Standar',
+                  style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
               trailing: Text(
                 _jamPulang.format(context),
-                style: const TextStyle(fontFamily: 'Space Mono', fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: const TextStyle(
+                    fontFamily: 'Space Mono',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink),
               ),
               onTap: () => _selectTime(false),
             ),
@@ -146,10 +169,18 @@ class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Toleransi Keterlambatan', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700)),
+                      const Text('Toleransi Keterlambatan',
+                          style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700)),
                       Text(
                         '$_toleransiMenit Menit',
-                        style: const TextStyle(fontFamily: 'Space Mono', fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.amber),
+                        style: const TextStyle(
+                            fontFamily: 'Space Mono',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.amber),
                       ),
                     ],
                   ),
@@ -166,7 +197,8 @@ class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage>
                     divisions: 12,
                     activeColor: AppColors.amber,
                     label: '$_toleransiMenit Menit',
-                    onChanged: (val) => setState(() => _toleransiMenit = val.round()),
+                    onChanged: (val) =>
+                        setState(() => _toleransiMenit = val.round()),
                   ),
                 ],
               ),
@@ -181,13 +213,19 @@ class _AdminShiftSettingsPageState extends ConsumerState<AdminShiftSettingsPage>
                 onPressed: _isSaving ? null : _handleSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.red,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100)),
                 ),
                 child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    ? const CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2)
                     : const Text(
                         'Simpan Pengaturan Shift',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                        style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white),
                       ),
               ),
             ),

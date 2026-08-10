@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/empty_view.dart';
@@ -9,12 +8,12 @@ import '../../attendance/data/attendance_model.dart';
 import '../providers/admin_providers.dart';
 import 'admin_attendance_detail_page.dart';
 
-
 class AdminAttendancePage extends ConsumerStatefulWidget {
   const AdminAttendancePage({super.key});
 
   @override
-  ConsumerState<AdminAttendancePage> createState() => _AdminAttendancePageState();
+  ConsumerState<AdminAttendancePage> createState() =>
+      _AdminAttendancePageState();
 }
 
 class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
@@ -22,8 +21,10 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
 
   @override
   Widget build(BuildContext context) {
+    final today = DateTime.now().toIso8601String().split('T').first;
+    final provider = adminAttendanceProvider((date: today, employee: null));
     final attendanceAsync = ref.watch(adminAttendanceProvider(
-      (date: null, employee: null),
+      (date: today, employee: null),
     ));
 
     return Scaffold(
@@ -31,7 +32,7 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
       body: RefreshIndicator(
         color: AppColors.ink,
         onRefresh: () async {
-          ref.invalidate(adminAttendanceProvider((date: null, employee: null)));
+          ref.invalidate(provider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -49,13 +50,14 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
                 ),
                 decoration: const BoxDecoration(
                   color: AppColors.ink,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(26)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Daftar Absensi',
+                      'Absensi Hari Ini',
                       style: TextStyle(
                         fontFamily: 'Sora',
                         fontSize: 21,
@@ -69,9 +71,14 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
                     attendanceAsync.when(
                       data: (records) {
                         final totalCount = records.length;
-                        final hadirCount = records.where((r) => r.masuk != null && !(r.isLate ?? false)).length;
-                        final telatCount = records.where((r) => r.masuk != null && (r.isLate ?? false)).length;
-                        final absenCount = records.where((r) => r.masuk == null).length;
+                        final hadirCount = records
+                            .where((r) => r.masuk != null && !r.isLate)
+                            .length;
+                        final telatCount = records
+                            .where((r) => r.masuk != null && r.isLate)
+                            .length;
+                        final absenCount =
+                            records.where((r) => r.masuk == null).length;
 
                         final chips = [
                           'Semua · $totalCount',
@@ -89,12 +96,16 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
                               final isActive = _selectedFilterIndex == index;
 
                               return GestureDetector(
-                                onTap: () => setState(() => _selectedFilterIndex = index),
+                                onTap: () => setState(
+                                    () => _selectedFilterIndex = index),
                                 child: Container(
                                   margin: const EdgeInsets.only(right: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.14),
+                                    color: isActive
+                                        ? Colors.white
+                                        : Colors.white.withValues(alpha: 0.14),
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                   child: Text(
@@ -103,7 +114,9 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
                                       fontFamily: 'Inter',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: isActive ? AppColors.ink : Colors.white,
+                                      color: isActive
+                                          ? AppColors.ink
+                                          : Colors.white,
                                     ),
                                   ),
                                 ),
@@ -127,16 +140,21 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
                 child: attendanceAsync.when(
                   loading: () => const SizedBox(
                     height: 150,
-                    child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+                    child: Center(
+                        child: CircularProgressIndicator(color: AppColors.ink)),
                   ),
                   error: (e, _) => ErrorView(
                     message: 'Gagal memuat data absensi',
-                    onRetry: () => ref.invalidate(adminAttendanceProvider((date: null, employee: null))),
+                    onRetry: () => ref.invalidate(provider),
                   ),
                   data: (records) {
                     final filteredRecords = records.where((r) {
-                      if (_selectedFilterIndex == 1) return r.masuk != null && !(r.isLate ?? false);
-                      if (_selectedFilterIndex == 2) return r.masuk != null && (r.isLate ?? false);
+                      if (_selectedFilterIndex == 1) {
+                        return r.masuk != null && !r.isLate;
+                      }
+                      if (_selectedFilterIndex == 2) {
+                        return r.masuk != null && r.isLate;
+                      }
                       if (_selectedFilterIndex == 3) return r.masuk == null;
                       return true;
                     }).toList();
@@ -147,13 +165,16 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
                         child: EmptyView(
                           icon: Icons.assignment_outlined,
                           title: 'Tidak ada data absensi',
-                          subtitle: 'Belum ada riwayat absensi karyawan untuk filter ini',
+                          subtitle:
+                              'Belum ada riwayat absensi karyawan untuk filter ini',
                         ),
                       );
                     }
 
                     return Column(
-                      children: filteredRecords.map((rec) => _buildListItem(rec)).toList(),
+                      children: filteredRecords
+                          .map((rec) => _buildListItem(rec))
+                          .toList(),
                     );
                   },
                 ),
@@ -172,10 +193,9 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
     final initials = name.isNotEmpty
         ? name.trim().split(' ').map((e) => e[0]).take(2).join()
         : 'IK';
-    final outlet = record.outlet ?? 'Malioboro';
+    final outlet = record.outlet ?? 'Outlet belum tercatat';
     final timeStr = record.masuk ?? '—';
     final isAbsent = record.masuk == null;
-    final isLate = record.isLate ?? false;
 
     final String geoText;
     final Color geoColor;
@@ -183,11 +203,11 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
     if (isAbsent) {
       geoText = 'Tidak lapor';
       geoColor = AppColors.red;
-    } else if (isLate) {
-      geoText = '164m ⚠';
-      geoColor = AppColors.amber;
+    } else if (record.latitude == null || record.longitude == null) {
+      geoText = 'Lokasi tidak tersedia';
+      geoColor = AppColors.muted;
     } else {
-      geoText = '12m ✓';
+      geoText = 'Lokasi tercatat';
       geoColor = AppColors.green;
     }
 
@@ -279,11 +299,11 @@ class _AdminAttendancePageState extends ConsumerState<AdminAttendancePage> {
               ],
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 18),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.muted, size: 18),
           ],
         ),
       ),
     );
   }
-
 }

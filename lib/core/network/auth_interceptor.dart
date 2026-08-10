@@ -1,22 +1,91 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../config/api_provider.dart';
-import '../config/app_config.dart';
 import '../storage/secure_storage.dart';
 
-class AuthInterceptor extends Interceptor {
-  AuthInterceptor({required this.storage, required this.dio});
+const _retriedAfterRefreshKey = 'retriedAfterTokenRefresh';
+
+/// Refreshes access tokens through the issuer stored for the active realm.
+/// A single coordinator is shared by auth and business clients so concurrent
+/// 401 responses result in one refresh request without crossing issuers.
+class TokenRefreshCoordinator {
+  TokenRefreshCoordinator({
+    required this.storage,
+    required this.authDio,
+    this.adminAuthDio,
+  });
 
   final SecureStorage storage;
-  final Dio dio;
+  final Dio authDio;
+  final Dio? adminAuthDio;
+  Future<bool>? _refreshFuture;
 
-  bool _isRefreshing = false;
+  Future<bool> refreshToken() {
+    return _refreshFuture ??= _performRefresh().whenComplete(() {
+      _refreshFuture = null;
+    });
+  }
+
+  Future<bool> _performRefresh() async {
+    try {
+      final refreshToken = await storage.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) return false;
+
+      final realm = await storage.getAuthRealm();
+      final refreshClient =
+          realm == AuthRealm.admin ? (adminAuthDio ?? authDio) : authDio;
+
+      final response = await refreshClient.post<dynamic>(
+        'auth/refresh',
+        data: {'refresh_token': refreshToken},
+      );
+      final responseData = response.data;
+      if (response.statusCode != 200 || responseData is! Map) return false;
+
+      final rawData = responseData.cast<String, dynamic>();
+      final nestedData = rawData['data'];
+      final data =
+          nestedData is Map ? nestedData.cast<String, dynamic>() : rawData;
+      final newAccessToken = data['access_token'] as String?;
+      final newRefreshToken =
+          (data['refresh_token'] as String?) ?? refreshToken;
+      if (newAccessToken == null || newAccessToken.isEmpty) return false;
+
+      await storage.saveTokens(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresAt: DateTime.now().add(const Duration(minutes: 15)),
+      );
+      return true;
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('Token refresh failed: $error');
+      }
+      return false;
+    }
+  }
+}
+
+class AuthInterceptor extends Interceptor {
+  AuthInterceptor({
+    required this.storage,
+    required this.requestDio,
+    required this.refreshCoordinator,
+  });
+
+  final SecureStorage storage;
+  final Dio requestDio;
+  final TokenRefreshCoordinator refreshCoordinator;
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final token = await storage.getAccessToken();
-    if (token != null && !_isAuthEndpoint(options.path)) {
+    if (token != null &&
+        token.isNotEmpty &&
+        !_isAuthenticationBootstrapEndpoint(options.path)) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
@@ -24,75 +93,47 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401 && !_isAuthEndpoint(err.requestOptions.path)) {
-      final refreshed = await _refreshToken();
-      if (refreshed) {
-        try {
-          final newToken = await storage.getAccessToken();
-          final clonedRequest = err.requestOptions
-            ..headers['Authorization'] = 'Bearer $newToken';
-          final response = await dio.fetch(clonedRequest);
-          handler.resolve(response);
-          return;
-        } catch (e) {
-          // fall through to reject
-        }
-      } else {
-        await storage.clearAll();
-      }
-    }
-    handler.next(err);
-  }
+    final request = err.requestOptions;
+    final shouldRefresh = err.response?.statusCode == 401 &&
+        !_isAuthenticationBootstrapEndpoint(request.path) &&
+        request.extra[_retriedAfterRefreshKey] != true;
 
-  Future<bool> _refreshToken() async {
-    if (_isRefreshing) return false;
-    _isRefreshing = true;
+    if (!shouldRefresh) {
+      handler.next(err);
+      return;
+    }
+
+    final refreshed = await refreshCoordinator.refreshToken();
+    if (!refreshed) {
+      await storage.clearAll();
+      handler.next(err);
+      return;
+    }
+
     try {
-      final refreshToken = await storage.getRefreshToken();
-      if (refreshToken == null) return false;
-
-      // Pilih endpoint refresh sesuai provider aktif
-      final refreshEndpoint = AppConfig.apiProvider == ApiProvider.directus
-          ? '/auth/refresh'
-          : '/api/v1/auth/refresh';
-
-      final response = await dio.post(
-        refreshEndpoint,
-        data: {'refresh_token': refreshToken},
+      final newToken = await storage.getAccessToken();
+      final retryOptions = request.copyWith(
+        headers: <String, dynamic>{
+          ...request.headers,
+          'Authorization': 'Bearer $newToken',
+        },
+        extra: <String, dynamic>{
+          ...request.extra,
+          _retriedAfterRefreshKey: true,
+        },
       );
-
-      if (response.statusCode == 200 && response.data != null) {
-        final rawData = response.data;
-        // Directus: { data: { access_token, refresh_token, expires } }
-        // Go backend: { success: true, data: { access_token } }
-        final data = rawData['data'] ?? rawData;
-        final newAccessToken = data['access_token'];
-        final newRefreshToken = data['refresh_token'] ?? refreshToken;
-        final expires = data['expires'];
-
-        if (newAccessToken != null) {
-          await storage.saveTokens(
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
-            expiresAt: DateTime.now().add(
-              Duration(seconds: expires is int ? expires : 900),
-            ),
-          );
-          return true;
-        }
-      }
-      return false;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Token refresh failed: $e');
-      }
-      return false;
-    } finally {
-      _isRefreshing = false;
+      final response = await requestDio.fetch<dynamic>(retryOptions);
+      handler.resolve(response);
+    } catch (_) {
+      handler.next(err);
     }
   }
 
-  bool _isAuthEndpoint(String path) {
-    return path.contains('/auth/login') || path.contains('/auth/refresh');
+  bool _isAuthenticationBootstrapEndpoint(String path) {
+    final normalized = Uri.tryParse(path)?.path ?? path;
+    return normalized.endsWith('/auth/login') ||
+        normalized.endsWith('/auth/refresh') ||
+        normalized == 'auth/login' ||
+        normalized == 'auth/refresh';
   }
 }

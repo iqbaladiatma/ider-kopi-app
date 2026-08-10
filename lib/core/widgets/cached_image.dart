@@ -6,7 +6,7 @@ import '../../core/constants/app_colors.dart';
 /// Cached network image dengan placeholder & error handling.
 ///
 /// Pakai `CachedNetworkImage` untuk caching otomatis.
-/// Untuk Directus, file URL = `${AppConfig.apiBaseUrl}/assets/$fileId`.
+/// Custom Go API file URL = `${AppConfig.apiBaseUrl}/assets/$fileId`.
 class CachedImage extends StatelessWidget {
   final String? fileId;
   final String? url;

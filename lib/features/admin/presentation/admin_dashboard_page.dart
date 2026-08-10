@@ -7,7 +7,6 @@ import '../../../core/providers/brand_provider.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../shared/widgets/outlet_mode_sheet.dart';
 import '../../attendance/data/attendance_model.dart';
-import '../../auth/providers/auth_providers.dart';
 
 import 'admin_attendance_detail_page.dart';
 import '../providers/admin_providers.dart';
@@ -17,14 +16,18 @@ class AdminDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final today = DateTime.now().toIso8601String().split('T').first;
+    final todayAttendanceProvider =
+        adminAttendanceProvider((date: today, employee: null));
     final userCountAsync = ref.watch(userCountProvider);
     final todayAttCountAsync = ref.watch(todayAttendanceCountProvider);
-    final attendanceListAsync = ref.watch(adminAttendanceProvider((date: null, employee: null)));
+    final attendanceListAsync = ref.watch(todayAttendanceProvider);
     final activeBrand = ref.watch(activeBrandProvider);
 
-    final totalUsers = userCountAsync.asData?.value ?? 6;
-    final todayHadir = todayAttCountAsync.asData?.value ?? 5;
-    final attPct = totalUsers > 0 ? ((todayHadir / totalUsers) * 100).round() : 85;
+    final totalUsers = userCountAsync.asData?.value ?? 0;
+    final todayHadir = todayAttCountAsync.asData?.value ?? 0;
+    final attPct =
+        totalUsers > 0 ? ((todayHadir / totalUsers) * 100).round() : 0;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -33,7 +36,7 @@ class AdminDashboardPage extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(userCountProvider);
           ref.invalidate(todayAttendanceCountProvider);
-          ref.invalidate(adminAttendanceProvider((date: null, employee: null)));
+          ref.invalidate(todayAttendanceProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -51,7 +54,8 @@ class AdminDashboardPage extends ConsumerWidget {
                 ),
                 decoration: const BoxDecoration(
                   color: AppColors.ink,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(26)),
                 ),
                 child: Column(
                   children: [
@@ -88,13 +92,15 @@ class AdminDashboardPage extends ConsumerWidget {
                         GestureDetector(
                           onTap: () => showOutletModeSheet(context, ref),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
                               color: activeBrand.primaryColor,
                               borderRadius: BorderRadius.circular(100),
                               boxShadow: [
                                 BoxShadow(
-                                  color: activeBrand.primaryColor.withValues(alpha: 0.4),
+                                  color: activeBrand.primaryColor
+                                      .withValues(alpha: 0.4),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -103,7 +109,8 @@ class AdminDashboardPage extends ConsumerWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(activeBrand.iconData, color: Colors.white, size: 13),
+                                Icon(activeBrand.iconData,
+                                    color: Colors.white, size: 13),
                                 const SizedBox(width: 5),
                                 Text(
                                   activeBrand.badgeText,
@@ -115,7 +122,8 @@ class AdminDashboardPage extends ConsumerWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
+                                const Icon(Icons.keyboard_arrow_down_rounded,
+                                    color: Colors.white, size: 16),
                               ],
                             ),
                           ),
@@ -131,7 +139,8 @@ class AdminDashboardPage extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12)),
                       ),
                       child: Row(
                         children: [
@@ -148,8 +157,11 @@ class AdminDashboardPage extends ConsumerWidget {
                                   child: CircularProgressIndicator(
                                     value: (attPct / 100).clamp(0.0, 1.0),
                                     strokeWidth: 6.5,
-                                    backgroundColor: Colors.white.withValues(alpha: 0.12),
-                                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.green),
+                                    backgroundColor:
+                                        Colors.white.withValues(alpha: 0.12),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                            AppColors.green),
                                   ),
                                 ),
                                 Column(
@@ -180,7 +192,10 @@ class AdminDashboardPage extends ConsumerWidget {
                           ),
 
                           const SizedBox(width: 14),
-                          Container(width: 1, height: 48, color: Colors.white.withValues(alpha: 0.15)),
+                          Container(
+                              width: 1,
+                              height: 48,
+                              color: Colors.white.withValues(alpha: 0.15)),
                           const SizedBox(width: 14),
 
                           // Compact Stat Breakdown Columns
@@ -202,7 +217,8 @@ class AdminDashboardPage extends ConsumerWidget {
                                 ),
                                 _buildCompactStat(
                                   label: 'ABSEN',
-                                  valStr: '${(totalUsers - todayHadir).clamp(0, 99)}',
+                                  valStr:
+                                      '${(totalUsers - todayHadir).clamp(0, 99)}',
                                   subStr: 'Izin/Sakit',
                                   color: AppColors.red,
                                 ),
@@ -257,7 +273,8 @@ class AdminDashboardPage extends ConsumerWidget {
                 child: attendanceListAsync.when(
                   loading: () => const SizedBox(
                     height: 120,
-                    child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+                    child: Center(
+                        child: CircularProgressIndicator(color: AppColors.ink)),
                   ),
                   error: (_, __) => const SizedBox.shrink(),
                   data: (records) {
@@ -267,7 +284,10 @@ class AdminDashboardPage extends ConsumerWidget {
                         child: Center(
                           child: Text(
                             'Belum ada absen masuk hari ini',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.muted),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 12,
+                                color: AppColors.muted),
                           ),
                         ),
                       );
@@ -275,7 +295,9 @@ class AdminDashboardPage extends ConsumerWidget {
 
                     final recentRecords = records.take(6).toList();
                     return Column(
-                      children: recentRecords.map((rec) => _buildFeedItem(context, rec)).toList(),
+                      children: recentRecords
+                          .map((rec) => _buildFeedItem(context, rec))
+                          .toList(),
                     );
                   },
                 ),
@@ -301,7 +323,11 @@ class AdminDashboardPage extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Container(width: 5, height: 5, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            Container(
+                width: 5,
+                height: 5,
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle)),
             const SizedBox(width: 4),
             Text(
               label,
@@ -341,9 +367,9 @@ class AdminDashboardPage extends ConsumerWidget {
     final initials = name.isNotEmpty
         ? name.trim().split(' ').map((e) => e[0]).take(2).join()
         : 'IK';
-    final outlet = rec.outlet ?? 'Malioboro';
+    final outlet = rec.outlet ?? 'Outlet belum tercatat';
     final timeStr = rec.masuk ?? '--:--';
-    final isLate = rec.isLate ?? false;
+    final isLate = rec.isLate;
 
     final Color tagBg;
     final Color tagColor;
@@ -363,7 +389,8 @@ class AdminDashboardPage extends ConsumerWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => AdminAttendanceDetailPage(record: rec)),
+          MaterialPageRoute(
+              builder: (_) => AdminAttendanceDetailPage(record: rec)),
         );
       },
       child: Container(
@@ -448,11 +475,11 @@ class AdminDashboardPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 18),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.muted, size: 18),
           ],
         ),
       ),
     );
   }
 }
-

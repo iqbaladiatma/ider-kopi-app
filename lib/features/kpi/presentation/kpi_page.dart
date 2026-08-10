@@ -8,7 +8,6 @@ import '../../../core/utils/date_utils.dart';
 import '../data/kpi_model.dart';
 import '../providers/kpi_providers.dart';
 
-
 class KpiPage extends ConsumerStatefulWidget {
   const KpiPage({super.key});
 
@@ -52,9 +51,9 @@ class _KpiPageState extends ConsumerState<KpiPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/profile'),
         ),
-
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

@@ -7,6 +7,7 @@ import '../../features/admin/presentation/admin_dashboard_page.dart';
 import '../../features/admin/presentation/admin_profile_page.dart';
 import '../../features/admin/presentation/admin_users_page.dart';
 import '../../features/auth/presentation/login_page.dart';
+import '../../features/auth/presentation/change_password_page.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/attendance/presentation/attendance_options_page.dart';
@@ -27,25 +28,41 @@ import '../../shared/widgets/bottom_nav_bar.dart';
 
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(this._ref) {
-    debugPrint('DEBUG: _RouterNotifier init');
     _ref.read(authInitProvider);
-    _ref.listen(authStateProvider, (_, __) { debugPrint('DEBUG: authState changed'); notifyListeners(); });
-    _ref.listen(userRoleProvider, (_, __) { debugPrint('DEBUG: userRole changed'); notifyListeners(); });
+    _ref.listen(authStateProvider, (_, __) {
+      notifyListeners();
+    });
+    _ref.listen(userRoleProvider, (_, __) {
+      notifyListeners();
+    });
   }
 
   final Ref _ref;
 
   bool get isInitializing => _ref.read(authStateProvider) == AuthStatus.initial;
 
-  bool get isLoggedIn =>
-      _ref.read(authStateProvider) == AuthStatus.authenticated;
+  bool get isLoggedIn {
+    final status = _ref.read(authStateProvider);
+    return status == AuthStatus.authenticated ||
+        status == AuthStatus.passwordChangeRequired;
+  }
+
+  bool get mustChangePassword =>
+      _ref.read(authStateProvider) == AuthStatus.passwordChangeRequired;
 
   bool get isAdmin {
     final role = _ref.read(userRoleProvider).asData?.value;
-    return role?.toLowerCase() == 'admin';
+    return const {
+      'super_admin',
+      'hr_admin',
+      'manager',
+      'admin_kpi_kang_ider',
+    }.contains(role?.toLowerCase());
   }
-}
 
+  bool get isRoleLoading =>
+      isLoggedIn && _ref.read(userRoleProvider).asData?.value == null;
+}
 
 final _routerNotifierProvider = Provider<_RouterNotifier>((ref) {
   return _RouterNotifier(ref);
@@ -66,7 +83,8 @@ Page<dynamic> _buildTransitionPage({
           position: Tween<Offset>(
             begin: const Offset(0.04, 0),
             end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
           child: child,
         ),
       );
@@ -84,9 +102,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isSplashRoute = state.matchedLocation == '/splash';
       final isLoginRoute = state.matchedLocation == '/login';
+      final isChangePasswordRoute = state.matchedLocation == '/change-password';
       final isRootRoute = state.matchedLocation == '/';
-
-      debugPrint('DEBUG: redirect — location=${state.matchedLocation}, isInitializing=${notifier.isInitializing}, isLoggedIn=${notifier.isLoggedIn}');
 
       if (isRootRoute) return '/login';
 
@@ -95,11 +112,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (isSplashRoute) {
+        if (notifier.mustChangePassword) return '/change-password';
+        if (notifier.isLoggedIn && notifier.isRoleLoading) return null;
         return notifier.isLoggedIn
             ? (notifier.isAdmin ? '/admin' : '/home')
             : '/login';
       }
-
 
       final isLoggedIn = notifier.isLoggedIn;
       final isAdmin = notifier.isAdmin;
@@ -108,9 +126,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/attendance-options' ||
           state.matchedLocation.startsWith('/check') ||
           state.matchedLocation == '/history' ||
-          state.matchedLocation == '/profile';
+          state.matchedLocation == '/profile' ||
+          state.matchedLocation == '/settings' ||
+          state.matchedLocation.startsWith('/leave') ||
+          state.matchedLocation == '/kpi' ||
+          state.matchedLocation == '/recap' ||
+          state.matchedLocation == '/shift';
 
       if (!isLoggedIn && !isLoginRoute) return '/login';
+      if (notifier.mustChangePassword) {
+        return isChangePasswordRoute ? null : '/change-password';
+      }
+      if (isLoggedIn && notifier.isRoleLoading && !isSplashRoute) {
+        return '/splash';
+      }
+      if (isLoggedIn && isChangePasswordRoute) {
+        return isAdmin ? '/admin' : '/home';
+      }
       if (isLoggedIn && isLoginRoute) {
         return isAdmin ? '/admin' : '/home';
       }
@@ -128,7 +160,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildTransitionPage(
           context: context,
           state: state,
-          child: const LoginPage(),
+          child: LoginPage(
+            successMessage:
+                state.uri.queryParameters['passwordChanged'] == 'true'
+                    ? 'Kata sandi berhasil diubah. Silakan masuk kembali.'
+                    : null,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/change-password',
+        pageBuilder: (context, state) => _buildTransitionPage(
+          context: context,
+          state: state,
+          child: const ChangePasswordPage(),
         ),
       ),
       GoRoute(

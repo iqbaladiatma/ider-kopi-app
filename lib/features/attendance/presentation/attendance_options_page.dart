@@ -16,7 +16,8 @@ class AttendanceOptionsPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        title: const Text('Opsi Absensi', style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700)),
+        title: const Text('Opsi Absensi',
+            style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700)),
         backgroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -53,7 +54,8 @@ class AttendanceOptionsPage extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Center(
-          child: CircularProgressIndicator(color: AppColors.red, strokeWidth: 2),
+          child:
+              CircularProgressIndicator(color: AppColors.red, strokeWidth: 2),
         ),
       ),
       error: (_, __) => const SizedBox.shrink(),
@@ -88,9 +90,11 @@ class AttendanceOptionsPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              _buildStatusRow('Check In', record?.masuk ?? 'Belum', isCheckedIn),
+              _buildStatusRow(
+                  'Check In', record?.masuk ?? 'Belum', isCheckedIn),
               const Divider(height: 20, color: AppColors.line),
-              _buildStatusRow('Check Out', record?.keluar ?? 'Belum', isCheckedOut),
+              _buildStatusRow(
+                  'Check Out', record?.keluar ?? 'Belum', isCheckedOut),
             ],
           ),
         );
@@ -100,7 +104,9 @@ class AttendanceOptionsPage extends ConsumerWidget {
 
   Widget _buildStatusRow(String label, String value, bool isDone) {
     final color = isDone ? AppColors.green : AppColors.muted;
-    final icon = isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded;
+    final icon = isDone
+        ? Icons.check_circle_rounded
+        : Icons.radio_button_unchecked_rounded;
     final bgColor = isDone ? AppColors.greenBg : AppColors.surfaceAlt;
 
     return Row(
@@ -117,7 +123,11 @@ class AttendanceOptionsPage extends ConsumerWidget {
         const SizedBox(width: 12),
         Text(
           label,
-          style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+          style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink),
         ),
         const Spacer(),
         Text(
@@ -133,7 +143,8 @@ class AttendanceOptionsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOptions(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
+  Widget _buildOptions(
+      BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
     final record = todayAsync.asData?.value;
     final hasCheckedIn = record?.masuk != null;
     final hasCheckedOut = record?.keluar != null;
@@ -147,7 +158,8 @@ class AttendanceOptionsPage extends ConsumerWidget {
                 context,
                 iconData: Icons.login_rounded,
                 title: 'Absen Masuk',
-                subtitle: hasCheckedIn ? 'Sudah (${record!.masuk})' : 'Selfie + GPS',
+                subtitle:
+                    hasCheckedIn ? 'Sudah (${record!.masuk})' : 'Selfie + GPS',
                 onTap: () {
                   if (!hasCheckedIn) {
                     context.push('/check-in');
@@ -161,7 +173,9 @@ class AttendanceOptionsPage extends ConsumerWidget {
                 context,
                 iconData: Icons.directions_run_rounded,
                 title: 'Absen Pulang',
-                subtitle: hasCheckedOut ? 'Sudah (${record!.keluar})' : 'Selesai kerja',
+                subtitle: hasCheckedOut
+                    ? 'Sudah (${record!.keluar})'
+                    : 'Selesai kerja',
                 onTap: () {
                   if (hasCheckedIn && !hasCheckedOut) {
                     context.push('/check-out');

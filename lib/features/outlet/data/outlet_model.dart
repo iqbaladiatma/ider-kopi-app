@@ -3,7 +3,7 @@
 /// Setiap outlet punya koordinat GPS & radius geofencing sendiri.
 /// Dipakai untuk validasi check-in/check-out di v1.1.
 class Outlet {
-  final int id;
+  final String id;
   final String nama;
   final String? alamat;
   final double latitude;
@@ -21,6 +21,14 @@ class Outlet {
     this.isActive = true,
   });
 
+  bool get hasValidGeofence =>
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180 &&
+      radiusMeters > 0 &&
+      !(latitude == 0 && longitude == 0);
+
   /// Nama singkat untuk display (tanpa prefix "IderKopi - ").
   String get shortName {
     if (nama.startsWith('IderKopi - ')) {
@@ -31,15 +39,12 @@ class Outlet {
 
   factory Outlet.fromJson(Map<String, dynamic> json) {
     return Outlet(
-      id: json['id'] != null
-          ? int.tryParse(json['id'].toString()) ?? 0
-          : 0,
+      id: json['id']?.toString() ?? '',
       nama: json['nama']?.toString() ?? json['name']?.toString() ?? 'Outlet',
       alamat: json['alamat']?.toString() ?? json['address']?.toString(),
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
-      radiusMeters:
-          (json['radius_meters'] as num?)?.toDouble() ?? 100.0,
+      radiusMeters: (json['radius_meters'] as num?)?.toDouble() ?? 100.0,
       isActive: json['is_active'] == null
           ? true
           : json['is_active'] is bool
@@ -60,7 +65,8 @@ class Outlet {
       };
 
   @override
-  String toString() => 'Outlet($id, $nama, $latitude,$longitude, r=$radiusMeters)';
+  String toString() =>
+      'Outlet($id, $nama, $latitude,$longitude, r=$radiusMeters)';
 }
 
 /// Hasil perhitungan jarak user ke sebuah outlet.

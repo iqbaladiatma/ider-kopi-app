@@ -6,8 +6,6 @@ import '../../../core/config/app_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/config/app_config.dart';
 import '../providers/auth_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -49,14 +47,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     )..repeat(reverse: true);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: const Interval(0.0, 0.6, curve: Curves.easeOut)),
+      CurvedAnimation(
+          parent: _logoController,
+          curve: const Interval(0.0, 0.6, curve: Curves.easeOut)),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
 
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
       CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
     );
 
@@ -77,7 +78,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted && context.mounted) {
         final authState = ref.read(authStateProvider);
-        if (authState == AuthStatus.authenticated) {
+        if (authState == AuthStatus.passwordChangeRequired) {
+          context.go('/change-password');
+        } else if (authState == AuthStatus.authenticated) {
           final role = ref.read(userRoleProvider).asData?.value;
           context.go(role?.toLowerCase() == 'admin' ? '/admin' : '/home');
         } else {
@@ -86,7 +89,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       }
     });
   }
-
 
   @override
   void dispose() {
@@ -164,7 +166,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               height: 110,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.primary.withValues(alpha: 0.10),
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.10),
                               ),
                             ),
                             // Inner white circle
@@ -176,7 +179,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.30),
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.30),
                                     blurRadius: 28,
                                     offset: const Offset(0, 8),
                                     spreadRadius: -2,
@@ -224,7 +228,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           ),
                           const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 5),
                             decoration: BoxDecoration(
                               color: AppColors.primaryLighter,
                               borderRadius: BorderRadius.circular(20),
@@ -293,8 +298,10 @@ class _LoadingPulseState extends State<_LoadingPulse>
             final delay = index * 0.25;
             final raw = (_controller.value - delay) % 1.0;
             final t = raw < 0 ? raw + 1.0 : raw;
-            final scale = 0.5 + (1.0 - (t - 0.5).abs() * 2).clamp(0.0, 1.0) * 0.5;
-            final opacity = 0.35 + (1.0 - (t - 0.5).abs() * 2).clamp(0.0, 1.0) * 0.65;
+            final scale =
+                0.5 + (1.0 - (t - 0.5).abs() * 2).clamp(0.0, 1.0) * 0.5;
+            final opacity =
+                0.35 + (1.0 - (t - 0.5).abs() * 2).clamp(0.0, 1.0) * 0.65;
             return Transform.scale(
               scale: scale,
               child: Opacity(

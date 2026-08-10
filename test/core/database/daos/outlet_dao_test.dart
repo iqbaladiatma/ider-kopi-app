@@ -25,8 +25,9 @@ void main() {
   group('OutletDao', () {
     test('upsertAll inserts outlets', () async {
       await dao.upsertAll([
-        const Outlet(id: 1, nama: 'HQ', latitude: -7.7, longitude: 110.4),
-        const Outlet(id: 2, nama: 'Malioboro', latitude: -7.8, longitude: 110.3),
+        const Outlet(id: '1', nama: 'HQ', latitude: -7.7, longitude: 110.4),
+        const Outlet(
+            id: '2', nama: 'Malioboro', latitude: -7.8, longitude: 110.3),
       ]);
 
       final all = await dao.getAll();
@@ -35,12 +36,14 @@ void main() {
 
     test('upsertAll replaces existing (clear + insert)', () async {
       await dao.upsertAll([
-        const Outlet(id: 1, nama: 'HQ', latitude: -7.7, longitude: 110.4),
-        const Outlet(id: 2, nama: 'Malioboro', latitude: -7.8, longitude: 110.3),
+        const Outlet(id: '1', nama: 'HQ', latitude: -7.7, longitude: 110.4),
+        const Outlet(
+            id: '2', nama: 'Malioboro', latitude: -7.8, longitude: 110.3),
       ]);
       // Re-upsert with different set
       await dao.upsertAll([
-        const Outlet(id: 3, nama: 'Kotabaru', latitude: -7.79, longitude: 110.37),
+        const Outlet(
+            id: '3', nama: 'Kotabaru', latitude: -7.79, longitude: 110.37),
       ]);
 
       final all = await dao.getAll();
@@ -50,9 +53,10 @@ void main() {
 
     test('getAll returns only active outlets sorted by nama', () async {
       await dao.upsertAll([
-        const Outlet(id: 1, nama: 'Zeta', latitude: 0, longitude: 0, isActive: false),
-        const Outlet(id: 2, nama: 'Alpha', latitude: 0, longitude: 0),
-        const Outlet(id: 3, nama: 'Beta', latitude: 0, longitude: 0),
+        const Outlet(
+            id: '1', nama: 'Zeta', latitude: 0, longitude: 0, isActive: false),
+        const Outlet(id: '2', nama: 'Alpha', latitude: 0, longitude: 0),
+        const Outlet(id: '3', nama: 'Beta', latitude: 0, longitude: 0),
       ]);
 
       final all = await dao.getAll();
@@ -63,23 +67,28 @@ void main() {
 
     test('getById returns outlet by id', () async {
       await dao.upsertAll([
-        const Outlet(id: 5, nama: 'HQ', latitude: -7.7, longitude: 110.4, radiusMeters: 200),
+        const Outlet(
+            id: '5',
+            nama: 'HQ',
+            latitude: -7.7,
+            longitude: 110.4,
+            radiusMeters: 200),
       ]);
 
-      final outlet = await dao.getById(5);
+      final outlet = await dao.getById('5');
       expect(outlet, isNotNull);
       expect(outlet!.nama, 'HQ');
       expect(outlet.radiusMeters, 200);
     });
 
     test('getById returns null for non-existent id', () async {
-      final outlet = await dao.getById(999);
+      final outlet = await dao.getById('999');
       expect(outlet, isNull);
     });
 
     test('clear removes all outlets', () async {
       await dao.upsertAll([
-        const Outlet(id: 1, nama: 'HQ', latitude: 0, longitude: 0),
+        const Outlet(id: '1', nama: 'HQ', latitude: 0, longitude: 0),
       ]);
       await dao.clear();
       expect(await dao.getAll(), isEmpty);

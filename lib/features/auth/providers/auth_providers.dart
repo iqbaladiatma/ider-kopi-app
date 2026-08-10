@@ -1,10 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/auth_model.dart';
 import '../data/auth_repository.dart';
 
-enum AuthStatus { initial, authenticated, unauthenticated }
+enum AuthStatus {
+  initial,
+  authenticated,
+  passwordChangeRequired,
+  unauthenticated,
+}
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
@@ -15,32 +19,35 @@ final authStateProvider = StateProvider<AuthStatus>((ref) {
 });
 
 final authInitProvider = FutureProvider<AuthStatus>((ref) async {
-  debugPrint('DEBUG: authInitProvider start');
-  
-  // Web: langsung skip ke unauthenticated (storage belum reliable di web)
-  if (kIsWeb) {
-    debugPrint('DEBUG: authInitProvider web skip — unauthenticated');
-    ref.read(authStateProvider.notifier).state = AuthStatus.unauthenticated;
-    return AuthStatus.unauthenticated;
-  }
-  
   final repo = ref.read(authRepositoryProvider);
   try {
     final isLoggedIn = await repo.isLoggedIn().timeout(
       const Duration(seconds: 5),
       onTimeout: () {
-        debugPrint('DEBUG: authInitProvider timeout — assuming not logged in');
         return false;
       },
     );
-    debugPrint('DEBUG: authInitProvider isLoggedIn=$isLoggedIn');
-    final status =
-        isLoggedIn ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+    var status = AuthStatus.unauthenticated;
+    if (isLoggedIn) {
+      final storedMustChangePassword = await repo.getMustChangePassword();
+      if (storedMustChangePassword) {
+        status = AuthStatus.passwordChangeRequired;
+      } else {
+        try {
+          final user = await repo.getCurrentUser();
+          status = user.mustChangePassword
+              ? AuthStatus.passwordChangeRequired
+              : AuthStatus.authenticated;
+        } catch (_) {
+          status = await repo.isLoggedIn()
+              ? AuthStatus.authenticated
+              : AuthStatus.unauthenticated;
+        }
+      }
+    }
     ref.read(authStateProvider.notifier).state = status;
-    debugPrint('DEBUG: authInitProvider done, status=$status');
     return status;
   } catch (e) {
-    debugPrint('DEBUG: authInitProvider error: $e');
     ref.read(authStateProvider.notifier).state = AuthStatus.unauthenticated;
     return AuthStatus.unauthenticated;
   }
@@ -48,7 +55,10 @@ final authInitProvider = FutureProvider<AuthStatus>((ref) async {
 
 final currentUserProvider = FutureProvider<UserProfile?>((ref) async {
   final authState = ref.watch(authStateProvider);
-  if (authState != AuthStatus.authenticated) return null;
+  if (authState != AuthStatus.authenticated &&
+      authState != AuthStatus.passwordChangeRequired) {
+    return null;
+  }
 
   final repo = ref.read(authRepositoryProvider);
   try {
@@ -72,5 +82,10 @@ final userRoleProvider = FutureProvider<String?>((ref) async {
 
 final isAdminProvider = FutureProvider<bool>((ref) async {
   final role = await ref.watch(userRoleProvider.future);
-  return role?.toLowerCase() == 'admin';
+  return const {
+    'super_admin',
+    'hr_admin',
+    'manager',
+    'admin_kpi_kang_ider',
+  }.contains(role?.toLowerCase());
 });

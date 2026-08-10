@@ -29,7 +29,8 @@ class ImageUtils {
     final compressedBytes = img.encodeJpg(resized, quality: quality);
 
     final tempDir = await getTemporaryDirectory();
-    final outputPath = '${tempDir.path}/selfie_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final outputPath =
+        '${tempDir.path}/selfie_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final outputFile = File(outputPath);
     await outputFile.writeAsBytes(compressedBytes);
 

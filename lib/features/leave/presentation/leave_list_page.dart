@@ -7,7 +7,6 @@ import '../data/leave_model.dart';
 import '../providers/leave_providers.dart';
 import 'leave_form_page.dart';
 
-
 class LeaveListPage extends ConsumerWidget {
   const LeaveListPage({super.key});
 
@@ -25,9 +24,9 @@ class LeaveListPage extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/profile'),
         ),
-
       ),
       body: leavesAsync.when(
         data: (leaves) => leaves.isEmpty
@@ -38,7 +37,8 @@ class LeaveListPage extends ConsumerWidget {
                 itemBuilder: (_, i) => _LeaveCard(leave: leaves[i]),
               ),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.red, strokeWidth: 2),
+          child:
+              CircularProgressIndicator(color: AppColors.red, strokeWidth: 2),
         ),
         error: (e, _) => Center(
           child: Text('Gagal memuat data: $e',
@@ -55,7 +55,6 @@ class LeaveListPage extends ConsumerWidget {
         backgroundColor: AppColors.red,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
-
     );
   }
 
@@ -122,7 +121,8 @@ class _LeaveCard extends StatelessWidget {
                   color: _statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(leave.type.icon, style: const TextStyle(fontSize: 20)),
+                child:
+                    Text(leave.type.icon, style: const TextStyle(fontSize: 20)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -148,7 +148,8 @@ class _LeaveCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(100),
@@ -208,6 +209,5 @@ class _LeaveCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime d) =>
-      '${d.day}/${d.month}/${d.year}';
+  String _formatDate(DateTime d) => '${d.day}/${d.month}/${d.year}';
 }

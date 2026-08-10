@@ -19,8 +19,7 @@ final profileInfoProvider = FutureProvider<ProfileInfo?>((ref) async {
   );
 });
 
-final profileStatsProvider =
-    FutureProvider<AttendanceStats>((ref) async {
+final profileStatsProvider = FutureProvider<AttendanceStats>((ref) async {
   final now = DateTime.now();
   final params = (year: now.year, month: now.month);
   final stats = await ref.watch(monthlyStatsProvider(params).future);

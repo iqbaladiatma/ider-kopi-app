@@ -23,14 +23,14 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
     final initials = name.isNotEmpty
         ? name.trim().split(' ').map((e) => e[0]).take(2).join()
         : 'IK';
-    final outletName = record.outlet ?? 'Malioboro';
-    final empId = record.kangider ?? 'IDR-0012';
+    final outletName = record.outlet ?? 'Outlet belum tercatat';
+    final empId = record.kangider ?? 'ID tidak tersedia';
     final dateStr = AppDateUtils.formatFullDate(
       DateTime.tryParse(record.tanggalAbsensi) ?? DateTime.now(),
     );
 
     final isAbsent = record.masuk == null;
-    final isLate = record.isLate ?? false;
+    final isLate = record.isLate;
 
     final Color statusColor;
     final String statusLabel;
@@ -50,8 +50,9 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
       statusIcon = Icons.check_circle_rounded;
     }
 
-    final lat = record.latitude ?? -7.7928;
-    final lng = record.longitude ?? 110.3658;
+    final lat = record.latitude;
+    final lng = record.longitude;
+    final hasLocation = lat != null && lng != null;
 
     final outletsAsync = ref.watch(outletsProvider);
 
@@ -73,10 +74,11 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink),
-          onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : context.go('/admin/attendance'),
+          onPressed: () => Navigator.canPop(context)
+              ? Navigator.pop(context)
+              : context.go('/admin/attendance'),
         ),
       ),
-
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +89,8 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
               decoration: const BoxDecoration(
                 color: AppColors.ink,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(24)),
               ),
               child: Column(
                 children: [
@@ -141,11 +144,13 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                      border:
+                          Border.all(color: statusColor.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -198,7 +203,8 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.muted),
+                            const Icon(Icons.calendar_today_rounded,
+                                size: 16, color: AppColors.muted),
                             const SizedBox(width: 8),
                             Text(
                               dateStr,
@@ -241,7 +247,8 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            Container(width: 1, height: 32, color: AppColors.line),
+                            Container(
+                                width: 1, height: 32, color: AppColors.line),
                             Column(
                               children: [
                                 const Text(
@@ -304,7 +311,9 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.face_rounded, size: 48, color: Colors.white.withValues(alpha: 0.5)),
+                              Icon(Icons.face_rounded,
+                                  size: 48,
+                                  color: Colors.white.withValues(alpha: 0.5)),
                               const SizedBox(height: 8),
                               Text(
                                 'Foto Selfie ${record.masuk != null ? 'Terverifikasi' : 'Tidak Ada'}',
@@ -326,7 +335,8 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                               showDialog(
                                 context: context,
                                 builder: (_) => Dialog(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20)),
                                   child: Container(
                                     padding: const EdgeInsets.all(16),
                                     child: Column(
@@ -334,21 +344,28 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                                       children: [
                                         const Text(
                                           'Bukti Selfie Absensi',
-                                          style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700),
+                                          style: TextStyle(
+                                              fontFamily: 'Sora',
+                                              fontWeight: FontWeight.w700),
                                         ),
                                         const SizedBox(height: 16),
                                         Container(
                                           height: 240,
                                           decoration: BoxDecoration(
                                             color: AppColors.ink,
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
                                           ),
                                           alignment: Alignment.center,
-                                          child: const Icon(Icons.person_rounded, size: 80, color: Colors.white54),
+                                          child: const Icon(
+                                              Icons.person_rounded,
+                                              size: 80,
+                                              color: Colors.white54),
                                         ),
                                         const SizedBox(height: 16),
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
                                           child: const Text('Tutup'),
                                         ),
                                       ],
@@ -360,10 +377,13 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                             icon: const Icon(Icons.zoom_in_rounded, size: 16),
                             label: const Text('Lihat Foto Full'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black.withValues(alpha: 0.6),
+                              backgroundColor:
+                                  Colors.black.withValues(alpha: 0.6),
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(100)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
                             ),
                           ),
                         ),
@@ -397,11 +417,14 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.location_on_rounded, color: AppColors.red, size: 20),
+                            const Icon(Icons.location_on_rounded,
+                                color: AppColors.red, size: 20),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Koordinat: ${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}',
+                                hasLocation
+                                    ? 'Koordinat: ${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}'
+                                    : 'Koordinat tidak tersedia',
                                 style: const TextStyle(
                                   fontFamily: 'Space Mono',
                                   fontSize: 11,
@@ -414,7 +437,9 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Outlet Terverifikasi: $outletName (Dalam Radius Radius Safe Geofence)',
+                          record.outlet != null
+                              ? 'Outlet tercatat: $outletName'
+                              : 'Outlet belum tercatat pada log absensi ini',
                           style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
@@ -422,32 +447,42 @@ class AdminAttendanceDetailPage extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        outletsAsync.maybeWhen(
-                          data: (outlets) {
-                            final matchedOutlet = outlets.firstWhere(
-                              (o) => o.nama.toLowerCase().contains(outletName.toLowerCase()),
+                        if (hasLocation)
+                          outletsAsync.maybeWhen(
+                            data: (outlets) {
+                              Outlet? matchedOutlet;
+                              for (final outlet in outlets) {
+                                if ((record.outletId != null &&
+                                        outlet.id == record.outletId) ||
+                                    (record.outlet != null &&
+                                        outlet.nama.toLowerCase() ==
+                                            record.outlet!.toLowerCase())) {
+                                  matchedOutlet = outlet;
+                                  break;
+                                }
+                              }
 
-                              orElse: () => Outlet(
-                                id: 1,
-                                nama: outletName,
-                                alamat: 'Area Outlet $outletName',
-                                latitude: lat,
-                                longitude: lng,
-                                radiusMeters: 100,
-                                isActive: true,
-                              ),
-                            );
+                              if (matchedOutlet == null) {
+                                return const Text(
+                                  'Peta geofence tidak tersedia karena outlet belum terhubung.',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    color: AppColors.muted,
+                                  ),
+                                );
+                              }
 
-                            return OutletMapWidget(
-                              outlets: [matchedOutlet],
-                              userLatitude: lat,
-                              userLongitude: lng,
-                              selectedOutlet: matchedOutlet,
-                              height: 140,
-                            );
-                          },
-                          orElse: () => const SizedBox(height: 100),
-                        ),
+                              return OutletMapWidget(
+                                outlets: [matchedOutlet],
+                                userLatitude: lat,
+                                userLongitude: lng,
+                                selectedOutlet: matchedOutlet,
+                                height: 140,
+                              );
+                            },
+                            orElse: () => const SizedBox(height: 100),
+                          ),
                       ],
                     ),
                   ),

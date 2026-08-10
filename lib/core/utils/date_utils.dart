@@ -84,11 +84,13 @@ class AppDateUtils {
     return 'Selamat Malam';
   }
 
-  static bool isLate(String checkInTime, {int thresholdHour = 8, int thresholdMinute = 0}) {
+  static bool isLate(String checkInTime,
+      {int thresholdHour = 8, int thresholdMinute = 0}) {
     final parts = checkInTime.split(':');
     if (parts.length < 2) return false;
     final hour = int.tryParse(parts[0]) ?? 0;
     final minute = int.tryParse(parts[1]) ?? 0;
-    return hour > thresholdHour || (hour == thresholdHour && minute > thresholdMinute);
+    return hour > thresholdHour ||
+        (hour == thresholdHour && minute > thresholdMinute);
   }
 }

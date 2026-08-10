@@ -54,7 +54,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     ),
                     decoration: const BoxDecoration(
                       color: AppColors.red,
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+                      borderRadius:
+                          BorderRadius.vertical(bottom: Radius.circular(26)),
                     ),
                     child: const Text(
                       'Riwayat Absensi',
@@ -85,11 +86,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 child: historyAsync.when(
                   loading: () => const SizedBox(
                     height: 150,
-                    child: Center(child: CircularProgressIndicator(color: AppColors.red)),
+                    child: Center(
+                        child: CircularProgressIndicator(color: AppColors.red)),
                   ),
                   error: (e, _) => ErrorView(
                     message: 'Gagal memuat riwayat',
-                    onRetry: () => ref.invalidate(monthlyHistoryProvider(params)),
+                    onRetry: () =>
+                        ref.invalidate(monthlyHistoryProvider(params)),
                   ),
                   data: (records) {
                     if (records.isEmpty) {
@@ -98,13 +101,15 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                         child: EmptyView(
                           icon: Icons.receipt_long_rounded,
                           title: 'Belum ada riwayat absensi',
-                          subtitle: 'Mulai absen hari ini untuk melihat riwayat',
+                          subtitle:
+                              'Mulai absen hari ini untuk melihat riwayat',
                         ),
                       );
                     }
 
                     return Column(
-                      children: records.map((rec) => _buildRecordCard(rec)).toList(),
+                      children:
+                          records.map((rec) => _buildRecordCard(rec)).toList(),
                     );
                   },
                 ),
@@ -126,7 +131,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     historyAsync.whenData((records) {
       for (final r in records) {
         if (r.masuk != null) {
-          final isLate = r.isLate ?? false;
+          final isLate = r.isLate;
           if (isLate) {
             telat++;
           } else {
@@ -214,7 +219,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 
   Widget _buildRecordCard(AttendanceRecord record) {
-    final isLate = record.isLate ?? false;
+    final isLate = record.isLate;
     final isAbsent = record.masuk == null;
 
     final Color stripColor;
@@ -257,7 +262,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             // Date & Status
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,

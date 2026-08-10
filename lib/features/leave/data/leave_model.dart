@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 /// Jenis pengajuan izin.
 enum LeaveType {
   izin,
@@ -69,7 +71,7 @@ enum LeaveStatus {
 
 /// Model pengajuan izin/sakit/cuti.
 class LeaveRequest {
-  final int? id;
+  final String? id;
   final String userId;
   final LeaveType type;
   final DateTime startDate;
@@ -81,8 +83,9 @@ class LeaveRequest {
   final DateTime? approvedAt;
   final String? approverNote;
   final DateTime? createdAt;
+  final String clientRequestId;
 
-  const LeaveRequest({
+  LeaveRequest({
     this.id,
     required this.userId,
     required this.type,
@@ -95,7 +98,8 @@ class LeaveRequest {
     this.approvedAt,
     this.approverNote,
     this.createdAt,
-  });
+    String? clientRequestId,
+  }) : clientRequestId = clientRequestId ?? const Uuid().v4();
 
   /// Jumlah hari (inklusif start & end).
   int get days {
@@ -106,7 +110,7 @@ class LeaveRequest {
   bool get canEdit => status == LeaveStatus.pending;
 
   LeaveRequest copyWith({
-    int? id,
+    String? id,
     String? userId,
     LeaveType? type,
     DateTime? startDate,
@@ -118,6 +122,7 @@ class LeaveRequest {
     DateTime? approvedAt,
     String? approverNote,
     DateTime? createdAt,
+    String? clientRequestId,
   }) {
     return LeaveRequest(
       id: id ?? this.id,
@@ -132,20 +137,24 @@ class LeaveRequest {
       approvedAt: approvedAt ?? this.approvedAt,
       approverNote: approverNote ?? this.approverNote,
       createdAt: createdAt ?? this.createdAt,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
     );
   }
 
   factory LeaveRequest.fromJson(Map<String, dynamic> json) {
     return LeaveRequest(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
-      userId: json['user_id']?.toString() ?? '',
-      type: LeaveType.fromString(json['type']?.toString()),
+      id: json['id']?.toString(),
+      userId: (json['user_id'] ?? json['employee_id'])?.toString() ?? '',
+      type: LeaveType.fromString(
+        (json['type'] ?? json['leave_type'])?.toString(),
+      ),
       startDate: DateTime.parse(json['start_date'].toString()),
       endDate: DateTime.parse(json['end_date'].toString()),
       reason: json['reason']?.toString(),
-      attachmentFileId: json['attachment_file_id']?.toString(),
+      attachmentFileId:
+          (json['attachment_file_id'] ?? json['attachment_url'])?.toString(),
       status: LeaveStatus.fromString(json['status']?.toString()),
-      approverId: json['approver_id']?.toString(),
+      approverId: (json['approver_id'] ?? json['approved_by'])?.toString(),
       approvedAt: json['approved_at'] != null
           ? DateTime.tryParse(json['approved_at'].toString())
           : null,
@@ -169,8 +178,19 @@ class LeaveRequest {
       if (approverId != null) 'approver_id': approverId,
       if (approvedAt != null) 'approved_at': approvedAt!.toIso8601String(),
       if (approverNote != null) 'approver_note': approverNote,
+      'client_request_id': clientRequestId,
     };
   }
+
+  Map<String, dynamic> toGoJson() => {
+        'employee_id': userId,
+        'leave_type': type.name,
+        'start_date': _toIsoDate(startDate),
+        'end_date': _toIsoDate(endDate),
+        if (reason != null) 'reason': reason,
+        if (attachmentFileId != null) 'attachment_url': attachmentFileId,
+        'client_request_id': clientRequestId,
+      };
 
   static String _toIsoDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';

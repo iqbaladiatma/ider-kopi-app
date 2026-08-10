@@ -1,0 +1,157 @@
+name: iderkopi-mobile
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: iderkopi-mobile-web
+    container_name: iderkopi-mobile-web
+    ports:
+      - "9100:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${MOBILE_AUTH_DB_NAME:?set MOBILE_AUTH_DB_NAME}
+      POSTGRES_USER: ${MOBILE_AUTH_DB_USER:?set MOBILE_AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${MOBILE_AUTH_DB_PASSWORD:?set MOBILE_AUTH_DB_PASSWORD}
+    volumes:
+      - iderkopi_mobile_auth_data:/var/lib/postgresql/data
+    networks:
+      - auth-internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  auth-migrations:
+    build:
+      context: ./auth-backend
+      dockerfile: Dockerfile
+    image: iderkopi-mobile-auth
+    command: ["migrate"]
+    environment:
+      MOBILE_AUTH_DATABASE_URL: postgres://${MOBILE_AUTH_DB_USER:?set MOBILE_AUTH_DB_USER}:${MOBILE_AUTH_DB_PASSWORD:?set MOBILE_AUTH_DB_PASSWORD}@auth-db:5432/${MOBILE_AUTH_DB_NAME:?set MOBILE_AUTH_DB_NAME}?sslmode=disable
+    networks:
+      - auth-internal
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    restart: "no"
+    read_only: true
+    cap_drop:
+      - ALL
+
+  auth-api:
+    build:
+      context: ./auth-backend
+      dockerfile: Dockerfile
+    image: iderkopi-mobile-auth
+    ports:
+      - "2027:2027"
+    environment:
+      MOBILE_AUTH_DATABASE_URL: postgres://${MOBILE_AUTH_DB_USER:?set MOBILE_AUTH_DB_USER}:${MOBILE_AUTH_DB_PASSWORD:?set MOBILE_AUTH_DB_PASSWORD}@auth-db:5432/${MOBILE_AUTH_DB_NAME:?set MOBILE_AUTH_DB_NAME}?sslmode=disable
+      MOBILE_AUTH_JWT_SECRET: ${MOBILE_AUTH_JWT_SECRET:?set MOBILE_AUTH_JWT_SECRET}
+      MOBILE_AUTH_ACCESS_TOKEN_TTL: ${MOBILE_AUTH_ACCESS_TOKEN_TTL:?set MOBILE_AUTH_ACCESS_TOKEN_TTL}
+      MOBILE_AUTH_REFRESH_TOKEN_TTL: ${MOBILE_AUTH_REFRESH_TOKEN_TTL:?set MOBILE_AUTH_REFRESH_TOKEN_TTL}
+      MOBILE_AUTH_BCRYPT_COST: ${MOBILE_AUTH_BCRYPT_COST:?set MOBILE_AUTH_BCRYPT_COST}
+      MOBILE_AUTH_ADMIN_TOKEN: ${MOBILE_AUTH_ADMIN_TOKEN:?set MOBILE_AUTH_ADMIN_TOKEN}
+      MOBILE_AUTH_CORS_ALLOW_ORIGINS: ${MOBILE_AUTH_CORS_ALLOW_ORIGINS:-http://localhost:9100,http://127.0.0.1:9100,http://100.90.46.31:9100}
+    networks:
+      - auth-internal
+      - auth-egress
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      auth-migrations:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:2027/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  auth-sync:
+    profiles: ["tools"]
+    image: iderkopi-mobile-auth
+    command: ["sync_employees"]
+    environment:
+      MOBILE_AUTH_DATABASE_URL: postgres://${MOBILE_AUTH_DB_USER:?set MOBILE_AUTH_DB_USER}:${MOBILE_AUTH_DB_PASSWORD:?set MOBILE_AUTH_DB_PASSWORD}@auth-db:5432/${MOBILE_AUTH_DB_NAME:?set MOBILE_AUTH_DB_NAME}?sslmode=disable
+      EMPLOYEE_SOURCE_URL: ${EMPLOYEE_SOURCE_URL:-http://host.docker.internal:2026/api/v1/integrations/mobile/employees}
+      EMPLOYEE_SOURCE_TOKEN: ${EMPLOYEE_SOURCE_TOKEN:?set EMPLOYEE_SOURCE_TOKEN}
+    networks:
+      - auth-internal
+      - auth-egress
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      auth-migrations:
+        condition: service_completed_successfully
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+  auth-provision:
+    profiles: ["tools"]
+    image: iderkopi-mobile-auth
+    command: ["provision_accounts"]
+    environment:
+      MOBILE_AUTH_DATABASE_URL: postgres://${MOBILE_AUTH_DB_USER:?set MOBILE_AUTH_DB_USER}:${MOBILE_AUTH_DB_PASSWORD:?set MOBILE_AUTH_DB_PASSWORD}@auth-db:5432/${MOBILE_AUTH_DB_NAME:?set MOBILE_AUTH_DB_NAME}?sslmode=disable
+      MOBILE_AUTH_BCRYPT_COST: ${MOBILE_AUTH_BCRYPT_COST:?set MOBILE_AUTH_BCRYPT_COST}
+    networks:
+      - auth-internal
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      auth-migrations:
+        condition: service_completed_successfully
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+  auth-password-reset:
+    profiles: ["tools"]
+    image: iderkopi-mobile-auth
+    command: ["reset_employee_passwords", "--apply"]
+    environment:
+      MOBILE_AUTH_DATABASE_URL: postgres://${MOBILE_AUTH_DB_USER:?set MOBILE_AUTH_DB_USER}:${MOBILE_AUTH_DB_PASSWORD:?set MOBILE_AUTH_DB_PASSWORD}@auth-db:5432/${MOBILE_AUTH_DB_NAME:?set MOBILE_AUTH_DB_NAME}?sslmode=disable
+      MOBILE_AUTH_BCRYPT_COST: ${MOBILE_AUTH_BCRYPT_COST:?set MOBILE_AUTH_BCRYPT_COST}
+      INITIAL_EMPLOYEE_PASSWORD: ${INITIAL_EMPLOYEE_PASSWORD:-}
+    networks:
+      - auth-internal
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      auth-migrations:
+        condition: service_completed_successfully
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  auth-internal:
+    internal: true
+  auth-egress:
+
+volumes:
+  iderkopi_mobile_auth_data:

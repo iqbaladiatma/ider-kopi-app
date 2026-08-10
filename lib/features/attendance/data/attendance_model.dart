@@ -1,7 +1,9 @@
+import 'package:uuid/uuid.dart';
+
 enum AttendanceStatus { tepatWaktu, terlambat, alpha, belumAbsen }
 
 class AttendanceRecord {
-  final int? id;
+  final String? id;
   final String tanggalAbsensi;
   final String? masuk;
   final String? pulang;
@@ -16,7 +18,7 @@ class AttendanceRecord {
   final String? selfiePulangFileId;
   final String? kangiderNama;
   final String? outlet;
-  final int? outletId;
+  final String? outletId;
 
   AttendanceRecord({
     this.id,
@@ -70,6 +72,9 @@ class AttendanceRecord {
   }
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) {
+    final employee = json['employee'] is Map
+        ? (json['employee'] as Map).cast<String, dynamic>()
+        : const <String, dynamic>{};
     // Extract Check In Time (formatted HH:mm:ss if ISO timestamp string)
     String? masukTime = json['masuk']?.toString();
     if (masukTime == null && json['check_in_time'] != null) {
@@ -77,7 +82,8 @@ class AttendanceRecord {
       if (rawStr.contains('T')) {
         final dt = DateTime.tryParse(rawStr)?.toLocal();
         if (dt != null) {
-          masukTime = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+          masukTime =
+              '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
         }
       } else {
         masukTime = rawStr;
@@ -91,35 +97,56 @@ class AttendanceRecord {
       if (rawStr.contains('T')) {
         final dt = DateTime.tryParse(rawStr)?.toLocal();
         if (dt != null) {
-          pulangTime = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+          pulangTime =
+              '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
         }
       } else {
         pulangTime = rawStr;
       }
     }
 
-    final rawDate = json['tanggal_absensi']?.toString() ?? json['attendance_date']?.toString() ?? '';
-    final formattedDate = rawDate.contains('T') ? rawDate.split('T').first : rawDate;
+    final rawDate = json['tanggal_absensi']?.toString() ??
+        json['attendance_date']?.toString() ??
+        '';
+    final formattedDate =
+        rawDate.contains('T') ? rawDate.split('T').first : rawDate;
 
     return AttendanceRecord(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
+      id: json['id']?.toString(),
       tanggalAbsensi: formattedDate,
       masuk: masukTime,
       pulang: pulangTime,
-      kangider: json['kangider']?.toString() ?? json['employee_id']?.toString(),
+      kangider: json['kangider']?.toString() ??
+          employee['employee_code']?.toString() ??
+          json['employee_id']?.toString(),
       keterangan: json['keterangan'] ?? json['status'],
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
-      selfieFileId: json['selfie_file_id'],
+      latitude: (json['latitude'] as num? ?? json['check_in_latitude'] as num?)
+          ?.toDouble(),
+      longitude:
+          (json['longitude'] as num? ?? json['check_in_longitude'] as num?)
+              ?.toDouble(),
+      selfieFileId:
+          (json['selfie_file_id'] ?? json['check_in_selfie_key'])?.toString(),
       checkInSource: json['check_in_source'] ?? json['source'],
-      latitudePulang: (json['latitude_pulang'] as num?)?.toDouble(),
-      longitudePulang: (json['longitude_pulang'] as num?)?.toDouble(),
-      selfiePulangFileId: json['selfie_pulang_file_id'],
-      kangiderNama: json['kangider_nama'] ?? json['employee_name'] ?? (json['kangider'] is Map ? json['kangider']['nama'] : null),
-      outlet: json['outlet']?.toString() ?? (json['kangider'] is Map ? json['kangider']['outlet']?.toString() : null),
-      outletId: json['outlet_id'] != null
-          ? int.tryParse(json['outlet_id'].toString())
-          : null,
+      latitudePulang: (json['latitude_pulang'] as num? ??
+              json['check_out_latitude'] as num?)
+          ?.toDouble(),
+      longitudePulang: (json['longitude_pulang'] as num? ??
+              json['check_out_longitude'] as num?)
+          ?.toDouble(),
+      selfiePulangFileId:
+          (json['selfie_pulang_file_id'] ?? json['check_out_selfie_key'])
+              ?.toString(),
+      kangiderNama: json['kangider_nama'] ??
+          json['employee_name'] ??
+          employee['full_name'] ??
+          (json['kangider'] is Map ? json['kangider']['nama'] : null),
+      outlet: json['outlet_name']?.toString() ??
+          json['outlet']?.toString() ??
+          (json['kangider'] is Map
+              ? json['kangider']['outlet']?.toString()
+              : null),
+      outletId: json['outlet_id']?.toString(),
     );
   }
 
@@ -150,7 +177,8 @@ class CheckInRequest {
   final double longitude;
   final String selfieFileId;
   final String? keterangan;
-  final int? outletId;
+  final String? outletId;
+  final String clientRequestId;
 
   CheckInRequest({
     required this.tanggalAbsensi,
@@ -161,7 +189,8 @@ class CheckInRequest {
     required this.selfieFileId,
     this.keterangan,
     this.outletId,
-  });
+    String? clientRequestId,
+  }) : clientRequestId = clientRequestId ?? const Uuid().v4();
 
   Map<String, dynamic> toJson() => {
         'tanggal_absensi': tanggalAbsensi,
@@ -173,6 +202,19 @@ class CheckInRequest {
         'check_in_source': 'app',
         'keterangan': keterangan,
         if (outletId != null) 'outlet_id': outletId,
+        'client_request_id': clientRequestId,
+      };
+
+  Map<String, dynamic> toGoJson() => {
+        'employee_id': kangider,
+        'attendance_date': tanggalAbsensi,
+        'check_in_time': '$tanggalAbsensi${'T'}$masuk',
+        'latitude': latitude,
+        'longitude': longitude,
+        'selfie_key': selfieFileId,
+        if (outletId != null) 'outlet_id': outletId,
+        if (keterangan != null) 'notes': keterangan,
+        'client_request_id': clientRequestId,
       };
 }
 
@@ -181,15 +223,19 @@ class CheckOutRequest {
   final double? latitudePulang;
   final double? longitudePulang;
   final String? selfiePulangFileId;
+  final String? outletId;
   final String? keterangan;
+  final String clientRequestId;
 
   CheckOutRequest({
     required this.pulang,
     this.latitudePulang,
     this.longitudePulang,
     this.selfiePulangFileId,
+    this.outletId,
     this.keterangan,
-  });
+    String? clientRequestId,
+  }) : clientRequestId = clientRequestId ?? const Uuid().v4();
 
   Map<String, dynamic> toJson() => {
         'pulang': pulang,
@@ -197,6 +243,18 @@ class CheckOutRequest {
         if (longitudePulang != null) 'longitude_pulang': longitudePulang,
         if (selfiePulangFileId != null)
           'selfie_pulang_file_id': selfiePulangFileId,
+        if (outletId != null) 'outlet_id': outletId,
         if (keterangan != null) 'keterangan': keterangan,
+        'client_request_id': clientRequestId,
+      };
+
+  Map<String, dynamic> toGoJson() => {
+        'check_out_time': pulang,
+        if (latitudePulang != null) 'latitude': latitudePulang,
+        if (longitudePulang != null) 'longitude': longitudePulang,
+        if (selfiePulangFileId != null) 'selfie_key': selfiePulangFileId,
+        if (outletId != null) 'outlet_id': outletId,
+        if (keterangan != null) 'notes': keterangan,
+        'client_request_id': clientRequestId,
       };
 }

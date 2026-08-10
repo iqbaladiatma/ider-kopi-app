@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../data/admin_repository.dart';
 import '../data/admin_user_model.dart';
 import '../providers/admin_providers.dart';
 
@@ -25,36 +24,25 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _kangiderIdController;
-  
-  String _selectedOutlet = 'IderKopi - Malioboro';
-  String _selectedRole = 'Karyawan';
+
+  String? _selectedRoleId;
   bool _isSaving = false;
 
   bool get isEditing => widget.user != null;
 
-  final outletsList = [
-    'IderKopi - Malioboro',
-    'IderKopi - Kotabaru',
-    'IderKopi - Sudirman',
-    'IderKopi - Seturan',
-    'IderPoint',
-  ];
-
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController(text: widget.user?.firstName ?? '');
-    _lastNameController = TextEditingController(text: widget.user?.lastName ?? '');
+    _firstNameController =
+        TextEditingController(text: widget.user?.firstName ?? '');
+    _lastNameController =
+        TextEditingController(text: widget.user?.lastName ?? '');
     _emailController = TextEditingController(text: widget.user?.email ?? '');
     _passwordController = TextEditingController();
-    _kangiderIdController = TextEditingController(text: widget.user?.kangiderId ?? '');
+    _kangiderIdController =
+        TextEditingController(text: widget.user?.kangiderId ?? '');
 
-    if (widget.user?.outlet != null && widget.user!.outlet!.isNotEmpty) {
-      if (outletsList.contains(widget.user!.outlet)) {
-        _selectedOutlet = widget.user!.outlet!;
-      }
-    }
-    _selectedRole = widget.user?.roleName ?? 'Karyawan';
+    _selectedRoleId = widget.user?.roleId;
   }
 
   @override
@@ -74,16 +62,20 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
     final password = _passwordController.text;
     final kangiderId = _kangiderIdController.text.trim();
 
-    if (firstName.isEmpty) {
-      _showSnack('Nama depan tidak boleh kosong');
-      return;
-    }
     if (email.isEmpty) {
       _showSnack('Email tidak boleh kosong');
       return;
     }
     if (!isEditing && password.isEmpty) {
-      _showSnack('Password wajib diisi untuk karyawan baru');
+      _showSnack('Password wajib diisi untuk Admin baru');
+      return;
+    }
+    if (password.isNotEmpty && password.length < 8) {
+      _showSnack('Password minimal 8 karakter');
+      return;
+    }
+    if (_selectedRoleId == null) {
+      _showSnack('Pilih role Admin');
       return;
     }
 
@@ -98,8 +90,7 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
           'first_name': firstName,
           'last_name': lastName,
           'email': email,
-          'outlet': _selectedOutlet,
-          'role': {'name': _selectedRole},
+          'role_id': _selectedRoleId,
           if (kangiderId.isNotEmpty) 'kangider_id': kangiderId,
         };
         if (password.isNotEmpty) {
@@ -110,9 +101,9 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
           firstName: firstName,
           lastName: lastName,
           email: email,
-          outlet: _selectedOutlet,
-          roleName: _selectedRole,
-          kangiderId: kangiderId.isNotEmpty ? kangiderId : widget.user!.kangiderId,
+          roleId: _selectedRoleId,
+          kangiderId:
+              kangiderId.isNotEmpty ? kangiderId : widget.user!.kangiderId,
         );
       } else {
         await repo.createUser(CreateUserData(
@@ -121,8 +112,7 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
           firstName: firstName,
           lastName: lastName,
           kangiderNama: '$firstName $lastName'.trim(),
-          outlet: _selectedOutlet,
-          roleId: _selectedRole.toLowerCase() == 'admin' ? 'role-admin' : 'role-user',
+          roleId: _selectedRoleId!,
         ));
       }
 
@@ -130,7 +120,9 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
 
       if (mounted) {
         _showSnack(
-          isEditing ? 'Data karyawan berhasil diperbarui' : 'Karyawan baru berhasil ditambahkan',
+          isEditing
+              ? 'Akun Admin berhasil diperbarui'
+              : 'Admin baru berhasil ditambahkan',
           isError: false,
         );
         if (Navigator.canPop(context)) {
@@ -157,6 +149,9 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final roles = (ref.watch(rolesProvider).asData?.value ?? const [])
+        .where((role) => role['name']?.toString() != 'employee')
+        .toList();
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
@@ -165,22 +160,27 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(
-          isEditing ? 'Edit Data Karyawan' : 'Tambah Karyawan Baru',
-          style: const TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.ink),
+          isEditing ? 'Edit Akun Admin' : 'Tambah Admin Baru',
+          style: const TextStyle(
+              fontFamily: 'Sora',
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink),
-          onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : context.go('/admin/users'),
+          onPressed: () => Navigator.canPop(context)
+              ? Navigator.pop(context)
+              : context.go('/admin/users'),
         ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'INFORMASI PROFIL KARYAWAN',
+              'INFORMASI AKUN ADMIN',
               style: TextStyle(
                 fontFamily: 'Space Mono',
                 fontSize: 10,
@@ -190,7 +190,6 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
               ),
             ),
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
@@ -198,7 +197,8 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
                     controller: _firstNameController,
                     decoration: InputDecoration(
                       labelText: 'Nama Depan',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),
@@ -208,42 +208,41 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
                     controller: _lastNameController,
                     decoration: InputDecoration(
                       labelText: 'Nama Belakang',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 14),
-
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Email Akun / Username',
                 hintText: 'karyawan@iderkopi.id',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.email_outlined, color: AppColors.muted),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon:
+                    const Icon(Icons.email_outlined, color: AppColors.muted),
               ),
             ),
-
             const SizedBox(height: 14),
-
             TextField(
               controller: _kangiderIdController,
               decoration: InputDecoration(
                 labelText: 'NIP / KangIder ID',
                 hintText: 'IDR-0025',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.muted),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon:
+                    const Icon(Icons.badge_outlined, color: AppColors.muted),
               ),
             ),
-
             const SizedBox(height: 24),
-
             const Text(
-              'PENUGASAN OUTLET & JABATAN',
+              'PERAN ADMIN',
               style: TextStyle(
                 fontFamily: 'Space Mono',
                 fontSize: 10,
@@ -253,40 +252,29 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
               ),
             ),
             const SizedBox(height: 12),
-
             DropdownButtonFormField<String>(
-              value: _selectedOutlet,
-              decoration: InputDecoration(
-                labelText: 'Penugasan Outlet',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.storefront_rounded, color: AppColors.muted),
-              ),
-              items: outletsList.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedOutlet = val);
-              },
-            ),
-
-            const SizedBox(height: 14),
-
-            DropdownButtonFormField<String>(
-              value: _selectedRole,
+              initialValue:
+                  roles.any((role) => role['id']?.toString() == _selectedRoleId)
+                      ? _selectedRoleId
+                      : null,
               decoration: InputDecoration(
                 labelText: 'Peran / Role',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.muted),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.admin_panel_settings_outlined,
+                    color: AppColors.muted),
               ),
-              items: const [
-                DropdownMenuItem(value: 'Karyawan', child: Text('Karyawan / Barista')),
-                DropdownMenuItem(value: 'Admin', child: Text('Admin Manager')),
-              ],
+              items: roles
+                  .map((role) => DropdownMenuItem<String>(
+                        value: role['id']?.toString(),
+                        child: Text(role['name']?.toString() ?? 'Admin'),
+                      ))
+                  .toList(),
               onChanged: (val) {
-                if (val != null) setState(() => _selectedRole = val);
+                if (val != null) setState(() => _selectedRoleId = val);
               },
             ),
-
             const SizedBox(height: 24),
-
             const Text(
               'KREDENSIAL KEAMANAN AKUN',
               style: TextStyle(
@@ -298,20 +286,22 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
               ),
             ),
             const SizedBox(height: 12),
-
             TextField(
               controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: isEditing ? 'Password Baru (Opsional)' : 'Password Akun',
-                hintText: isEditing ? 'Biarkan kosong jika tidak diubah' : 'iderkopiku123',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.muted),
+                labelText:
+                    isEditing ? 'Password Baru (Opsional)' : 'Password Akun',
+                hintText: isEditing
+                    ? 'Biarkan kosong jika tidak diubah'
+                    : 'Minimal 8 karakter',
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.lock_outline_rounded,
+                    color: AppColors.muted),
               ),
             ),
-
             const SizedBox(height: 32),
-
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -319,12 +309,14 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
                 onPressed: _isSaving ? null : _handleSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.red,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100)),
                 ),
                 child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    ? const CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2)
                     : Text(
-                        isEditing ? 'Simpan Perubahan Data' : 'Tambah Karyawan',
+                        isEditing ? 'Simpan Perubahan' : 'Tambah Admin',
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 14,

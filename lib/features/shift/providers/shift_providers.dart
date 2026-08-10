@@ -16,7 +16,8 @@ final shiftsProvider = FutureProvider<List<Shift>>((ref) async {
 
 /// Jadwal shift user login untuk bulan tertentu.
 final myShiftsProvider =
-    FutureProvider.family<List<UserShift>, ({int year, int month})>((ref, params) async {
+    FutureProvider.family<List<UserShift>, ({int year, int month})>(
+        (ref, params) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null) return [];
 

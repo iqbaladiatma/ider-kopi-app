@@ -42,7 +42,8 @@ class AttendanceDao {
   }
 
   /// Ambil record hari ini untuk kangider tertentu.
-  Future<AttendanceRecord?> getToday(String kangiderId, String todayDate) async {
+  Future<AttendanceRecord?> getToday(
+      String kangiderId, String todayDate) async {
     final db = await _database;
     final rows = await db.query(
       _table,
@@ -129,7 +130,7 @@ class AttendanceDao {
 
   AttendanceRecord _fromRow(Map<String, dynamic> row) {
     return AttendanceRecord(
-      id: row['id'] != null ? (row['id'] as num).toInt() : null,
+      id: row['id']?.toString(),
       tanggalAbsensi: row['tanggal_absensi']?.toString() ?? '',
       masuk: row['masuk']?.toString(),
       pulang: row['pulang']?.toString(),
@@ -144,9 +145,7 @@ class AttendanceDao {
       selfiePulangFileId: row['selfie_pulang_file_id']?.toString(),
       kangiderNama: row['kangider_nama']?.toString(),
       outlet: row['outlet']?.toString(),
-      outletId: row['outlet_id'] != null
-          ? int.tryParse(row['outlet_id'].toString())
-          : null,
+      outletId: row['outlet_id']?.toString(),
     );
   }
 }

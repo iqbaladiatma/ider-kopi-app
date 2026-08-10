@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite/sqflite.dart';
 
 /// Helper untuk testing DAO dengan in-memory SQLite via sqflite_common_ffi.
 ///
@@ -10,6 +11,7 @@ class TestDatabaseHelper {
   TestDatabaseHelper._();
 
   static bool _initialized = false;
+  static int _databaseSequence = 0;
 
   /// Init FFI — wajib dipanggil di setUpAll sekali.
   static void initFfi() {
@@ -24,8 +26,12 @@ class TestDatabaseHelper {
     initFfi();
     // :memory: tidak bisa dipakai langsung dengan path_provider, jadi
     // pakai file temp yang akan dihapus otomatis oleh OS.
+    final sequence = _databaseSequence++;
     final db = await openDatabase(
-      p.join(p.current, 'test_cache_${DateTime.now().millisecondsSinceEpoch}.db'),
+      p.join(
+        Directory.systemTemp.path,
+        'iderkopi_test_${DateTime.now().microsecondsSinceEpoch}_$sequence.db',
+      ),
       version: 1,
       onCreate: _onCreate,
     );
@@ -35,7 +41,7 @@ class TestDatabaseHelper {
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE attendance_cache (
-        id INTEGER PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         tanggal_absensi TEXT NOT NULL,
         masuk TEXT,
         pulang TEXT,
@@ -50,7 +56,7 @@ class TestDatabaseHelper {
         selfie_pulang_file_id TEXT,
         kangider_nama TEXT,
         outlet TEXT,
-        outlet_id INTEGER,
+        outlet_id TEXT,
         cached_at INTEGER NOT NULL
       )
     ''');
@@ -60,7 +66,7 @@ class TestDatabaseHelper {
 
     await db.execute('''
       CREATE TABLE outlet_cache (
-        id INTEGER PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         nama TEXT NOT NULL,
         alamat TEXT,
         latitude REAL NOT NULL,
@@ -75,7 +81,7 @@ class TestDatabaseHelper {
       CREATE TABLE pending_sync (
         local_id INTEGER PRIMARY KEY AUTOINCREMENT,
         operation TEXT NOT NULL,
-        record_id INTEGER,
+        record_id TEXT,
         payload TEXT NOT NULL,
         selfie_path TEXT,
         status TEXT NOT NULL DEFAULT 'pending',

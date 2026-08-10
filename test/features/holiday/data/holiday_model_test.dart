@@ -11,7 +11,7 @@ void main() {
         'is_nasional': true,
       };
       final h = Holiday.fromJson(json);
-      expect(h.id, 1);
+      expect(h.id, '1');
       expect(h.tanggal, DateTime(2026, 8, 17));
       expect(h.nama, 'Hari Kemerdekaan RI');
       expect(h.isNasional, isTrue);
@@ -24,7 +24,7 @@ void main() {
         'nama': 'Tahun Baru',
         'is_nasional': 'true',
       });
-      expect(h.id, 42);
+      expect(h.id, '42');
       expect(h.isNasional, isTrue);
     });
 
@@ -59,13 +59,13 @@ void main() {
 
     test('toJson round-trips correctly', () {
       final h = Holiday(
-        id: 5,
+        id: '5',
         tanggal: DateTime(2026, 12, 25),
         nama: 'Natal',
         isNasional: false,
       );
       final json = h.toJson();
-      expect(json['id'], 5);
+      expect(json['id'], '5');
       expect(json['tanggal'], '2026-12-25');
       expect(json['nama'], 'Natal');
       expect(json['is_nasional'], isFalse);

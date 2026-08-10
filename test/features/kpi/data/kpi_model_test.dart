@@ -28,8 +28,8 @@ void main() {
 
     test('calculateScore with late & leave', () {
       final score = KpiSummary.calculateScore(
-        attendanceRate: 90,    // 20/22 hadir
-        lateRate: 15,          // 3/20 terlambat
+        attendanceRate: 90, // 20/22 hadir
+        lateRate: 15, // 3/20 terlambat
         totalWorkingDays: 22,
         leaveDays: 2,
       );
@@ -66,7 +66,7 @@ void main() {
         'grade': 'B',
       };
       final kpi = KpiSummary.fromJson(json);
-      expect(kpi.id, 1);
+      expect(kpi.id, '1');
       expect(kpi.userId, 'usr-0012');
       expect(kpi.year, 2026);
       expect(kpi.month, 8);
@@ -100,7 +100,7 @@ void main() {
 
     test('toJson round-trips', () {
       const kpi = KpiSummary(
-        id: 5,
+        id: '5',
         userId: 'usr-0012',
         year: 2026,
         month: 8,
@@ -115,7 +115,7 @@ void main() {
         grade: 'B',
       );
       final json = kpi.toJson();
-      expect(json['id'], 5);
+      expect(json['id'], '5');
       expect(json['user_id'], 'usr-0012');
       expect(json['year'], 2026);
       expect(json['score'], 85.5);

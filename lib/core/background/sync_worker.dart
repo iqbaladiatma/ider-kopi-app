@@ -57,7 +57,7 @@ class SyncWorker {
 
   /// Init workmanager & register periodic task.
   static Future<void> init() async {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+    await Workmanager().initialize(callbackDispatcher);
 
     // Hanya register periodic task sekali (idempotent by tag)
     await Workmanager().registerPeriodicTask(

@@ -1,6 +1,6 @@
 /// Model hari libur (nasional atau perusahaan).
 class Holiday {
-  final int? id;
+  final String? id;
   final DateTime tanggal;
   final String nama;
   final bool isNasional;
@@ -21,10 +21,12 @@ class Holiday {
 
   factory Holiday.fromJson(Map<String, dynamic> json) {
     return Holiday(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
-      tanggal: DateTime.parse(json['tanggal'].toString()),
-      nama: json['nama'].toString(),
-      isNasional: _parseBool(json['is_nasional']),
+      id: json['id']?.toString(),
+      tanggal: DateTime.parse(
+        (json['tanggal'] ?? json['date']).toString(),
+      ),
+      nama: (json['nama'] ?? json['name']).toString(),
+      isNasional: _parseBool(json['is_nasional'] ?? json['is_national']),
     );
   }
 
@@ -48,5 +50,6 @@ class Holiday {
   }
 
   @override
-  String toString() => 'Holiday($nama, ${tanggal.toIso8601String().split('T')[0]})';
+  String toString() =>
+      'Holiday($nama, ${tanggal.toIso8601String().split('T')[0]})';
 }

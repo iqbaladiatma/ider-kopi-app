@@ -7,7 +7,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/brand_provider.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../../holiday/data/holiday_model.dart';
 import '../../holiday/providers/holiday_providers.dart';
 import '../../sync/presentation/widgets/pending_sync_badge.dart';
 import '../data/attendance_model.dart';
@@ -51,7 +50,8 @@ class HomePage extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: activeBrand.primaryColor,
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+                      borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(26)),
                     ),
                     child: Column(
                       children: [
@@ -86,7 +86,9 @@ class HomePage extends ConsumerWidget {
                                   loading: () => const SizedBox(
                                     width: 120,
                                     height: 24,
-                                    child: LinearProgressIndicator(color: Colors.white, backgroundColor: Colors.white24),
+                                    child: LinearProgressIndicator(
+                                        color: Colors.white,
+                                        backgroundColor: Colors.white24),
                                   ),
                                   error: (_, __) => const Text(
                                     'Karyawan',
@@ -107,14 +109,21 @@ class HomePage extends ConsumerWidget {
                               children: [
                                 userAsync.when(
                                   data: (user) {
-                                    final initials = user?.fullName.isNotEmpty == true
-                                        ? user!.fullName.trim().split(' ').map((e) => e[0]).take(2).join()
-                                        : 'IK';
+                                    final initials =
+                                        user?.fullName.isNotEmpty == true
+                                            ? user!.fullName
+                                                .trim()
+                                                .split(' ')
+                                                .map((e) => e[0])
+                                                .take(2)
+                                                .join()
+                                            : 'IK';
                                     return Container(
                                       width: 38,
                                       height: 38,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.16),
+                                        color: Colors.white
+                                            .withValues(alpha: 0.16),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       alignment: Alignment.center,
@@ -129,14 +138,17 @@ class HomePage extends ConsumerWidget {
                                       ),
                                     );
                                   },
-                                  loading: () => const SizedBox(width: 38, height: 38),
-                                  error: (_, __) => const SizedBox(width: 38, height: 38),
+                                  loading: () =>
+                                      const SizedBox(width: 38, height: 38),
+                                  error: (_, __) =>
+                                      const SizedBox(width: 38, height: 38),
                                 ),
                                 const SizedBox(height: 8),
 
                                 // Mode Badge Pill
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(100),
@@ -144,7 +156,8 @@ class HomePage extends ConsumerWidget {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(activeBrand.iconData, color: Colors.white, size: 12),
+                                      Icon(activeBrand.iconData,
+                                          color: Colors.white, size: 12),
                                       const SizedBox(width: 4),
                                       Text(
                                         activeBrand.badgeText,
@@ -293,7 +306,8 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRingCard(AsyncValue<AttendanceRecord?> todayAsync, AppBrand activeBrand) {
+  Widget _buildRingCard(
+      AsyncValue<AttendanceRecord?> todayAsync, AppBrand activeBrand) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
@@ -321,7 +335,9 @@ class HomePage extends ConsumerWidget {
                   painter: _RingPainter(
                     ringColor: activeBrand.primaryColor,
                     progress: todayAsync.when(
-                      data: (rec) => rec?.keluar != null ? 1.0 : (rec?.masuk != null ? 0.5 : 0.0),
+                      data: (rec) => rec?.keluar != null
+                          ? 1.0
+                          : (rec?.masuk != null ? 0.5 : 0.0),
                       loading: () => 0.0,
                       error: (_, __) => 0.0,
                     ),
@@ -329,7 +345,9 @@ class HomePage extends ConsumerWidget {
                 ),
                 Text(
                   todayAsync.when(
-                    data: (rec) => rec?.keluar != null ? '100%' : (rec?.masuk != null ? '50%' : '0%'),
+                    data: (rec) => rec?.keluar != null
+                        ? '100%'
+                        : (rec?.masuk != null ? '50%' : '0%'),
                     loading: () => '0%',
                     error: (_, __) => '0%',
                   ),
@@ -353,7 +371,9 @@ class HomePage extends ConsumerWidget {
                 final displayTime = rec?.masuk ?? '07:30';
                 final subText = rec?.keluar != null
                     ? 'Shift selesai hari ini'
-                    : (rec?.masuk != null ? 'Sudah absen masuk (${activeBrand.name})' : 'Belum absen hari ini');
+                    : (rec?.masuk != null
+                        ? 'Sudah absen masuk (${activeBrand.name})'
+                        : 'Belum absen hari ini');
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -382,16 +402,22 @@ class HomePage extends ConsumerWidget {
               },
               loading: () => const SizedBox(
                 height: 40,
-                child: Center(child: CircularProgressIndicator(color: AppColors.red, strokeWidth: 2)),
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.red, strokeWidth: 2)),
               ),
               error: (_, __) => const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '--:--',
-                    style: TextStyle(fontFamily: 'Sora', fontSize: 22, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                        fontFamily: 'Sora',
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700),
                   ),
-                  Text('Belum absen', style: TextStyle(fontSize: 11, color: AppColors.muted)),
+                  Text('Belum absen',
+                      style: TextStyle(fontSize: 11, color: AppColors.muted)),
                 ],
               ),
             ),
@@ -401,7 +427,8 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPunchButton(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync, AppBrand activeBrand) {
+  Widget _buildPunchButton(BuildContext context,
+      AsyncValue<AttendanceRecord?> todayAsync, AppBrand activeBrand) {
     final hasCheckedIn = todayAsync.asData?.value?.masuk != null;
     final hasCheckedOut = todayAsync.asData?.value?.keluar != null;
 
@@ -435,7 +462,8 @@ class HomePage extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.access_time_rounded, color: Colors.white, size: 18),
+            const Icon(Icons.access_time_rounded,
+                color: Colors.white, size: 18),
             const SizedBox(width: 9),
             Text(
               label,
@@ -452,7 +480,8 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFeatureActionCards(BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
+  Widget _buildFeatureActionCards(
+      BuildContext context, AsyncValue<AttendanceRecord?> todayAsync) {
     final rec = todayAsync.asData?.value;
     final hasCheckedIn = rec?.masuk != null;
 
@@ -476,7 +505,8 @@ class HomePage extends ConsumerWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.local_hospital_rounded, color: AppColors.ink, size: 20),
+                  Icon(Icons.local_hospital_rounded,
+                      color: AppColors.ink, size: 20),
                   SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +554,8 @@ class HomePage extends ConsumerWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.access_time_filled_rounded, color: AppColors.ink, size: 20),
+                  Icon(Icons.access_time_filled_rounded,
+                      color: AppColors.ink, size: 20),
                   SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,7 +612,9 @@ class HomePage extends ConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 child: Icon(
-                  isDoneIn ? Icons.check_rounded : Icons.radio_button_unchecked_rounded,
+                  isDoneIn
+                      ? Icons.check_rounded
+                      : Icons.radio_button_unchecked_rounded,
                   size: isDoneIn ? 18 : 14,
                   color: isDoneIn ? AppColors.green : AppColors.muted,
                 ),
@@ -602,7 +635,9 @@ class HomePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      isDoneIn ? '${rec!.masuk} WIB · Tepat waktu' : 'Estimasi 07:30 WIB',
+                      isDoneIn
+                          ? '${rec!.masuk} WIB · Tepat waktu'
+                          : 'Estimasi 07:30 WIB',
                       style: const TextStyle(
                         fontFamily: 'Space Mono',
                         fontSize: 11,
@@ -633,7 +668,9 @@ class HomePage extends ConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 child: Icon(
-                  isDoneOut ? Icons.check_rounded : Icons.radio_button_unchecked_rounded,
+                  isDoneOut
+                      ? Icons.check_rounded
+                      : Icons.radio_button_unchecked_rounded,
                   size: isDoneOut ? 18 : 14,
                   color: isDoneOut ? AppColors.green : AppColors.muted,
                 ),

@@ -12,7 +12,6 @@ import '../../settings/presentation/settings_page.dart';
 import '../../shift/presentation/shift_schedule_page.dart';
 import '../providers/profile_providers.dart';
 
-
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -29,15 +28,19 @@ class ProfilePage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Batal', style: TextStyle(color: AppColors.muted)),
+            child:
+                const Text('Batal', style: TextStyle(color: AppColors.muted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100)),
             ),
-            child: const Text('Keluar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: const Text('Keluar',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -78,24 +81,32 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color: activeBrand.primaryColor,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+                    borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(26)),
                   ),
                   child: profileAsync.when(
                     data: (profile) {
                       final name = profile?.fullName ?? 'Karyawan';
                       final initials = name.isNotEmpty
-                          ? name.trim().split(' ').map((e) => e[0]).take(2).join()
+                          ? name
+                              .trim()
+                              .split(' ')
+                              .map((e) => e[0])
+                              .take(2)
+                              .join()
                           : 'DA';
                       final outlet = profile?.outlet ?? 'Outlet Malioboro';
                       final role = profile?.kangiderNama ?? 'Barista';
-                      final empId = profile?.kangiderId ?? profile?.id ?? 'IDR-0012';
+                      final empId =
+                          profile?.kangiderId ?? profile?.id ?? 'IDR-0012';
 
                       return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Mode Pill Top
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(100),
@@ -104,7 +115,8 @@ class ProfilePage extends ConsumerWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(activeBrand.iconData, size: 12, color: Colors.white),
+                                Icon(activeBrand.iconData,
+                                    size: 12, color: Colors.white),
                                 const SizedBox(width: 5),
                                 Text(
                                   activeBrand.badgeText,
@@ -161,7 +173,8 @@ class ProfilePage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.16),
                               borderRadius: BorderRadius.circular(100),
@@ -181,11 +194,15 @@ class ProfilePage extends ConsumerWidget {
                     },
                     loading: () => const SizedBox(
                       height: 160,
-                      child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                      child: Center(
+                          child:
+                              CircularProgressIndicator(color: Colors.white)),
                     ),
                     error: (_, __) => const Column(
                       children: [
-                        Text('Profil Karyawan', style: TextStyle(color: Colors.white, fontSize: 18)),
+                        Text('Profil Karyawan',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18)),
                       ],
                     ),
                   ),
@@ -216,27 +233,38 @@ class ProfilePage extends ConsumerWidget {
                       showDialog(
                         context: context,
                         builder: (_) => AlertDialog(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
                           title: const Row(
                             children: [
-                              Icon(Icons.badge_rounded, color: AppColors.red, size: 22),
+                              Icon(Icons.badge_rounded,
+                                  color: AppColors.red, size: 22),
                               SizedBox(width: 8),
-                              Text('Data Diri Karyawan', style: TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700)),
+                              Text('Data Diri Karyawan',
+                                  style: TextStyle(
+                                      fontFamily: 'Sora',
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700)),
                             ],
                           ),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildInfoRow('Nama Lengkap', profile?.fullName ?? 'Dewi Anjani'),
+                              _buildInfoRow('Nama Lengkap',
+                                  profile?.fullName ?? 'Dewi Anjani'),
                               const SizedBox(height: 10),
-                              _buildInfoRow('NIP / ID Karyawan', profile?.kangiderId ?? 'IDR-0012'),
+                              _buildInfoRow('NIP / ID Karyawan',
+                                  profile?.kangiderId ?? 'IDR-0012'),
                               const SizedBox(height: 10),
-                              _buildInfoRow('Outlet Penugasan', profile?.outlet ?? 'IderKopi - Malioboro'),
+                              _buildInfoRow('Outlet Penugasan',
+                                  profile?.outlet ?? 'IderKopi - Malioboro'),
                               const SizedBox(height: 10),
-                              _buildInfoRow('Peran / Jabatan', profile?.kangiderNama ?? 'Barista'),
+                              _buildInfoRow('Peran / Jabatan',
+                                  profile?.kangiderNama ?? 'Barista'),
                               const SizedBox(height: 10),
-                              _buildInfoRow('Status Akun', 'Aktif (Terverifikasi)'),
+                              _buildInfoRow(
+                                  'Status Akun', 'Aktif (Terverifikasi)'),
                             ],
                           ),
                           actions: [
@@ -244,9 +272,13 @@ class ProfilePage extends ConsumerWidget {
                               onPressed: () => Navigator.pop(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.red,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(100)),
                               ),
-                              child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                              child: const Text('Tutup',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
                             ),
                           ],
                         ),
@@ -271,7 +303,8 @@ class ProfilePage extends ConsumerWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const LeaveListPage()),
+                        MaterialPageRoute(
+                            builder: (_) => const LeaveListPage()),
                       );
                     },
                   ),
@@ -304,11 +337,11 @@ class ProfilePage extends ConsumerWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ShiftSchedulePage()),
+                        MaterialPageRoute(
+                            builder: (_) => const ShiftSchedulePage()),
                       );
                     },
                   ),
-
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.lock_outline_rounded,
@@ -320,12 +353,18 @@ class ProfilePage extends ConsumerWidget {
                       showDialog(
                         context: context,
                         builder: (dCtx) => AlertDialog(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
                           title: const Row(
                             children: [
-                              Icon(Icons.lock_reset_rounded, color: AppColors.red, size: 22),
+                              Icon(Icons.lock_reset_rounded,
+                                  color: AppColors.red, size: 22),
                               SizedBox(width: 8),
-                              Text('Ubah Kata Sandi', style: TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700)),
+                              Text('Ubah Kata Sandi',
+                                  style: TextStyle(
+                                      fontFamily: 'Sora',
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700)),
                             ],
                           ),
                           content: Column(
@@ -336,7 +375,8 @@ class ProfilePage extends ConsumerWidget {
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   labelText: 'Kata Sandi Lama',
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -345,7 +385,8 @@ class ProfilePage extends ConsumerWidget {
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   labelText: 'Kata Sandi Baru',
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -354,41 +395,56 @@ class ProfilePage extends ConsumerWidget {
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   labelText: 'Konfirmasi Kata Sandi Baru',
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
                               ),
                             ],
                           ),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Batal')),
+                            TextButton(
+                                onPressed: () => Navigator.pop(dCtx),
+                                child: const Text('Batal')),
                             ElevatedButton(
                               onPressed: () {
                                 if (newPassCtrl.text.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Kata sandi baru tidak boleh kosong'), backgroundColor: AppColors.red),
+                                    const SnackBar(
+                                        content: Text(
+                                            'Kata sandi baru tidak boleh kosong'),
+                                        backgroundColor: AppColors.red),
                                   );
                                   return;
                                 }
                                 if (newPassCtrl.text != confirmPassCtrl.text) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Konfirmasi kata sandi tidak cocok'), backgroundColor: AppColors.red),
+                                    const SnackBar(
+                                        content: Text(
+                                            'Konfirmasi kata sandi tidak cocok'),
+                                        backgroundColor: AppColors.red),
                                   );
                                   return;
                                 }
                                 Navigator.pop(dCtx);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Kata sandi berhasil diperbarui'), backgroundColor: AppColors.green),
+                                  const SnackBar(
+                                      content: Text(
+                                          'Kata sandi berhasil diperbarui'),
+                                      backgroundColor: AppColors.green),
                                 );
                               },
-                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
-                              child: const Text('Simpan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.red),
+                              child: const Text('Simpan',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
                             ),
                           ],
                         ),
                       );
                     },
                   ),
-
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     iconData: Icons.logout_rounded,
@@ -399,7 +455,6 @@ class ProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
-
 
             const SizedBox(height: 32),
           ],
@@ -497,7 +552,11 @@ class ProfilePage extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(9),
               ),
               alignment: Alignment.center,
-              child: Icon(iconData, color: labelColor == AppColors.red ? AppColors.red : AppColors.ink, size: 17),
+              child: Icon(iconData,
+                  color: labelColor == AppColors.red
+                      ? AppColors.red
+                      : AppColors.ink,
+                  size: 17),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -553,4 +612,3 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 }
-

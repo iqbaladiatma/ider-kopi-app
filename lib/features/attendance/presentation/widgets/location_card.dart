@@ -71,21 +71,24 @@ class _LocationCardState extends State<LocationCard> {
                     ),
                     Text(
                       'GPS Real-time OpenStreetMap',
-                      style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                      style:
+                          TextStyle(fontSize: 11, color: AppColors.textMuted),
                     ),
                   ],
                 ),
               ),
               if (widget.latitude != null && widget.longitude != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.gps_fixed_rounded, size: 12, color: AppColors.primary),
+                      Icon(Icons.gps_fixed_rounded,
+                          size: 12, color: AppColors.primary),
                       SizedBox(width: 4),
                       Text(
                         'GPS Akurat',
@@ -194,11 +197,15 @@ class _LocationCardState extends State<LocationCard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: (widget.isWithinRadius! ? AppColors.success : AppColors.warning)
+              color: (widget.isWithinRadius!
+                      ? AppColors.success
+                      : AppColors.warning)
                   .withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: (widget.isWithinRadius! ? AppColors.success : AppColors.warning)
+                color: (widget.isWithinRadius!
+                        ? AppColors.success
+                        : AppColors.warning)
                     .withValues(alpha: 0.2),
               ),
             ),
@@ -241,7 +248,11 @@ class _LocationCardState extends State<LocationCard> {
     final n = math.pow(2, _zoom).toDouble();
     final tileX = ((lng + 180.0) / 360.0 * n).floor();
     final latRad = lat * math.pi / 180.0;
-    final tileY = ((1.0 - math.log(math.tan(latRad) + 1.0 / math.cos(latRad)) / math.pi) / 2.0 * n).floor();
+    final tileY =
+        ((1.0 - math.log(math.tan(latRad) + 1.0 / math.cos(latRad)) / math.pi) /
+                2.0 *
+                n)
+            .floor();
 
     return Stack(
       children: [
@@ -265,15 +276,17 @@ class _LocationCardState extends State<LocationCard> {
                     final dy = (index ~/ 3) - 1;
                     final x = tileX + dx;
                     final y = tileY + dy;
-                    final tileUrl = 'https://tile.openstreetmap.org/$_zoom/$x/$y.png';
+                    final tileUrl =
+                        'https://tile.openstreetmap.org/$_zoom/$x/$y.png';
 
                     return Image.network(
                       tileUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: AppColors.gray100,
-                        child: Center(
-                          child: Icon(Icons.map_outlined, color: AppColors.gray300),
+                        child: const Center(
+                          child: Icon(Icons.map_outlined,
+                              color: AppColors.gray300),
                         ),
                       ),
                     );
@@ -296,10 +309,14 @@ class _LocationCardState extends State<LocationCard> {
             height: 140,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: (widget.isWithinRadius == true ? AppColors.success : AppColors.warning)
+              color: (widget.isWithinRadius == true
+                      ? AppColors.success
+                      : AppColors.warning)
                   .withValues(alpha: 0.15),
               border: Border.all(
-                color: widget.isWithinRadius == true ? AppColors.success : AppColors.warning,
+                color: widget.isWithinRadius == true
+                    ? AppColors.success
+                    : AppColors.warning,
                 width: 2,
               ),
             ),
@@ -340,7 +357,10 @@ class _LocationCardState extends State<LocationCard> {
                 ),
                 child: const Text(
                   'Lokasi Anda',
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -378,7 +398,9 @@ class _LocationCardState extends State<LocationCard> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  widget.isWithinRadius == true ? 'Di Area Kantor' : 'Luar Area Kantor',
+                  widget.isWithinRadius == true
+                      ? 'Di Area Kantor'
+                      : 'Luar Area Kantor',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -407,10 +429,12 @@ class _LocationCardState extends State<LocationCard> {
                   height: 32,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(6)),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.add, size: 18, color: AppColors.textPrimary),
+                  child: const Icon(Icons.add,
+                      size: 18, color: AppColors.textPrimary),
                 ),
               ),
               InkWell(
@@ -422,10 +446,12 @@ class _LocationCardState extends State<LocationCard> {
                   height: 32,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(6)),
+                    borderRadius:
+                        const BorderRadius.vertical(bottom: Radius.circular(6)),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.remove, size: 18, color: AppColors.textPrimary),
+                  child: const Icon(Icons.remove,
+                      size: 18, color: AppColors.textPrimary),
                 ),
               ),
             ],

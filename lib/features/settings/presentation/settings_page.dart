@@ -23,15 +23,15 @@ class SettingsPage extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/profile'),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/profile'),
         ),
       ),
-
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           // Section: Reminder Absensi
-          _SectionHeader(
+          const _SectionHeader(
             icon: Icons.notifications_active_rounded,
             title: 'Reminder Absensi',
             subtitle: 'Atur pengingat check-in & check-out harian',
@@ -233,7 +233,7 @@ class _ReminderCard extends StatelessWidget {
               ),
               Switch.adaptive(
                 value: enabled,
-                activeColor: AppColors.red,
+                activeThumbColor: AppColors.red,
                 onChanged: onToggle,
               ),
             ],

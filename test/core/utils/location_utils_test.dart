@@ -64,18 +64,4 @@ void main() {
       expect(within, isTrue);
     });
   });
-
-  group('LocationUtils legacy (single office)', () {
-    test('distanceToOffice returns 0 at office location', () {
-      // AppConfig.officeLatitude = -6.123456, officeLongitude = 106.789012
-      final d = LocationUtils.distanceToOffice(-6.123456, 106.789012);
-      expect(d, closeTo(0, 1));
-    });
-
-    test('isWithinOfficeRadius returns true at office', () {
-      final within =
-          LocationUtils.isWithinOfficeRadius(-6.123456, 106.789012);
-      expect(within, isTrue);
-    });
-  });
 }

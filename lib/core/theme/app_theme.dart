@@ -100,7 +100,8 @@ class AppTheme {
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.8), width: 1),
+            borderSide: BorderSide(
+                color: AppColors.border.withValues(alpha: 0.8), width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
@@ -114,7 +115,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.error, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           labelStyle: const TextStyle(
             color: AppColors.textMuted,
             fontFamily: 'Inter',

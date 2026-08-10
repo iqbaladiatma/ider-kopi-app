@@ -26,8 +26,20 @@ final usersProvider = FutureProvider<List<AdminUser>>((ref) async {
 });
 
 final userCountProvider = FutureProvider<int>((ref) async {
-  final users = await ref.watch(usersProvider.future);
-  return users.where((u) => u.roleName?.toLowerCase() != 'admin').length;
+  final users = await ref.watch(employeeAccountsProvider.future);
+  return users.where((u) => u.employeeActive).length;
+});
+
+final employeeAccountsProvider =
+    FutureProvider<List<MobileEmployeeAccount>>((ref) async {
+  final repo = ref.read(adminRepositoryProvider);
+  final activeBrand = ref.watch(activeBrandProvider);
+  final accounts = await repo.getEmployeeAccounts();
+  if (activeBrand.outletFilter == null) return accounts;
+  final filter = activeBrand.outletFilter!.toLowerCase();
+  return accounts
+      .where((account) => account.brand.toLowerCase().contains(filter))
+      .toList();
 });
 
 final rolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
@@ -36,13 +48,15 @@ final rolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
 });
 
 final todayAttendanceCountProvider = FutureProvider<int>((ref) async {
-  final records = await ref.watch(adminAttendanceProvider((date: null, employee: null)).future);
+  final today = DateTime.now().toIso8601String().split('T').first;
+  final records = await ref.watch(
+    adminAttendanceProvider((date: today, employee: null)).future,
+  );
   return records.where((r) => r.masuk != null).length;
 });
 
-final adminAttendanceProvider =
-    FutureProvider.family<List<AttendanceRecord>, ({String? date, String? employee})>(
-        (ref, params) async {
+final adminAttendanceProvider = FutureProvider.family<List<AttendanceRecord>,
+    ({String? date, String? employee})>((ref, params) async {
   final repo = ref.read(adminRepositoryProvider);
   final activeBrand = ref.watch(activeBrandProvider);
 
@@ -61,4 +75,3 @@ final adminAttendanceProvider =
     return outletStr.contains(filter);
   }).toList();
 });
-

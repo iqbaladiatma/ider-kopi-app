@@ -1,43 +1,37 @@
-# IderKopi Absensi
+# IDER KOPI Mobile
 
-Aplikasi absensi mobile (Flutter) untuk karyawan IderKopi (Kang Ider).
-Terhubung langsung ke Directus API di `api.iderkopi.id`.
+Aplikasi Flutter untuk absensi dan layanan karyawan IDER KOPI. Aplikasi memakai satu backend custom Go/Fiber dan PostgreSQL.
 
-## Fitur MVP
+## Runtime
 
-1. **Login** — Directus email/password authentication
-2. **Check-In** — GPS location + foto selfie → submit ke Directus
-3. **Check-Out** — Update record absensi dengan waktu pulang
-4. **Riwayat Absensi** — List 30 hari terakhir dengan status & thumbnail selfie
-5. **Profile** — Info karyawan + statistik kehadiran bulan ini
+- Dashboard web: `http://100.90.46.31:9000`
+- Go API via Tailscale: `http://100.90.46.31:2026/api/v1`
+- Health: `http://100.90.46.31:2026/health`
+- Override build: `--dart-define=CUSTOM_API_BASE_URL=<url>/api/v1`
 
-## Tech Stack
+Jangan arahkan aplikasi mobile ke port `9000`; port tersebut hanya untuk dashboard Next.js.
 
-| Layer | Technology |
-|-------|-----------|
-| Mobile App | Flutter (Dart) |
-| Backend API | Directus REST API (`api.iderkopi.id`) |
-| State Management | Riverpod |
-| HTTP Client | Dio |
-| Navigation | go_router |
-| GPS | geolocator |
-| Maps | Mapbox (via flutter_map) |
-| Camera | camera + image |
+## Fitur
 
-## Setup
+- Login JWT dan refresh token.
+- Profil karyawan, shift, KPI, leave, holiday, dan rekap.
+- Check-in/check-out dengan outlet, GPS, geofence server, dan selfie.
+- SQLite cache, offline queue, idempotency, background sync, dan conflict handling.
+- Role barrier untuk employee dan admin.
 
-1. Install Flutter SDK >= 3.13.0
-2. Run `flutter pub get`
-3. Run `flutter run`
+## Development
+
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run --dart-define=CUSTOM_API_BASE_URL=http://100.90.46.31:2026/api/v1
+```
 
 ## Dokumentasi
 
-- **Dokumentasi Lengkap**: [`docs/DOKUMENTASI_LENGKAP.md`](docs/DOKUMENTASI_LENGKAP.md)
-- Lihat folder `docs/` untuk dokumentasi modular lainnya:
-  - `00-OVERVIEW.md` — gambaran umum project
-  - `01-ARCHITECTURE.md` — arsitektur sistem & API
-  - `02-DIRECTUS-SCHEMA.md` — schema & permissions Directus
-  - `03-FLUTTER-STRUCTURE.md` — struktur folder Flutter
-  - `04-UI-UX-DESIGN.md` — design system & mockup
-  - `05-DEPENDENCIES.md` — daftar dependencies
-  - `06-ROADMAP.md` — roadmap pengembangan
+- `docs/00-OVERVIEW.md`
+- `docs/01-ARCHITECTURE.md`
+- `docs/02-CUSTOM-GO-API.md`
+- `docs/03-FLUTTER-STRUCTURE.md`
+- `docs/DOKUMENTASI_LENGKAP.md`

@@ -19,7 +19,7 @@ class OutletPickerSheet extends ConsumerStatefulWidget {
 
   final double userLatitude;
   final double userLongitude;
-  final int? selectedOutletId;
+  final String? selectedOutletId;
 
   @override
   ConsumerState<OutletPickerSheet> createState() => _OutletPickerSheetState();
@@ -59,7 +59,8 @@ class _OutletPickerSheetState extends ConsumerState<OutletPickerSheet> {
               ),
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Row(
                   children: [
                     Container(
@@ -111,8 +112,7 @@ class _OutletPickerSheetState extends ConsumerState<OutletPickerSheet> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final d = distances[index];
-                      final isSelected =
-                          widget.selectedOutletId == d.outlet.id;
+                      final isSelected = widget.selectedOutletId == d.outlet.id;
                       return _OutletTile(
                         distance: d,
                         isSelected: isSelected,
@@ -158,8 +158,7 @@ class _OutletTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final inRadius = distance.isWithinRadius;
     final accent = inRadius ? AppColors.success : AppColors.warning;
-    final accentBg =
-        inRadius ? AppColors.successLight : AppColors.warningLight;
+    final accentBg = inRadius ? AppColors.successLight : AppColors.warningLight;
 
     return Material(
       color: Colors.transparent,
@@ -188,9 +187,7 @@ class _OutletTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(
-                  inRadius
-                      ? Icons.check_circle_rounded
-                      : Icons.store_outlined,
+                  inRadius ? Icons.check_circle_rounded : Icons.store_outlined,
                   color: accent,
                   size: 22,
                 ),
@@ -267,7 +264,7 @@ Future<Outlet?> showOutletPickerSheet(
   BuildContext context, {
   required double userLatitude,
   required double userLongitude,
-  int? selectedOutletId,
+  String? selectedOutletId,
 }) {
   return showModalBottomSheet<Outlet>(
     context: context,

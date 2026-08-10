@@ -26,7 +26,7 @@ class ProfileInfo {
 
   factory ProfileInfo.fromJson(Map<String, dynamic> json) {
     // Go backend: full_name, email, department.name, external_kangider_id
-    // Directus:   first_name, last_name, kangider_id, kangider_nama, outlet
+    // Supports custom Go API profile and employee fields.
     final dept = json['department'] is Map<String, dynamic>
         ? json['department'] as Map<String, dynamic>
         : null;
@@ -36,7 +36,8 @@ class ProfileInfo {
       email: json['email'] ?? '',
       firstName: json['first_name'] ?? json['full_name'],
       lastName: json['last_name'],
-      kangiderId: json['kangider_id']?.toString() ?? json['external_kangider_id']?.toString(),
+      kangiderId: json['kangider_id']?.toString() ??
+          json['external_kangider_id']?.toString(),
       kangiderNama: json['kangider_nama'] ?? json['full_name'],
       outlet: json['outlet'] ?? dept?['name'],
       phone: json['phone'],

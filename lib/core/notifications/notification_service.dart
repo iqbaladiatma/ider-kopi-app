@@ -79,11 +79,11 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(const AndroidNotificationChannel(
-        _channelId,
-        _channelName,
-        description: _channelDesc,
-        importance: Importance.high,
-      ));
+            _channelId,
+            _channelName,
+            description: _channelDesc,
+            importance: Importance.high,
+          ));
 
       _initialized = true;
     } catch (e) {
@@ -100,7 +100,8 @@ class NotificationService {
 
   void _onNotificationTap(NotificationResponse response) {
     if (kDebugMode) {
-      debugPrint('Notification tapped: id=${response.id}, payload=${response.payload}');
+      debugPrint(
+          'Notification tapped: id=${response.id}, payload=${response.payload}');
     }
     onTapCallback?.call(response);
   }

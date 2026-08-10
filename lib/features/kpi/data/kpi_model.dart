@@ -1,6 +1,6 @@
 /// Model KPI summary bulanan untuk karyawan (v2.0).
 class KpiSummary {
-  final int? id;
+  final String? id;
   final String userId;
   final int year;
   final int month;
@@ -68,9 +68,13 @@ class KpiSummary {
     // Leave compliance: jika cuti ≤ 10% working days → 100, else proportional
     final leaveCompliance = totalWorkingDays == 0
         ? 100.0
-        : ((totalWorkingDays - leaveDays) / totalWorkingDays * 100).clamp(0.0, 100.0).toDouble();
+        : ((totalWorkingDays - leaveDays) / totalWorkingDays * 100)
+            .clamp(0.0, 100.0)
+            .toDouble();
 
-    return (attendanceRate * 0.6) + ((100 - lateRate) * 0.3) + (leaveCompliance * 0.1);
+    return (attendanceRate * 0.6) +
+        ((100 - lateRate) * 0.3) +
+        (leaveCompliance * 0.1);
   }
 
   factory KpiSummary.fromJson(Map<String, dynamic> json) {
@@ -87,7 +91,7 @@ class KpiSummary {
         );
 
     return KpiSummary(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
+      id: json['id']?.toString(),
       userId: json['user_id']?.toString() ?? '',
       year: (json['year'] as num?)?.toInt() ?? DateTime.now().year,
       month: (json['month'] as num?)?.toInt() ?? DateTime.now().month,

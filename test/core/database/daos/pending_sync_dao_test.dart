@@ -125,7 +125,7 @@ void main() {
         createdAt: now,
         updatedAt: now,
       ));
-      final id2 = await dao.enqueue(PendingSyncEntry(
+      await dao.enqueue(PendingSyncEntry(
         operation: PendingOperation.checkIn,
         payload: {},
         createdAt: now,

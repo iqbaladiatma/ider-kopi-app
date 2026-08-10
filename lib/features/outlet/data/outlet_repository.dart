@@ -1,196 +1,97 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/config/api_provider.dart';
 import '../../../core/config/app_config.dart';
-import '../../../core/network/directus_client.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../core/utils/mock_data.dart';
 import 'outlet_model.dart';
 
-/// Repository untuk fetch & cache list outlet IderKopi.
-///
-/// Strategi: cache-first (SharedPreferences, TTL 24 jam) lalu refresh dari API.
-/// Saat offline atau API gagal, gunakan cache. Jika cache kosong, fallback mock.
 class OutletRepository {
-  OutletRepository._internal();
-  static final OutletRepository _instance = OutletRepository._internal();
+  OutletRepository._();
+  static final OutletRepository _instance = OutletRepository._();
   factory OutletRepository() => _instance;
 
-  final DirectusClient _client = DirectusClient.instance;
+  final ApiClient _client = ApiClient.instance;
+  final SecureStorage _storage = SecureStorage();
+  static const _cacheKey = 'cache_outlet_v2';
+  static const _cacheTimestampKey = 'cache_outlet_ts_v2';
+  static const _cacheTtl = Duration(hours: 24);
 
-  static const String _cacheKey = 'cache_outlet_v1';
-  static const String _cacheTimestampKey = 'cache_outlet_ts_v1';
-  static const Duration _cacheTtl = Duration(hours: 24);
-
-  /// Ambil semua outlet aktif.
-  /// Cache-first: jika cache masih fresh, langsung return.
-  /// Selalu coba refresh dari API di background (best-effort).
   Future<List<Outlet>> getOutlets({bool forceRefresh = false}) async {
-    // 1. Coba cache dulu jika tidak dipaksa refresh
-    if (!forceRefresh) {
-      final cached = await _loadFromCache();
-      if (cached != null && _isCacheFresh()) {
-        // Refresh di background (best-effort, tidak menunggu)
-        _refreshFromApi().ignore();
-        return cached;
-      }
-    }
-
-    // 2. Coba fetch dari API
-    try {
-      final outlets = await _refreshFromApi();
-      return outlets;
-    } catch (e) {
-      // 3. Fallback: cache (meskipun stale) atau mock
-      final cached = await _loadFromCache();
-      if (cached != null && cached.isNotEmpty) return cached;
-
-      if (kDebugMode) {
-        debugPrint('OutletRepository: API gagal, fallback ke mock. Error: $e');
-      }
-      return _mockOutlets();
-    }
-  }
-
-  /// Ambil outlet berdasarkan id.
-  Future<Outlet?> getOutletById(int id) async {
-    final outlets = await getOutlets();
-    try {
-      return outlets.firstWhere((o) => o.id == id);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Tambah outlet baru.
-  Future<void> addOutlet(Outlet outlet) async {
-    final outlets = await getOutlets();
-    outlets.add(outlet);
-    await _saveToCache(outlets);
-
-    if (!AppConfig.useMockAuth && AppConfig.apiProvider == ApiProvider.directus) {
-      try {
-        await _client.post('/items/outlet_ider', body: outlet.toJson());
-      } catch (_) {}
-    }
-  }
-
-  /// Update outlet yang sudah ada.
-  Future<void> updateOutlet(Outlet outlet) async {
-    final outlets = await getOutlets();
-    final index = outlets.indexWhere((o) => o.id == outlet.id);
-    if (index != -1) {
-      outlets[index] = outlet;
-    } else {
-      outlets.add(outlet);
-    }
-    await _saveToCache(outlets);
-
-    if (!AppConfig.useMockAuth && AppConfig.apiProvider == ApiProvider.directus) {
-      try {
-        await _client.patch('/items/outlet_ider/${outlet.id}', body: outlet.toJson());
-      } catch (_) {}
-    }
-  }
-
-
-
-  /// Fetch langsung dari API (Directus atau Go backend) atau mock jika useMockAuth.
-  /// Tidak membaca cache. Hasil disimpan ke cache.
-  Future<List<Outlet>> _refreshFromApi() async {
-    List<Map<String, dynamic>> raw;
-
     if (AppConfig.useMockAuth) {
-      raw = MockData.mockOutlets;
-    } else if (AppConfig.apiProvider == ApiProvider.directus) {
-      final response = await _client.get('/items/outlet_ider', query: {
-        'filter[is_active][_eq]': 'true',
-        'sort': 'nama',
-        'limit': '50',
-      });
-      final data = response.data['data'] as List;
-      raw = data.cast<Map<String, dynamic>>();
-    } else {
-      // Go backend: gunakan endpoint departments sebagai sumber "outlet"
-      // Field: id, name, description
-      final response = await _client.get('/api/v1/departments');
-      final data = response.data['data'] as List;
-      raw = (data.cast<Map<String, dynamic>>()).map((d) => {
-        'id': d['id'],
-        'nama': d['name'],
-        'alamat': d['description'],
-        // Go backend belum punya koordinat outlet — pakai default Surabaya
-        'latitude': -7.2575,
-        'longitude': 112.7521,
-        'radius_meters': 100.0,
-        'is_active': true,
-      }).toList();
+      return MockData.mockOutlets.map(Outlet.fromJson).toList();
     }
-
-    final outlets = raw.map((e) => Outlet.fromJson(e)).toList();
+    final realm = await _storage.getAuthRealm();
+    final isAdmin = realm == AuthRealm.admin;
+    final response = await _client.get(
+      isAdmin ? 'admin/outlets' : 'outlets',
+      query: isAdmin ? null : {'active': true},
+    );
+    final envelope = response.data as Map<String, dynamic>;
+    final raw = (envelope['data'] as List<dynamic>?) ?? const [];
+    final outlets = raw
+        .map((item) => Outlet.fromJson((item as Map).cast<String, dynamic>()))
+        .where((outlet) => outlet.hasValidGeofence)
+        .toList();
     await _saveToCache(outlets);
     return outlets;
   }
 
-  List<Outlet> _mockOutlets() {
-    return MockData.mockOutlets.map((e) => Outlet.fromJson(e)).toList();
+  Future<Outlet?> getOutletById(String id) async {
+    final outlets = await getOutlets();
+    for (final outlet in outlets) {
+      if (outlet.id == id) return outlet;
+    }
+    return null;
   }
 
-  // --- Cache helpers (SharedPreferences) ---
+  Future<void> addOutlet(Outlet outlet) async {
+    if (AppConfig.useMockAuth) return;
+    await _client.post('admin/outlets', body: outlet.toJson());
+    await getOutlets(forceRefresh: true);
+  }
 
-  Future<List<Outlet>?> _loadFromCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_cacheKey);
-      if (raw == null) return null;
-      final list = jsonDecode(raw) as List;
-      return list
-          .map((e) => Outlet.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return null;
-    }
+  Future<void> updateOutlet(Outlet outlet) async {
+    if (AppConfig.useMockAuth) return;
+    await _client.put('admin/outlets/${outlet.id}', body: outlet.toJson());
+    await getOutlets(forceRefresh: true);
+  }
+
+  Future<List<Outlet>?> loadCachedOutlets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_cacheKey);
+    if (raw == null) return null;
+    final list = jsonDecode(raw) as List<dynamic>;
+    return list
+        .map((item) => Outlet.fromJson((item as Map).cast<String, dynamic>()))
+        .toList();
   }
 
   Future<void> _saveToCache(List<Outlet> outlets) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = jsonEncode(outlets.map((o) => o.toJson()).toList());
-      await prefs.setString(_cacheKey, raw);
-      await prefs.setInt(_cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
-    } catch (_) {
-      // Cache failure is non-fatal
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _cacheKey,
+      jsonEncode(outlets.map((outlet) => outlet.toJson()).toList()),
+    );
+    await prefs.setInt(
+      _cacheTimestampKey,
+      DateTime.now().millisecondsSinceEpoch,
+    );
   }
 
-  bool _isCacheFresh() {
-    // Best-effort check; cache dianggap cukup segar untuk ditampilkan
-    // selama ada (TTL penuh dicek via isCacheStale() untuk UI banner).
-    // Refresh background tetap jalan untuk update data terbaru.
-    return true;
-  }
-
-  /// Cek apakah cache sudah kedaluwarsa (untuk UI banner offline).
   Future<bool> isCacheStale() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final ts = prefs.getInt(_cacheTimestampKey);
-      if (ts == null) return true;
-      final age = DateTime.now().millisecondsSinceEpoch - ts;
-      return age > _cacheTtl.inMilliseconds;
-    } catch (_) {
-      return true;
-    }
+    final prefs = await SharedPreferences.getInstance();
+    final timestamp = prefs.getInt(_cacheTimestampKey);
+    if (timestamp == null) return true;
+    return DateTime.now().millisecondsSinceEpoch - timestamp >
+        _cacheTtl.inMilliseconds;
   }
 
-  /// Bersihkan cache (dipakai saat logout atau force-refresh manual).
   Future<void> clearCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_cacheKey);
-      await prefs.remove(_cacheTimestampKey);
-    } catch (_) {}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_cacheKey);
+    await prefs.remove(_cacheTimestampKey);
   }
 }

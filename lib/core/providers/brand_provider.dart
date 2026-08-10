@@ -86,7 +86,7 @@ class AppBrandNotifier extends StateNotifier<AppBrand> {
   }
 }
 
-final activeBrandProvider = StateNotifierProvider<AppBrandNotifier, AppBrand>((ref) {
+final activeBrandProvider =
+    StateNotifierProvider<AppBrandNotifier, AppBrand>((ref) {
   return AppBrandNotifier();
 });
-

@@ -2,23 +2,30 @@ import '../../../core/utils/date_utils.dart';
 
 /// Status harian untuk recap.
 enum RecapStatus {
-  present,        // hadir tepat waktu
-  late,           // hadir terlambat
-  absent,         // alpha (tidak hadir tanpa izin)
-  leave,          // cuti/izin/sakit
-  holiday,        // hari libur
-  weekend,        // weekend (Sabtu/Minggu)
-  noData;         // tidak ada data (future date atau belum check-in)
+  present, // hadir tepat waktu
+  late, // hadir terlambat
+  absent, // alpha (tidak hadir tanpa izin)
+  leave, // cuti/izin/sakit
+  holiday, // hari libur
+  weekend, // weekend (Sabtu/Minggu)
+  noData; // tidak ada data (future date atau belum check-in)
 
   String get label {
     switch (this) {
-      case RecapStatus.present: return 'Tepat Waktu';
-      case RecapStatus.late: return 'Terlambat';
-      case RecapStatus.absent: return 'Alpha';
-      case RecapStatus.leave: return 'Cuti/Izin';
-      case RecapStatus.holiday: return 'Libur';
-      case RecapStatus.weekend: return 'Weekend';
-      case RecapStatus.noData: return 'Belum Absen';
+      case RecapStatus.present:
+        return 'Tepat Waktu';
+      case RecapStatus.late:
+        return 'Terlambat';
+      case RecapStatus.absent:
+        return 'Alpha';
+      case RecapStatus.leave:
+        return 'Cuti/Izin';
+      case RecapStatus.holiday:
+        return 'Libur';
+      case RecapStatus.weekend:
+        return 'Weekend';
+      case RecapStatus.noData:
+        return 'Belum Absen';
     }
   }
 }
@@ -148,8 +155,9 @@ class RecapBuilder {
     final weeklySummaries = <WeeklySummary>[];
     for (int weekStart = 1; weekStart <= 31; weekStart += 7) {
       final weekEnd = (weekStart + 6).clamp(1, 31);
-      final weekDays = sorted.where((d) =>
-          d.date.day >= weekStart && d.date.day <= weekEnd).toList();
+      final weekDays = sorted
+          .where((d) => d.date.day >= weekStart && d.date.day <= weekEnd)
+          .toList();
       if (weekDays.isEmpty) continue;
 
       final weekNum = (weekStart / 7).ceil() + 1;
@@ -157,9 +165,11 @@ class RecapBuilder {
         weekNumber: weekNum,
         startDate: DateTime(year, month, weekStart),
         endDate: DateTime(year, month, weekEnd),
-        presentDays: weekDays.where((d) => d.status == RecapStatus.present).length,
+        presentDays:
+            weekDays.where((d) => d.status == RecapStatus.present).length,
         lateDays: weekDays.where((d) => d.status == RecapStatus.late).length,
-        absentDays: weekDays.where((d) => d.status == RecapStatus.absent).length,
+        absentDays:
+            weekDays.where((d) => d.status == RecapStatus.absent).length,
       ));
     }
 

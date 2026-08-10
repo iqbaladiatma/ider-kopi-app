@@ -1,14 +1,16 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/brand_provider.dart';
+import '../data/auth_repository.dart';
 import '../providers/auth_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.successMessage});
+
+  final String? successMessage;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -25,18 +27,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isAdminMode = false;
   String? _errorMessage;
 
-  @override
-  void initState() {
-    super.initState();
-    _emailController.text = _isAdminMode ? 'ider@iderkopi.id' : 'dewi@iderkopi.id';
-    _passwordController.text = 'iderkopiku123';
-  }
-
   void _updateRoleMode(bool isAdmin) {
     setState(() {
       _isAdminMode = isAdmin;
-      _emailController.text = isAdmin ? 'ider@iderkopi.id' : 'dewi@iderkopi.id';
-      _passwordController.text = 'iderkopiku123';
+      _emailController.clear();
+      _passwordController.clear();
+      _errorMessage = null;
     });
   }
 
@@ -48,7 +44,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
-
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
@@ -66,22 +61,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       final repo = ref.read(authRepositoryProvider);
-      debugPrint('DEBUG: login() calling repo.login()');
-      await repo.login(email, password);
-      debugPrint('DEBUG: login() success, getting user');
-      final user = await repo.getCurrentUser();
-      debugPrint('DEBUG: getCurrentUser() success, isAdmin=${user.isAdmin}');
-      ref.read(authStateProvider.notifier).state = AuthStatus.authenticated;
+      final result = await repo.login(
+        email,
+        password,
+        isAdmin: _isAdminMode,
+      );
+      final user = result.user;
+      ref.read(authStateProvider.notifier).state = user.mustChangePassword
+          ? AuthStatus.passwordChangeRequired
+          : AuthStatus.authenticated;
       ref.invalidate(userRoleProvider);
 
       if (mounted) {
-        context.go(user.isAdmin ? '/admin' : '/home');
+        context.go(user.mustChangePassword
+            ? '/change-password'
+            : (user.isAdmin ? '/admin' : '/home'));
       }
-    } catch (e) {
-      debugPrint('DEBUG: login error: $e');
+    } on AuthLoginException catch (e) {
       setState(() {
-        _errorMessage = 'Email atau password salah. Coba lagi.\n${kDebugMode ? e.toString() : ''}';
+        _errorMessage = e.message;
       });
+    } catch (_) {
+      setState(() => _errorMessage =
+          'Login gagal karena kesalahan tidak terduga. Coba lagi.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -90,8 +92,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final activeBrand = ref.watch(activeBrandProvider);
-    final headerBgColor = _isAdminMode ? AppColors.ink : activeBrand.primaryColor;
-    final buttonBgColor = _isAdminMode ? AppColors.ink : activeBrand.primaryColor;
+    final headerBgColor =
+        _isAdminMode ? AppColors.ink : activeBrand.primaryColor;
+    final buttonBgColor =
+        _isAdminMode ? AppColors.ink : activeBrand.primaryColor;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -108,7 +112,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 padding: const EdgeInsets.fromLTRB(26, 54, 26, 44),
                 decoration: BoxDecoration(
                   color: headerBgColor,
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(26)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,14 +137,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               fontFamily: 'Sora',
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
-                              color: _isAdminMode ? AppColors.ink : activeBrand.primaryColor,
+                              color: _isAdminMode
+                                  ? AppColors.ink
+                                  : activeBrand.primaryColor,
                             ),
                           ),
                         ),
 
                         // Mode Indicator Badge Pill
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(100),
@@ -148,7 +156,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(activeBrand.iconData, color: Colors.white, size: 14),
+                              Icon(activeBrand.iconData,
+                                  color: Colors.white, size: 14),
                               const SizedBox(width: 5),
                               Text(
                                 activeBrand.badgeText,
@@ -177,7 +186,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _isAdminMode ? 'Portal Admin ${activeBrand.name}' : activeBrand.tagline,
+                      _isAdminMode
+                          ? 'Portal Admin ${activeBrand.name}'
+                          : activeBrand.tagline,
                       style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11.5,
@@ -197,7 +208,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
                   decoration: const BoxDecoration(
                     color: AppColors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,19 +236,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           children: [
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => ref.read(activeBrandProvider.notifier).setBrand(AppBrand.iderKopi),
+                                onTap: () => ref
+                                    .read(activeBrandProvider.notifier)
+                                    .setBrand(AppBrand.iderKopi),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: activeBrand == AppBrand.iderKopi ? AppColors.red : Colors.transparent,
+                                    color: activeBrand == AppBrand.iderKopi
+                                        ? AppColors.red
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(9),
                                   ),
                                   alignment: Alignment.center,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.coffee_rounded, size: 15, color: activeBrand == AppBrand.iderKopi ? Colors.white : AppColors.muted),
+                                      Icon(Icons.coffee_rounded,
+                                          size: 15,
+                                          color:
+                                              activeBrand == AppBrand.iderKopi
+                                                  ? Colors.white
+                                                  : AppColors.muted),
                                       const SizedBox(width: 6),
                                       Text(
                                         'Mode IderKopi',
@@ -244,7 +266,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           fontFamily: 'Inter',
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
-                                          color: activeBrand == AppBrand.iderKopi ? Colors.white : AppColors.muted,
+                                          color:
+                                              activeBrand == AppBrand.iderKopi
+                                                  ? Colors.white
+                                                  : AppColors.muted,
                                         ),
                                       ),
                                     ],
@@ -254,19 +279,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => ref.read(activeBrandProvider.notifier).setBrand(AppBrand.iderPoint),
+                                onTap: () => ref
+                                    .read(activeBrandProvider.notifier)
+                                    .setBrand(AppBrand.iderPoint),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: activeBrand == AppBrand.iderPoint ? AppBrand.iderPoint.primaryColor : Colors.transparent,
+                                    color: activeBrand == AppBrand.iderPoint
+                                        ? AppBrand.iderPoint.primaryColor
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(9),
                                   ),
                                   alignment: Alignment.center,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.place_rounded, size: 15, color: activeBrand == AppBrand.iderPoint ? Colors.white : AppColors.muted),
+                                      Icon(Icons.place_rounded,
+                                          size: 15,
+                                          color:
+                                              activeBrand == AppBrand.iderPoint
+                                                  ? Colors.white
+                                                  : AppColors.muted),
                                       const SizedBox(width: 6),
                                       Text(
                                         'Mode IderPoint',
@@ -274,7 +309,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           fontFamily: 'Inter',
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
-                                          color: activeBrand == AppBrand.iderPoint ? Colors.white : AppColors.muted,
+                                          color:
+                                              activeBrand == AppBrand.iderPoint
+                                                  ? Colors.white
+                                                  : AppColors.muted,
                                         ),
                                       ),
                                     ],
@@ -289,7 +327,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const SizedBox(height: 20),
 
                       Text(
-                        _isAdminMode ? 'Masuk sebagai pengelola' : 'Masuk ke akunmu',
+                        _isAdminMode
+                            ? 'Masuk sebagai pengelola'
+                            : 'Masuk ke akunmu',
                         style: const TextStyle(
                           fontFamily: 'Sora',
                           fontSize: 21,
@@ -319,14 +359,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                         child: Row(
                           children: [
-                             Expanded(
+                            Expanded(
                               child: GestureDetector(
                                 onTap: () => _updateRoleMode(false),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(vertical: 9),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 9),
                                   decoration: BoxDecoration(
-                                    color: !_isAdminMode ? AppColors.ink : Colors.transparent,
+                                    color: !_isAdminMode
+                                        ? AppColors.ink
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                   alignment: Alignment.center,
@@ -336,7 +379,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       fontFamily: 'Inter',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: !_isAdminMode ? Colors.white : AppColors.muted,
+                                      color: !_isAdminMode
+                                          ? Colors.white
+                                          : AppColors.muted,
                                     ),
                                   ),
                                 ),
@@ -346,11 +391,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               child: GestureDetector(
                                 onTap: () => _updateRoleMode(true),
                                 child: AnimatedContainer(
-
                                   duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(vertical: 9),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 9),
                                   decoration: BoxDecoration(
-                                    color: _isAdminMode ? AppColors.ink : Colors.transparent,
+                                    color: _isAdminMode
+                                        ? AppColors.ink
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                   alignment: Alignment.center,
@@ -360,7 +407,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       fontFamily: 'Inter',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: _isAdminMode ? Colors.white : AppColors.muted,
+                                      color: _isAdminMode
+                                          ? Colors.white
+                                          : AppColors.muted,
                                     ),
                                   ),
                                 ),
@@ -373,14 +422,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                       if (_errorMessage != null) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.redLight,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: AppColors.red, size: 18),
+                              const Icon(Icons.error_outline_rounded,
+                                  color: AppColors.red, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -389,6 +440,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     fontFamily: 'Inter',
                                     fontSize: 12,
                                     color: AppColors.red,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      if (widget.successMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle_outline_rounded,
+                                color: Colors.green.shade700,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  widget.successMessage!,
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    color: Colors.green.shade800,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -421,7 +507,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           color: AppColors.ink,
                         ),
                         decoration: InputDecoration(
-                          hintText: _isAdminMode ? 'ider@iderkopi.id' : 'dewi@iderkopi.id',
+                          hintText: _isAdminMode
+                              ? 'ider@iderkopi.id'
+                              : 'dewi@iderkopi.id',
                           hintStyle: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 14,
@@ -430,7 +518,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           filled: true,
                           fillColor: AppColors.surfaceAlt,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 13),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: AppColors.line),
@@ -441,7 +530,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: headerBgColor, width: 1.5),
+                            borderSide:
+                                BorderSide(color: headerBgColor, width: 1.5),
                           ),
                         ),
                       ),
@@ -477,14 +567,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           filled: true,
                           fillColor: AppColors.surfaceAlt,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 13),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                              _obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
                               color: AppColors.muted,
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -496,7 +590,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: headerBgColor, width: 1.5),
+                            borderSide:
+                                BorderSide(color: headerBgColor, width: 1.5),
                           ),
                         ),
                       ),
@@ -519,7 +614,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ? const SizedBox(
                                   width: 22,
                                   height: 22,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2.5),
                                 )
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -534,24 +630,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                                    const Icon(Icons.arrow_forward_rounded,
+                                        color: Colors.white, size: 18),
                                   ],
                                 ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-                      Center(
-                        child: Text(
-                          _isAdminMode
-                              ? 'Password default: iderkopiku123 (ider@iderkopi.id)'
-                              : 'Password default: iderkopiku123 (dewi@iderkopi.id)',
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 11,
-                            color: AppColors.muted,
-                            fontWeight: FontWeight.w600,
-                          ),
                         ),
                       ),
                     ],

@@ -1,0 +1,19 @@
+.git
+.dart_tool
+.idea
+.vscode
+graphify-out
+android
+ios
+linux
+macos
+windows
+test
+lib
+assets
+*.log
+
+# The Docker image packages the verified host build only.
+!build/
+!build/web/
+!build/web/**

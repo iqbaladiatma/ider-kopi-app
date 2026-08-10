@@ -32,7 +32,8 @@ class AttendanceSummaryCard extends StatelessWidget {
                   gradient: AppColors.primaryGradient,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.today_rounded, color: Colors.white, size: 18),
+                child: const Icon(Icons.today_rounded,
+                    color: Colors.white, size: 18),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -71,11 +72,13 @@ class AttendanceSummaryCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.notes_rounded, size: 16, color: AppColors.primary),
+                  const Icon(Icons.notes_rounded,
+                      size: 16, color: AppColors.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(

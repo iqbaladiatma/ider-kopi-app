@@ -43,7 +43,8 @@ Future<void> showOutletModeSheet(BuildContext context, WidgetRef ref) async {
                     color: AppColors.surfaceAlt,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.storefront_rounded, color: AppColors.ink, size: 20),
+                  child: const Icon(Icons.storefront_rounded,
+                      color: AppColors.ink, size: 20),
                 ),
                 const SizedBox(width: 12),
                 const Column(
@@ -96,12 +97,16 @@ Future<void> showOutletModeSheet(BuildContext context, WidgetRef ref) async {
                   },
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected ? brand.lightColor : AppColors.surfaceAlt,
+                      color:
+                          isSelected ? brand.lightColor : AppColors.surfaceAlt,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? brand.primaryColor : Colors.transparent,
+                        color: isSelected
+                            ? brand.primaryColor
+                            : Colors.transparent,
                         width: 1.5,
                       ),
                     ),
@@ -111,7 +116,8 @@ Future<void> showOutletModeSheet(BuildContext context, WidgetRef ref) async {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: isSelected ? brand.primaryColor : Colors.white,
+                            color:
+                                isSelected ? brand.primaryColor : Colors.white,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -131,7 +137,9 @@ Future<void> showOutletModeSheet(BuildContext context, WidgetRef ref) async {
                                   fontFamily: 'Inter',
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isSelected ? brand.primaryColor : AppColors.ink,
+                                  color: isSelected
+                                      ? brand.primaryColor
+                                      : AppColors.ink,
                                 ),
                               ),
                               const SizedBox(height: 1),
@@ -147,9 +155,11 @@ Future<void> showOutletModeSheet(BuildContext context, WidgetRef ref) async {
                           ),
                         ),
                         if (isSelected)
-                          Icon(Icons.check_circle_rounded, color: brand.primaryColor, size: 20)
+                          Icon(Icons.check_circle_rounded,
+                              color: brand.primaryColor, size: 20)
                         else
-                          const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 20),
+                          const Icon(Icons.chevron_right_rounded,
+                              color: AppColors.muted, size: 20),
                       ],
                     ),
                   ),

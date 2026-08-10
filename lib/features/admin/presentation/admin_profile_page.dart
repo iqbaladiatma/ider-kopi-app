@@ -9,7 +9,6 @@ import '../../auth/providers/auth_providers.dart';
 import '../../recap/presentation/admin_export_recap_page.dart';
 import '../../shift/presentation/admin_shift_settings_page.dart';
 
-
 class AdminProfilePage extends ConsumerWidget {
   const AdminProfilePage({super.key});
 
@@ -22,19 +21,24 @@ class AdminProfilePage extends ConsumerWidget {
           'Konfirmasi Keluar',
           style: TextStyle(fontFamily: 'Sora', fontWeight: FontWeight.w700),
         ),
-        content: const Text('Apakah kamu yakin ingin keluar dari portal admin?'),
+        content:
+            const Text('Apakah kamu yakin ingin keluar dari portal admin?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Batal', style: TextStyle(color: AppColors.muted)),
+            child:
+                const Text('Batal', style: TextStyle(color: AppColors.muted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100)),
             ),
-            child: const Text('Keluar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: const Text('Keluar',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -74,13 +78,19 @@ class AdminProfilePage extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color: activeBrand.primaryColor,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+                    borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(26)),
                   ),
                   child: userAsync.when(
                     data: (user) {
                       final name = user?.fullName ?? 'Kang Ider';
                       final initials = name.isNotEmpty
-                          ? name.trim().split(' ').map((e) => e[0]).take(2).join()
+                          ? name
+                              .trim()
+                              .split(' ')
+                              .map((e) => e[0])
+                              .take(2)
+                              .join()
                           : 'AI';
 
                       return Column(
@@ -90,7 +100,8 @@ class AdminProfilePage extends ConsumerWidget {
                           GestureDetector(
                             onTap: () => showOutletModeSheet(context, ref),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 5),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(100),
@@ -99,7 +110,8 @@ class AdminProfilePage extends ConsumerWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(activeBrand.iconData, color: Colors.white, size: 12),
+                                  Icon(activeBrand.iconData,
+                                      color: Colors.white, size: 12),
                                   const SizedBox(width: 5),
                                   Text(
                                     activeBrand.badgeText,
@@ -111,7 +123,8 @@ class AdminProfilePage extends ConsumerWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(Icons.arrow_drop_down_rounded, color: Colors.white, size: 16),
+                                  const Icon(Icons.arrow_drop_down_rounded,
+                                      color: Colors.white, size: 16),
                                 ],
                               ),
                             ),
@@ -159,7 +172,8 @@ class AdminProfilePage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.16),
                               borderRadius: BorderRadius.circular(100),
@@ -179,11 +193,15 @@ class AdminProfilePage extends ConsumerWidget {
                     },
                     loading: () => const SizedBox(
                       height: 160,
-                      child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                      child: Center(
+                          child:
+                              CircularProgressIndicator(color: Colors.white)),
                     ),
                     error: (_, __) => const Column(
                       children: [
-                        Text('Kang Ider', style: TextStyle(color: Colors.white, fontSize: 18)),
+                        Text('Kang Ider',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18)),
                       ],
                     ),
                   ),
@@ -224,7 +242,8 @@ class AdminProfilePage extends ConsumerWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const AdminShiftSettingsPage()),
+                        MaterialPageRoute(
+                            builder: (_) => const AdminShiftSettingsPage()),
                       );
                     },
                   ),
@@ -235,7 +254,8 @@ class AdminProfilePage extends ConsumerWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const AdminExportRecapPage()),
+                        MaterialPageRoute(
+                            builder: (_) => const AdminExportRecapPage()),
                       );
                     },
                   ),
@@ -249,7 +269,6 @@ class AdminProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
-
 
             const SizedBox(height: 32),
           ],
@@ -343,7 +362,11 @@ class AdminProfilePage extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(9),
               ),
               alignment: Alignment.center,
-              child: Icon(iconData, color: labelColor == AppColors.red ? AppColors.red : AppColors.ink, size: 17),
+              child: Icon(iconData,
+                  color: labelColor == AppColors.red
+                      ? AppColors.red
+                      : AppColors.ink,
+                  size: 17),
             ),
             const SizedBox(width: 12),
             Expanded(

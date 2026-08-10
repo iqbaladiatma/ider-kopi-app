@@ -100,10 +100,9 @@ class AsyncListWidget<T> extends StatelessWidget {
       data: (items) => ListView.separated(
         padding: padding ?? const EdgeInsets.all(16),
         itemCount: items.length,
-        separatorBuilder: (_, i) =>
-            separatorBuilder != null
-                ? separatorBuilder!(items[i])
-                : const SizedBox(height: 12),
+        separatorBuilder: (_, i) => separatorBuilder != null
+            ? separatorBuilder!(items[i])
+            : const SizedBox(height: 12),
         itemBuilder: (_, i) => itemBuilder(items[i], i),
       ),
     );

@@ -16,7 +16,8 @@ class AdminOutletEditPage extends ConsumerStatefulWidget {
   final Outlet? outlet;
 
   @override
-  ConsumerState<AdminOutletEditPage> createState() => _AdminOutletEditPageState();
+  ConsumerState<AdminOutletEditPage> createState() =>
+      _AdminOutletEditPageState();
 }
 
 class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
@@ -34,12 +35,13 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.outlet?.nama ?? '');
-    _addressController = TextEditingController(text: widget.outlet?.alamat ?? '');
+    _addressController =
+        TextEditingController(text: widget.outlet?.alamat ?? '');
     _latController = TextEditingController(
-      text: (widget.outlet?.latitude ?? -7.7928).toString(),
+      text: widget.outlet?.latitude.toString() ?? '',
     );
     _lngController = TextEditingController(
-      text: (widget.outlet?.longitude ?? 110.3658).toString(),
+      text: widget.outlet?.longitude.toString() ?? '',
     );
     _radiusController = TextEditingController(
       text: (widget.outlet?.radiusMeters ?? 100.0).toStringAsFixed(0),
@@ -60,13 +62,31 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
   Future<void> _handleSave() async {
     final name = _nameController.text.trim();
     final address = _addressController.text.trim();
-    final lat = double.tryParse(_latController.text.trim()) ?? -7.7928;
-    final lng = double.tryParse(_lngController.text.trim()) ?? 110.3658;
+    final lat = double.tryParse(_latController.text.trim());
+    final lng = double.tryParse(_lngController.text.trim());
     final radius = double.tryParse(_radiusController.text.trim()) ?? 100.0;
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nama outlet tidak boleh kosong')),
+      );
+      return;
+    }
+    if (lat == null ||
+        lng == null ||
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180 ||
+        (lat == 0 && lng == 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan koordinat outlet yang valid')),
+      );
+      return;
+    }
+    if (radius <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Radius geofence harus lebih dari 0')),
       );
       return;
     }
@@ -76,9 +96,9 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
     try {
       final repo = ref.read(outletRepositoryProvider);
       final newOutlet = Outlet(
-        id: widget.outlet?.id ?? DateTime.now().millisecondsSinceEpoch,
+        id: widget.outlet?.id ?? 'new',
         nama: name,
-        alamat: address.isNotEmpty ? address : 'Jl. Utama, Yogyakarta',
+        alamat: address.isNotEmpty ? address : null,
         latitude: lat,
         longitude: lng,
         radiusMeters: radius,
@@ -96,7 +116,9 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isEditing ? 'Outlet berhasil diperbarui' : 'Outlet baru berhasil ditambahkan'),
+            content: Text(isEditing
+                ? 'Outlet berhasil diperbarui'
+                : 'Outlet baru berhasil ditambahkan'),
             backgroundColor: AppColors.green,
           ),
         );
@@ -105,7 +127,9 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan outlet: $e'), backgroundColor: AppColors.red),
+          SnackBar(
+              content: Text('Gagal menyimpan outlet: $e'),
+              backgroundColor: AppColors.red),
         );
       }
     } finally {
@@ -115,16 +139,25 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final lat = double.tryParse(_latController.text.trim()) ?? -7.7928;
-    final lng = double.tryParse(_lngController.text.trim()) ?? 110.3658;
+    final lat = double.tryParse(_latController.text.trim());
+    final lng = double.tryParse(_lngController.text.trim());
     final radius = double.tryParse(_radiusController.text.trim()) ?? 100.0;
+    final hasValidCoordinates = lat != null &&
+        lng != null &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180 &&
+        !(lat == 0 && lng == 0);
 
     final previewOutlet = Outlet(
-      id: widget.outlet?.id ?? 99,
-      nama: _nameController.text.isEmpty ? 'Pratinjau Outlet' : _nameController.text,
+      id: widget.outlet?.id ?? 'preview',
+      nama: _nameController.text.isEmpty
+          ? 'Pratinjau Outlet'
+          : _nameController.text,
       alamat: _addressController.text,
-      latitude: lat,
-      longitude: lng,
+      latitude: lat ?? 0,
+      longitude: lng ?? 0,
       radiusMeters: radius,
       isActive: _isActive,
     );
@@ -138,14 +171,19 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
         scrolledUnderElevation: 0,
         title: Text(
           isEditing ? 'Edit Informasi Outlet' : 'Tambah Outlet Baru',
-          style: const TextStyle(fontFamily: 'Sora', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.ink),
+          style: const TextStyle(
+              fontFamily: 'Sora',
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink),
-          onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : context.go('/admin/outlets'),
+          onPressed: () => Navigator.canPop(context)
+              ? Navigator.pop(context)
+              : context.go('/admin/outlets'),
         ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -161,15 +199,30 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  OutletMapWidget(
-                    outlets: [previewOutlet],
-                    userLatitude: lat,
-                    userLongitude: lng,
-                    selectedOutlet: previewOutlet,
-                    height: 160,
-                  ),
+                  if (hasValidCoordinates)
+                    OutletMapWidget(
+                      outlets: [previewOutlet],
+                      userLatitude: lat,
+                      userLongitude: lng,
+                      selectedOutlet: previewOutlet,
+                      height: 160,
+                    )
+                  else
+                    const SizedBox(
+                      height: 160,
+                      child: Center(
+                        child: Text(
+                          'Masukkan koordinat valid untuk melihat peta',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            color: AppColors.muted,
+                          ),
+                        ),
+                      ),
+                    ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     color: AppColors.surfaceAlt,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -220,8 +273,10 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
               decoration: InputDecoration(
                 labelText: 'Nama Outlet',
                 hintText: 'misal: IderKopi - Malioboro',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.storefront_rounded, color: AppColors.muted),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.storefront_rounded,
+                    color: AppColors.muted),
               ),
             ),
 
@@ -233,8 +288,10 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
               decoration: InputDecoration(
                 labelText: 'Alamat Lengkap',
                 hintText: 'Jl. Malioboro No. 52, Yogyakarta',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.place_rounded, color: AppColors.muted),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon:
+                    const Icon(Icons.place_rounded, color: AppColors.muted),
               ),
             ),
 
@@ -257,11 +314,13 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
                 Expanded(
                   child: TextField(
                     controller: _latController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Latitude',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),
@@ -269,11 +328,13 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
                 Expanded(
                   child: TextField(
                     controller: _lngController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Longitude',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),
@@ -289,8 +350,10 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
               decoration: InputDecoration(
                 labelText: 'Radius Geofence (Meter)',
                 hintText: '100',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.radar_rounded, color: AppColors.muted),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon:
+                    const Icon(Icons.radar_rounded, color: AppColors.muted),
                 suffixText: 'Meter',
               ),
             ),
@@ -332,7 +395,7 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
                   ),
                   Switch(
                     value: _isActive,
-                    activeColor: AppColors.red,
+                    activeThumbColor: AppColors.red,
                     onChanged: (val) => setState(() => _isActive = val),
                   ),
                 ],
@@ -349,12 +412,16 @@ class _AdminOutletEditPageState extends ConsumerState<AdminOutletEditPage> {
                 onPressed: _isSaving ? null : _handleSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.red,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100)),
                 ),
                 child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    ? const CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2)
                     : Text(
-                        isEditing ? 'Simpan Perubahan Outlet' : 'Tambah Outlet Sekarang',
+                        isEditing
+                            ? 'Simpan Perubahan Outlet'
+                            : 'Tambah Outlet Sekarang',
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 14,

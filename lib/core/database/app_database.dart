@@ -15,7 +15,7 @@ class AppDatabase {
   factory AppDatabase() => _instance;
 
   static const String _dbName = 'iderkopi_absensi.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2;
 
   Database? _db;
 
@@ -55,7 +55,7 @@ class AppDatabase {
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE attendance_cache (
-        id INTEGER PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         tanggal_absensi TEXT NOT NULL,
         masuk TEXT,
         pulang TEXT,
@@ -70,7 +70,7 @@ class AppDatabase {
         selfie_pulang_file_id TEXT,
         kangider_nama TEXT,
         outlet TEXT,
-        outlet_id INTEGER,
+        outlet_id TEXT,
         cached_at INTEGER NOT NULL
       )
     ''');
@@ -82,7 +82,7 @@ class AppDatabase {
 
     await db.execute('''
       CREATE TABLE outlet_cache (
-        id INTEGER PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         nama TEXT NOT NULL,
         alamat TEXT,
         latitude REAL NOT NULL,
@@ -97,7 +97,7 @@ class AppDatabase {
       CREATE TABLE pending_sync (
         local_id INTEGER PRIMARY KEY AUTOINCREMENT,
         operation TEXT NOT NULL,           -- 'check_in' | 'check_out'
-        record_id INTEGER,                 -- id record di server (untuk check_out)
+        record_id TEXT,                    -- UUID record di server (untuk check_out)
         payload TEXT NOT NULL,             -- JSON dari CheckInRequest/CheckOutRequest
         selfie_path TEXT,                  -- path file selfie lokal (untuk check-in)
         status TEXT NOT NULL DEFAULT 'pending', -- pending | syncing | synced | failed
@@ -128,11 +128,54 @@ class AppDatabase {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Placeholder untuk migrasi schema versi mendatang.
-    // Contoh:
-    // if (oldVersion < 2) {
-    //   await db.execute('ALTER TABLE attendance_cache ADD COLUMN shift_id INTEGER');
-    // }
+    if (oldVersion < 2) {
+      await db.execute(
+          'ALTER TABLE attendance_cache RENAME TO attendance_cache_v1');
+      await db.execute('''
+        CREATE TABLE attendance_cache (
+          id TEXT PRIMARY KEY,
+          tanggal_absensi TEXT NOT NULL,
+          masuk TEXT,
+          pulang TEXT,
+          kangider TEXT,
+          keterangan TEXT,
+          latitude REAL,
+          longitude REAL,
+          selfie_file_id TEXT,
+          check_in_source TEXT,
+          latitude_pulang REAL,
+          longitude_pulang REAL,
+          selfie_pulang_file_id TEXT,
+          kangider_nama TEXT,
+          outlet TEXT,
+          outlet_id TEXT,
+          cached_at INTEGER NOT NULL
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO attendance_cache
+        SELECT CAST(id AS TEXT), tanggal_absensi, masuk, pulang, kangider,
+          keterangan, latitude, longitude, selfie_file_id, check_in_source,
+          latitude_pulang, longitude_pulang, selfie_pulang_file_id,
+          kangider_nama, outlet, outlet_id, cached_at
+        FROM attendance_cache_v1
+      ''');
+      await db.execute('DROP TABLE attendance_cache_v1');
+      await db.execute(
+        'CREATE INDEX idx_attendance_kangider ON attendance_cache(kangider, tanggal_absensi)',
+      );
+      await db.execute('''
+        CREATE TABLE pending_sync_v2 AS
+        SELECT local_id, operation, CAST(record_id AS TEXT) AS record_id,
+          payload, selfie_path, status, attempts, last_error, created_at,
+          updated_at FROM pending_sync
+      ''');
+      await db.execute('DROP TABLE pending_sync');
+      await db.execute('ALTER TABLE pending_sync_v2 RENAME TO pending_sync');
+      await db.execute(
+        'CREATE INDEX idx_pending_status ON pending_sync(status, created_at)',
+      );
+    }
   }
 
   /// Tutup & reset database (untuk logout atau testing).

@@ -74,4 +74,3 @@ final isOutletCacheStaleProvider = FutureProvider<bool>((ref) async {
   final repo = ref.read(outletRepositoryProvider);
   return await repo.isCacheStale();
 });
-

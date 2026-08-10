@@ -1,13 +1,10 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/database/daos/pending_sync_dao.dart';
 import '../../../core/database/daos/sync_log_dao.dart';
-import '../../../core/network/directus_client.dart';
+import '../../../core/network/api_client.dart';
 import '../../attendance/data/attendance_model.dart';
 import '../../attendance/data/attendance_repository.dart';
 import 'conflict_resolver.dart';
@@ -48,7 +45,7 @@ class SyncRepository {
 
   /// Enqueue check-out untuk sync nanti.
   Future<int> enqueueCheckOut({
-    required int recordId,
+    required String recordId,
     required CheckOutRequest request,
     String? selfiePath,
   }) async {
@@ -66,11 +63,7 @@ class SyncRepository {
   /// Cek apakah ada koneksi internet (best-effort).
   Future<bool> isOnline() async {
     try {
-      final dio = DirectusClient.instance.dio;
-      await dio.get('/items/outlet_ider', queryParameters: {'limit': '1'}).timeout(
-        const Duration(seconds: 4),
-      );
-      return true;
+      return await ApiClient.instance.isOnline();
     } catch (_) {
       return false;
     }
@@ -82,7 +75,9 @@ class SyncRepository {
     int failed = 0;
 
     final pending = await pendingDao.getPending();
-    if (pending.isEmpty) return SyncResult(success: 0, failed: 0, skipped: 0);
+    if (pending.isEmpty) {
+      return const SyncResult(success: 0, failed: 0, skipped: 0);
+    }
 
     final online = await isOnline();
     if (!online) {
@@ -111,7 +106,8 @@ class SyncRepository {
         );
         failed++;
         if (kDebugMode) {
-          debugPrint('SyncRepository: gagal sync local_id=${entry.localId}: $e');
+          debugPrint(
+              'SyncRepository: gagal sync local_id=${entry.localId}: $e');
         }
       }
     }
@@ -142,9 +138,8 @@ class SyncRepository {
       longitude: (entry.payload['longitude'] as num?)?.toDouble() ?? 0,
       selfieFileId: entry.payload['selfie_file_id']?.toString() ?? '',
       keterangan: entry.payload['keterangan']?.toString(),
-      outletId: entry.payload['outlet_id'] != null
-          ? int.tryParse(entry.payload['outlet_id'].toString())
-          : null,
+      outletId: entry.payload['outlet_id']?.toString(),
+      clientRequestId: entry.payload['client_request_id']?.toString(),
     );
 
     // Upload selfie jika ada path lokal
@@ -163,6 +158,7 @@ class SyncRepository {
       selfieFileId: selfieFileId,
       keterangan: request.keterangan,
       outletId: request.outletId,
+      clientRequestId: request.clientRequestId,
     );
 
     try {
@@ -196,7 +192,9 @@ class SyncRepository {
       latitudePulang: (entry.payload['latitude_pulang'] as num?)?.toDouble(),
       longitudePulang: (entry.payload['longitude_pulang'] as num?)?.toDouble(),
       selfiePulangFileId: entry.payload['selfie_pulang_file_id']?.toString(),
+      outletId: entry.payload['outlet_id']?.toString(),
       keterangan: entry.payload['keterangan']?.toString(),
+      clientRequestId: entry.payload['client_request_id']?.toString(),
     );
 
     // Upload selfie pulang jika ada
@@ -213,7 +211,9 @@ class SyncRepository {
       latitudePulang: request.latitudePulang,
       longitudePulang: request.longitudePulang,
       selfiePulangFileId: selfieId,
+      outletId: request.outletId,
       keterangan: request.keterangan,
+      clientRequestId: request.clientRequestId,
     );
 
     try {

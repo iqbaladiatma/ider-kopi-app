@@ -4,12 +4,7 @@ import '../../features/attendance/data/attendance_model.dart';
 
 /// Abstract interface untuk data source absensi (v2.0).
 ///
-/// Implementasi:
-/// - `DirectusAttendanceDataSource` — existing Directus API
-/// - `GoAttendanceDataSource` — Go backend custom
-///
-/// Dipakai oleh `AttendanceRepository` via dependency injection,
-/// supaya app bisa switch backend tanpa rewrite.
+/// Implemented by the single custom Go API repository.
 abstract class AttendanceDataSource {
   /// Upload file selfie, return file ID.
   Future<String> uploadSelfie(XFile file);
@@ -18,13 +13,17 @@ abstract class AttendanceDataSource {
   Future<AttendanceRecord> checkIn(CheckInRequest request);
 
   /// Submit check-out untuk record [recordId].
-  Future<AttendanceRecord> checkOut(int recordId, CheckOutRequest request);
+  Future<AttendanceRecord> checkOut(
+    String recordId,
+    CheckOutRequest request,
+  );
 
   /// Ambil record absensi hari ini untuk kangider tertentu.
   Future<AttendanceRecord?> getTodayAttendance(String kangiderId);
 
   /// Ambil riwayat absensi (default 30 hari terakhir).
-  Future<List<AttendanceRecord>> getHistory(String kangiderId, {int limit = 30});
+  Future<List<AttendanceRecord>> getHistory(String kangiderId,
+      {int limit = 30});
 
   /// Ambil riwayat absensi bulanan.
   Future<List<AttendanceRecord>> getMonthlyHistory(
