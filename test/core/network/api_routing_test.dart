@@ -156,38 +156,65 @@ void main() {
     );
   });
 
-  test('admin outlet listing uses protected admin route', () async {
+  test('admin outlet listing keeps unconfigured outlets visible', () async {
     await SecureStorage().saveAuthRealm(AuthRealm.admin);
     final adapter = _RecordingAdapter(
-      (_, __) => _jsonResponse({'data': []}),
+      (_, __) => _jsonResponse({
+        'data': [
+          {
+            'id': 'unconfigured-outlet',
+            'name': 'IderKopi - Winarko',
+            'address': 'Belum dikonfigurasi',
+            'latitude': 0,
+            'longitude': 0,
+            'radius_meters': 200,
+            'is_active': false,
+          },
+        ],
+      }),
     );
     final dio = ApiClient.instance.dio;
     final originalAdapter = dio.httpClientAdapter;
     addTearDown(() => dio.httpClientAdapter = originalAdapter);
     dio.httpClientAdapter = adapter;
 
-    await OutletRepository().getOutlets(forceRefresh: true);
+    final outlets = await OutletRepository().getOutlets(forceRefresh: true);
 
     expect(
       adapter.requests.single.uri.toString(),
       'https://iderkopi.tailcbf3a3.ts.net:8443/core/api/v1/admin/outlets',
     );
+    expect(outlets, hasLength(1));
+    expect(outlets.single.nama, 'IderKopi - Winarko');
   });
 
-  test('employee outlet listing keeps mobile route', () async {
+  test('employee outlet listing filters unsafe unconfigured outlets', () async {
     await SecureStorage().saveAuthRealm(AuthRealm.employee);
     final adapter = _RecordingAdapter(
-      (_, __) => _jsonResponse({'data': []}),
+      (_, __) => _jsonResponse({
+        'data': [
+          {
+            'id': 'unsafe-outlet',
+            'name': 'IderKopi - Winarko',
+            'address': 'Belum dikonfigurasi',
+            'latitude': 0,
+            'longitude': 0,
+            'radius_meters': 200,
+            'is_active': false,
+          },
+        ],
+      }),
     );
     final dio = ApiClient.instance.dio;
     final originalAdapter = dio.httpClientAdapter;
     addTearDown(() => dio.httpClientAdapter = originalAdapter);
     dio.httpClientAdapter = adapter;
 
-    await OutletRepository().getOutlets(forceRefresh: true);
+    final outlets = await OutletRepository().getOutlets(forceRefresh: true);
 
     expect(adapter.requests.single.uri.path, '/core/api/v1/outlets');
     expect(adapter.requests.single.uri.queryParameters['active'], 'true');
+    expect(outlets, isEmpty);
   });
 
   test('business 401 refreshes on auth service and retries once', () async {

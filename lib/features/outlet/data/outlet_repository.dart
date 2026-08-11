@@ -31,10 +31,15 @@ class OutletRepository {
     );
     final envelope = response.data as Map<String, dynamic>;
     final raw = (envelope['data'] as List<dynamic>?) ?? const [];
-    final outlets = raw
+    final parsedOutlets = raw
         .map((item) => Outlet.fromJson((item as Map).cast<String, dynamic>()))
-        .where((outlet) => outlet.hasValidGeofence)
         .toList();
+    // Admin must still see incomplete/inactive outlets so their truthful
+    // address and geofence can be configured. Employees only receive outlets
+    // that are safe to use for attendance validation.
+    final outlets = isAdmin
+        ? parsedOutlets
+        : parsedOutlets.where((outlet) => outlet.hasValidGeofence).toList();
     await _saveToCache(outlets);
     return outlets;
   }
