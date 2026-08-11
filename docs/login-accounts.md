@@ -1,12 +1,14 @@
 # Daftar Akun Login IDER KOPI
 
-Dokumen ini hanya mencantumkan identitas akun. Password, password hash, token, dan secret tidak disimpan di sini.
+Dokumen ini mencantumkan identitas akun dan password awal (default) untuk lingkungan pengembangan/testing:
+- 🔑 **Password Karyawan (Employee Initial Password)**: `iderkophebat`
+- 🔑 **Password Admin (Admin Initial Password)**: `adminiderkophebat`
 
 ## Employee
 
 - Total: 33 akun aktif
 - Username login: email
-- Login pertama: wajib mengganti password awal
+- Login pertama: menggunakan password awal (`iderkophebat`), lalu wajib mengganti password saat login pertama.
 
 | No. | Kode | Nama | Email | Brand | Status |
 |---:|---|---|---|---|---|
