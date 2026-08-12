@@ -8,9 +8,14 @@ import '../data/auth_repository.dart';
 import '../providers/auth_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key, this.successMessage});
+  const LoginPage({
+    super.key,
+    this.successMessage,
+    this.errorMessage,
+  });
 
   final String? successMessage;
+  final String? errorMessage;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -26,6 +31,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isLoading = false;
   bool _isAdminMode = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _errorMessage = widget.errorMessage;
+  }
 
   void _updateRoleMode(bool isAdmin) {
     setState(() {

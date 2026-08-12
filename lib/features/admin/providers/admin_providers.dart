@@ -42,6 +42,18 @@ final employeeAccountsProvider =
       .toList();
 });
 
+final employeeDetailProvider =
+    FutureProvider.family<CoreEmployee, String>((ref, employeeId) async {
+  final repo = ref.read(adminRepositoryProvider);
+  return repo.getEmployee(employeeId);
+});
+
+final adminUserDetailProvider =
+    FutureProvider.family<AdminUser, String>((ref, userId) async {
+  final repo = ref.read(adminRepositoryProvider);
+  return repo.getUser(userId);
+});
+
 final rolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final repo = ref.read(adminRepositoryProvider);
   return await repo.getRoles();

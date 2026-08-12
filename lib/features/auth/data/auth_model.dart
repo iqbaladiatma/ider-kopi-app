@@ -13,13 +13,15 @@ class AuthTokens {
     final data = json['data'] is Map<String, dynamic>
         ? json['data'] as Map<String, dynamic>
         : json;
+    final serverExpiry = DateTime.tryParse(
+      data['expires_at']?.toString() ?? '',
+    );
 
     return AuthTokens(
       accessToken: data['access_token'] as String,
       refreshToken: (data['refresh_token'] as String?) ?? '',
-      expiresAt: DateTime.now().add(
-        const Duration(minutes: 15),
-      ),
+      expiresAt:
+          serverExpiry ?? DateTime.now().add(const Duration(minutes: 15)),
     );
   }
 }

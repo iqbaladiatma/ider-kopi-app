@@ -65,13 +65,13 @@
     "semantic_hash": ""
   },
   "lib/core/network/auth_interceptor.dart": {
-    "mtime": 1786344152.9682078,
-    "ast_hash": "d0f7de4701ec774d48a03a23d216c840",
+    "mtime": 1786443270.1678946,
+    "ast_hash": "30487b442e6e535f4b0e34464a112527",
     "semantic_hash": ""
   },
   "lib/core/router/app_router.dart": {
-    "mtime": 1786329724.971022,
-    "ast_hash": "e61bc6f8d00e7e40b1b29c2329c15bf7",
+    "mtime": 1786444564.0365934,
+    "ast_hash": "58e44922b35276cb212bf4b559ef583f",
     "semantic_hash": ""
   },
   "lib/core/storage/secure_storage.dart": {
@@ -105,13 +105,13 @@
     "semantic_hash": ""
   },
   "lib/features/admin/data/admin_repository.dart": {
-    "mtime": 1786348012.0552406,
-    "ast_hash": "4a52e68d7d9fb3dcb8fb5d834bb641bd",
+    "mtime": 1786444317.5791483,
+    "ast_hash": "99925b6bc92d344fd5a1d474339eb95f",
     "semantic_hash": ""
   },
   "lib/features/admin/data/admin_user_model.dart": {
-    "mtime": 1786374965.4236708,
-    "ast_hash": "cab0ba0351da47811aee5027c5fb6211",
+    "mtime": 1786444285.487377,
+    "ast_hash": "222d144c53d4018b1634222fe543bfa8",
     "semantic_hash": ""
   },
   "lib/features/admin/presentation/admin_attendance_page.dart": {
@@ -130,13 +130,13 @@
     "semantic_hash": ""
   },
   "lib/features/admin/presentation/admin_users_page.dart": {
-    "mtime": 1786348206.4990997,
-    "ast_hash": "395499c21d583ae3123f221a6de9b7e6",
+    "mtime": 1786444644.1464288,
+    "ast_hash": "4a7edc03b025007889af5915ca0539f2",
     "semantic_hash": ""
   },
   "lib/features/admin/providers/admin_providers.dart": {
-    "mtime": 1786374939.643957,
-    "ast_hash": "ebd6c5bb65c631ab720fb0f7a8dbb468",
+    "mtime": 1786444346.828765,
+    "ast_hash": "8e6a887633ea4339667f0569fc272add",
     "semantic_hash": ""
   },
   "lib/features/attendance/data/attendance_model.dart": {
@@ -150,13 +150,13 @@
     "semantic_hash": ""
   },
   "lib/features/attendance/presentation/check_in_page.dart": {
-    "mtime": 1786323989.6822271,
-    "ast_hash": "23382e39948ac5fffda38cf4300bfcdb",
+    "mtime": 1786436652.6976304,
+    "ast_hash": "03d1d0a096036f039d854b9e19f009fc",
     "semantic_hash": ""
   },
   "lib/features/attendance/presentation/check_out_page.dart": {
-    "mtime": 1786323688.6151752,
-    "ast_hash": "eb8be6a1c57b20b9cfbcac14225dd918",
+    "mtime": 1786436659.7551131,
+    "ast_hash": "d56bb27c068cf826f173158bb3bc4d01",
     "semantic_hash": ""
   },
   "lib/features/attendance/presentation/history_page.dart": {
@@ -200,18 +200,18 @@
     "semantic_hash": ""
   },
   "lib/features/auth/data/auth_model.dart": {
-    "mtime": 1786335142.100647,
-    "ast_hash": "a9488f86447bee93c4ab3b1bbad24df8",
+    "mtime": 1786443235.319804,
+    "ast_hash": "10e6c8cc41db6be91e65275ec5ce5ea7",
     "semantic_hash": ""
   },
   "lib/features/auth/data/auth_repository.dart": {
-    "mtime": 1786347922.7746685,
-    "ast_hash": "685bd4ddb18f2a74494baafc11dab5da",
+    "mtime": 1786433124.546286,
+    "ast_hash": "11b14f91a0110aa10c52f789e26cda78",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/login_page.dart": {
-    "mtime": 1786347933.0233848,
-    "ast_hash": "0f18a8fcc662689a0d93d1fb71d290f2",
+    "mtime": 1786433020.864521,
+    "ast_hash": "2f89ea68a990b93b39c3c74af5ed466d",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/splash_screen.dart": {
@@ -745,8 +745,8 @@
     "semantic_hash": ""
   },
   "lib/features/admin/presentation/admin_user_form_page.dart": {
-    "mtime": 1786375218.8522189,
-    "ast_hash": "8c4e82edc3090310599d8a3116c21a96",
+    "mtime": 1786444607.1275132,
+    "ast_hash": "f1ce3387f281d9f9b240d7dc8e3731ff",
     "semantic_hash": ""
   },
   "lib/features/attendance/presentation/attendance_options_page.dart": {
@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "lib/features/outlet/presentation/outlet_picker_sheet.dart": {
-    "mtime": 1786322931.3890998,
-    "ast_hash": "504cdecb66dfdc7ef44da61ad4602be1",
+    "mtime": 1786436540.7424707,
+    "ast_hash": "6372fbe1acd9e2bb1a2e1cdde80d10d3",
     "semantic_hash": ""
   },
   "lib/features/outlet/providers/outlet_providers.dart": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "test/features/outlet/presentation/outlet_picker_sheet_test.dart": {
-    "mtime": 1786323989.6816907,
-    "ast_hash": "0e3fa04ba52178e04d23dc4a81d2add5",
+    "mtime": 1786436619.9239666,
+    "ast_hash": "5bcd204c8c4fcda05e64cc25700f10c4",
     "semantic_hash": ""
   },
   "test/features/recap/data/recap_model_test.dart": {
@@ -1065,13 +1065,13 @@
     "semantic_hash": ""
   },
   "docs/DOKUMENTASI_LENGKAP.html": {
-    "mtime": 1786284526.5672607,
-    "ast_hash": "3d06d11528dc57e0c65868df19aa4e25",
+    "mtime": 1786431712.2924092,
+    "ast_hash": "9ffe2f1e7511118fa513dd5868158a11",
     "semantic_hash": ""
   },
   "docs/DOKUMENTASI_LENGKAP.md": {
-    "mtime": 1786325183.817819,
-    "ast_hash": "58e08792596a1a84d9c89a6d9340e3e9",
+    "mtime": 1786431712.2932181,
+    "ast_hash": "f513cc3b9d011db4bde5b158135c3e96",
     "semantic_hash": ""
   },
   "mockup.html": {
@@ -1079,19 +1079,9 @@
     "ast_hash": "b55c15f92cc01b583b6d225090a0e126",
     "semantic_hash": ""
   },
-  "test_doc.html": {
-    "mtime": 1786284526.6388915,
-    "ast_hash": "ae0c10a284934234c844f3465d61dd7d",
-    "semantic_hash": ""
-  },
   "Dokumentasi_Lengkap_IderKopi_Absensi.pdf": {
-    "mtime": 1786284526.554134,
-    "ast_hash": "6725df4050d35aa1e20f212750725def",
-    "semantic_hash": ""
-  },
-  "test_doc.pdf": {
-    "mtime": 1786284526.6390357,
-    "ast_hash": "4aa585fe69f2d80282d92fca90df5e32",
+    "mtime": 1786431712.2919476,
+    "ast_hash": "2666f0906b11176941f8449eb766c57f",
     "semantic_hash": ""
   },
   "android/app/src/main/res/drawable-hdpi/android12splash.png": {
@@ -1380,13 +1370,13 @@
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/change_password_page.dart": {
-    "mtime": 1786329822.7205284,
-    "ast_hash": "8bca771035b5144377c0dafae924a5d8",
+    "mtime": 1786433068.302198,
+    "ast_hash": "e830640f31546f2a327042b54ca065a4",
     "semantic_hash": ""
   },
   "test/features/auth/data/auth_model_test.dart": {
-    "mtime": 1786329691.7752075,
-    "ast_hash": "4622f7a0ef2e0fb9852f1ddde4f12e4d",
+    "mtime": 1786443245.4880283,
+    "ast_hash": "048522191e4ccdd72cc17e02af4d681e",
     "semantic_hash": ""
   },
   "test/features/auth/presentation/change_password_page_test.dart": {
@@ -1410,8 +1400,8 @@
     "semantic_hash": ""
   },
   "auth-backend/internal/api/server.go": {
-    "mtime": 1786347652.6801367,
-    "ast_hash": "24190f73acd56e04f4ba3378cbbe69be",
+    "mtime": 1786444055.719287,
+    "ast_hash": "c768c9ba976472b7c81e9dc718225488",
     "semantic_hash": ""
   },
   "auth-backend/internal/config/config.go": {
@@ -1475,8 +1465,8 @@
     "semantic_hash": ""
   },
   "test/core/network/api_routing_test.dart": {
-    "mtime": 1786415355.1057985,
-    "ast_hash": "42a81c8ad1fbdc1d9a60ced37f22264c",
+    "mtime": 1786443317.067009,
+    "ast_hash": "56df32657c33137f117ebb686cf9b10e",
     "semantic_hash": ""
   },
   "test/features/auth/presentation/forced_password_router_test.dart": {
@@ -1500,23 +1490,48 @@
     "semantic_hash": ""
   },
   "scripts/reset-login-passwords.sh": {
-    "mtime": 1786337064.3270626,
-    "ast_hash": "f2c4419e88d482f61e8d108236fb8303",
+    "mtime": 1786432224.1237936,
+    "ast_hash": "ea822010742f532b04ec5b048804c051",
     "semantic_hash": ""
   },
   "docs/login-accounts.md": {
-    "mtime": 1786338129.751939,
-    "ast_hash": "cad5978d532ffef4c01f6d0a601aaec7",
+    "mtime": 1786428853.6506984,
+    "ast_hash": "edd559809ff5acb1e37982d70d146143",
     "semantic_hash": ""
   },
   "auth-backend/internal/api/admin.go": {
-    "mtime": 1786348771.4471912,
-    "ast_hash": "902ebee26a63796fa868bd514b5416cd",
+    "mtime": 1786444079.8244178,
+    "ast_hash": "5b6ed7c008b6e04ef1b8c8cedda145b5",
     "semantic_hash": ""
   },
   "test/features/admin/data/admin_user_model_test.dart": {
-    "mtime": 1786348425.853322,
-    "ast_hash": "d5fed2780b5f0be1c4181c6ad65562df",
+    "mtime": 1786444730.0715842,
+    "ast_hash": "3d411ef7acd8121655df937fef82fed7",
+    "semantic_hash": ""
+  },
+  "scripts/reset-login-passwords.ps1": {
+    "mtime": 1786432224.283363,
+    "ast_hash": "b6e13bf8a27a96041b40b8b54d2d6814",
+    "semantic_hash": ""
+  },
+  "lib/features/attendance/presentation/widgets/attendance_camera_status.dart": {
+    "mtime": 1786436436.493937,
+    "ast_hash": "973407c2dec6e96851ef53b26c507e79",
+    "semantic_hash": ""
+  },
+  "test/features/attendance/presentation/attendance_camera_status_test.dart": {
+    "mtime": 1786436573.6824973,
+    "ast_hash": "1ef92101ece700fa1757c5bea9cd633f",
+    "semantic_hash": ""
+  },
+  "lib/features/admin/presentation/admin_account_detail_page.dart": {
+    "mtime": 1786444613.1406906,
+    "ast_hash": "80c318346f595491584ab876e65f2431",
+    "semantic_hash": ""
+  },
+  "lib/features/admin/presentation/admin_employee_detail_page.dart": {
+    "mtime": 1786444613.1509967,
+    "ast_hash": "651a7556da218dceba54ced621086bb6",
     "semantic_hash": ""
   }
 }

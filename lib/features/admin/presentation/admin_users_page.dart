@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/empty_view.dart';
@@ -9,7 +10,6 @@ import '../../outlet/presentation/admin_outlet_edit_page.dart';
 import '../../outlet/providers/outlet_providers.dart';
 import '../data/admin_user_model.dart';
 import '../providers/admin_providers.dart';
-import 'admin_user_detail_page.dart';
 import 'admin_user_form_page.dart';
 
 class AdminUsersPage extends ConsumerStatefulWidget {
@@ -406,14 +406,9 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
     final role = user.roleName ?? 'Admin';
 
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AdminUserDetailPage(user: user),
-          ),
-        ).then((_) => ref.invalidate(usersProvider));
-      },
+      onTap: () => context.push('/admin/users/admin/${user.id}').then((_) {
+        ref.invalidate(usersProvider);
+      }),
       borderRadius: BorderRadius.circular(14),
       child: Container(
         margin: const EdgeInsets.only(bottom: 9),
@@ -516,7 +511,11 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
             .join();
     final active = account.accountActive == true;
     return InkWell(
-      onTap: account.hasAccount ? () => _showEmployeeActions(account) : null,
+      onTap: () => context
+          .push('/admin/users/employees/${account.employeeId}')
+          .then((_) {
+        ref.invalidate(employeeAccountsProvider);
+      }),
       borderRadius: BorderRadius.circular(14),
       child: Container(
         margin: const EdgeInsets.only(bottom: 9),
@@ -573,102 +572,11 @@ class _AdminUsersPageState extends ConsumerState<AdminUsersPage> {
                 ],
               ),
             ),
-            if (account.hasAccount)
-              const Icon(Icons.more_vert_rounded,
-                  color: AppColors.muted, size: 20),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.muted, size: 20),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _showEmployeeActions(MobileEmployeeAccount account) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(account.accountActive == true
-                  ? Icons.block_rounded
-                  : Icons.check_circle_outline_rounded),
-              title: Text(account.accountActive == true
-                  ? 'Nonaktifkan akun login'
-                  : 'Aktifkan akun login'),
-              onTap: () => Navigator.pop(context, 'toggle'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.password_rounded),
-              title: const Text('Reset password'),
-              onTap: () => Navigator.pop(context, 'reset'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!mounted || action == null) return;
-    try {
-      final repo = ref.read(adminRepositoryProvider);
-      if (action == 'toggle') {
-        await repo.setEmployeeAccountActive(
-          account.employeeId,
-          active: account.accountActive != true,
-        );
-      } else {
-        final password = await _requestNewPassword();
-        if (password == null) return;
-        await repo.resetEmployeePassword(account.employeeId, password);
-      }
-      ref.invalidate(employeeAccountsProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Akun Karyawan berhasil diperbarui'),
-          backgroundColor: AppColors.green,
-        ));
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Gagal memperbarui akun: $error'),
-          backgroundColor: AppColors.red,
-        ));
-      }
-    }
-  }
-
-  Future<String?> _requestNewPassword() async {
-    final controller = TextEditingController();
-    final password = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Password Karyawan'),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Password awal baru',
-            helperText: 'Minimal 8 karakter; Karyawan wajib menggantinya',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (controller.text.length >= 8) {
-                Navigator.pop(context, controller.text);
-              }
-            },
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    return password;
   }
 }

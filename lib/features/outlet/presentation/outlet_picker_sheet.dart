@@ -104,22 +104,36 @@ class _OutletPickerSheetState extends ConsumerState<OutletPickerSheet> {
               // List
               Expanded(
                 child: distancesAsync.when(
-                  data: (distances) => ListView.separated(
-                    controller: scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    itemCount: distances.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final d = distances[index];
-                      final isSelected = widget.selectedOutletId == d.outlet.id;
-                      return _OutletTile(
-                        distance: d,
-                        isSelected: isSelected,
-                        onTap: () => Navigator.of(context).pop(d.outlet),
+                  data: (distances) {
+                    if (distances.isEmpty) {
+                      return _EmptyOutletState(
+                        onRetry: () {
+                          ref.invalidate(outletsProvider);
+                          ref.invalidate(outletDistancesProvider((
+                            lat: widget.userLatitude,
+                            lng: widget.userLongitude,
+                          )));
+                        },
                       );
-                    },
-                  ),
+                    }
+                    return ListView.separated(
+                      controller: scrollController,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      itemCount: distances.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final d = distances[index];
+                        final isSelected =
+                            widget.selectedOutletId == d.outlet.id;
+                        return _OutletTile(
+                          distance: d,
+                          isSelected: isSelected,
+                          onTap: () => Navigator.of(context).pop(d.outlet),
+                        );
+                      },
+                    );
+                  },
                   loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
@@ -139,6 +153,73 @@ class _OutletPickerSheetState extends ConsumerState<OutletPickerSheet> {
           ),
         );
       },
+    );
+  }
+}
+
+class _EmptyOutletState extends StatelessWidget {
+  const _EmptyOutletState({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.warningLight,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.location_off_rounded,
+                color: AppColors.warning,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Belum ada outlet aktif',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Admin perlu melengkapi koordinat dan radius geofence, lalu mengaktifkan outlet.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.4,
+                color: AppColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Muat Ulang'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

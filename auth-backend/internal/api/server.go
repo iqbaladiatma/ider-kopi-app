@@ -94,6 +94,7 @@ func New(db *pgxpool.Pool, tokens *security.TokenManager, refreshTTL time.Durati
 	internalAdmin := app.Group("/internal/admin", internalAdminAuth(adminToken))
 	internalAdmin.Get("/accounts", s.listAdminAccounts)
 	internalAdmin.Put("/accounts/:employee_id/status", s.updateAdminAccountStatus)
+	internalAdmin.Put("/accounts/:employee_id/profile", s.syncAdminAccountProfile)
 	internalAdmin.Post("/accounts/:employee_id/reset-password", s.resetAdminAccountPassword)
 	return app, nil
 }

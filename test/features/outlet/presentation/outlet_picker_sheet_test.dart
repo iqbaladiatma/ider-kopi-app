@@ -81,4 +81,30 @@ void main() {
     // (terdekat dulu, jadi tile pertama = Malioboro)
     expect(find.textContaining('dari kamu'), findsWidgets);
   });
+
+  testWidgets('shows actionable empty state when no outlet is configured',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          outletsProvider.overrideWith((ref) async => const <Outlet>[]),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(
+            body: OutletPickerSheet(
+              userLatitude: -7.7928,
+              userLongitude: 110.3658,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('Belum ada outlet aktif'), findsOneWidget);
+    expect(
+        find.textContaining('koordinat dan radius geofence'), findsOneWidget);
+    expect(find.text('Muat Ulang'), findsOneWidget);
+  });
 }

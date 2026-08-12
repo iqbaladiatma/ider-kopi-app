@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../storage/secure_storage.dart';
 
 const _retriedAfterRefreshKey = 'retriedAfterTokenRefresh';
+const _refreshBeforeExpiry = Duration(seconds: 30);
 
 /// Refreshes access tokens through the issuer stored for the active realm.
 /// A single coordinator is shared by auth and business clients so concurrent
@@ -54,7 +55,7 @@ class TokenRefreshCoordinator {
       await storage.saveTokens(
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
-        expiresAt: DateTime.now().add(const Duration(minutes: 15)),
+        expiresAt: _responseExpiry(data),
       );
       return true;
     } catch (error) {
@@ -63,6 +64,11 @@ class TokenRefreshCoordinator {
       }
       return false;
     }
+  }
+
+  DateTime _responseExpiry(Map<String, dynamic> data) {
+    return DateTime.tryParse(data['expires_at']?.toString() ?? '') ??
+        DateTime.now().add(const Duration(minutes: 15));
   }
 }
 
@@ -82,10 +88,18 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    final isBootstrap = _isAuthenticationBootstrapEndpoint(options.path);
+    if (!isBootstrap) {
+      final expiresAt = await storage.getExpiresAt();
+      final shouldRefresh = expiresAt != null &&
+          !expiresAt.isAfter(DateTime.now().add(_refreshBeforeExpiry));
+      if (shouldRefresh) {
+        await refreshCoordinator.refreshToken();
+      }
+    }
+
     final token = await storage.getAccessToken();
-    if (token != null &&
-        token.isNotEmpty &&
-        !_isAuthenticationBootstrapEndpoint(options.path)) {
+    if (token != null && token.isNotEmpty && !isBootstrap) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);

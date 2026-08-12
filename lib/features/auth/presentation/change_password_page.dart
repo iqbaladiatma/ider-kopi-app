@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../data/auth_repository.dart';
 import '../providers/auth_providers.dart';
 
 String? validatePasswordChange({
@@ -83,11 +84,22 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       if (mounted) {
         context.go('/login?passwordChanged=true');
       }
+    } on ChangePasswordException catch (error) {
+      if (error.sessionExpired) {
+        await ref.read(authRepositoryProvider).logout();
+        ref.read(authStateProvider.notifier).state = AuthStatus.unauthenticated;
+        ref.invalidate(currentUserProvider);
+        ref.invalidate(userRoleProvider);
+        if (mounted) {
+          context.go('/login?sessionExpired=true');
+        }
+      } else if (mounted) {
+        setState(() => _errorMessage = error.message);
+      }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _errorMessage =
-              'Kata sandi tidak dapat diubah. Periksa kata sandi saat ini dan coba lagi.';
+          _errorMessage = 'Kata sandi tidak dapat diubah. Coba lagi.';
         });
       }
     } finally {

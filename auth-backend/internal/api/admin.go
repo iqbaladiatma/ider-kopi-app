@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/sha256"
 	"crypto/subtle"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -37,6 +38,16 @@ type updateAdminAccountStatusRequest struct {
 
 type resetAdminAccountPasswordRequest struct {
 	NewPassword string `json:"new_password"`
+}
+
+type syncAdminAccountProfileRequest struct {
+	EmployeeCode string  `json:"employee_code"`
+	FullName     string  `json:"full_name"`
+	Email        string  `json:"email"`
+	Brand        string  `json:"brand"`
+	Department   *string `json:"department_name"`
+	Position     *string `json:"position_name"`
+	Active       *bool   `json:"active"`
 }
 
 func internalAdminAuth(expectedToken string) fiber.Handler {
@@ -118,6 +129,72 @@ func (s *Server) updateAdminAccountStatus(c *fiber.Ctx) error {
 	}
 	s.log.Info("employee account status updated", "actor_id", actorID, "employee_id", employeeID, "active", *req.Active, "request_id", requestID)
 	return c.JSON(fiber.Map{"data": fiber.Map{"employee_id": employeeID, "active": *req.Active}})
+}
+
+func (s *Server) syncAdminAccountProfile(c *fiber.Ctx) error {
+	actorID, requestID, err := internalAdminAuditContext(c)
+	if err != nil {
+		return err
+	}
+	employeeID, err := uuid.Parse(c.Params("employee_id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid employee_id")
+	}
+	var req syncAdminAccountProfileRequest
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
+	}
+	req.EmployeeCode = strings.TrimSpace(req.EmployeeCode)
+	req.FullName = strings.TrimSpace(req.FullName)
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
+	req.Brand = strings.TrimSpace(req.Brand)
+	req.Department = trimmedOptional(req.Department)
+	req.Position = trimmedOptional(req.Position)
+	parsedEmail, emailErr := mail.ParseAddress(req.Email)
+	if req.EmployeeCode == "" || req.FullName == "" || req.Brand == "" || req.Active == nil ||
+		emailErr != nil || parsedEmail.Address != req.Email || len(req.Email) > 254 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid employee profile")
+	}
+
+	tx, err := s.db.BeginTx(c.Context(), pgx.TxOptions{})
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+	defer tx.Rollback(c.Context())
+	result, err := tx.Exec(c.Context(), `
+		UPDATE employees
+		SET employee_code=$2,full_name=$3,email=$4,brand=$5,department=$6,
+		    position=$7,active=$8,source_updated_at=now(),synced_at=now()
+		WHERE external_id=$1`, employeeID, req.EmployeeCode, req.FullName, req.Email,
+		req.Brand, req.Department, req.Position, *req.Active)
+	if err != nil {
+		return fiber.NewError(fiber.StatusConflict, "employee profile conflicts with another account")
+	}
+	if result.RowsAffected() == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "employee not found")
+	}
+	if _, err := tx.Exec(c.Context(), `
+		UPDATE refresh_tokens SET revoked_at=COALESCE(revoked_at,now())
+		WHERE user_id IN (SELECT id FROM users WHERE employee_id=$1)`, employeeID); err != nil {
+		return fiber.ErrInternalServerError
+	}
+	if err := tx.Commit(c.Context()); err != nil {
+		return fiber.ErrInternalServerError
+	}
+	s.log.Info("employee login profile synchronized", "actor_id", actorID,
+		"employee_id", employeeID, "request_id", requestID)
+	return c.JSON(fiber.Map{"data": fiber.Map{"employee_id": employeeID}})
+}
+
+func trimmedOptional(value *string) *string {
+	if value == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }
 
 func (s *Server) resetAdminAccountPassword(c *fiber.Ctx) error {

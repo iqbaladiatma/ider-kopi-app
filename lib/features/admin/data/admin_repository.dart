@@ -114,6 +114,23 @@ class AdminRepository {
     );
   }
 
+  Future<CoreEmployee> getEmployee(String employeeId) async {
+    final response = await _client.get('employees/$employeeId');
+    final data = (response.data as Map<String, dynamic>)['data'] as Map;
+    return CoreEmployee.fromJson(data.cast<String, dynamic>());
+  }
+
+  Future<CoreEmployee> updateEmployee(
+    String employeeId,
+    Map<String, dynamic> updates,
+  ) async {
+    final response = await _client.put('employees/$employeeId', body: updates);
+    final data = (response.data as Map<String, dynamic>)['data'] as Map;
+    final employee = CoreEmployee.fromJson(data.cast<String, dynamic>());
+    await _client.post('mobile-auth/accounts/$employeeId/sync-profile');
+    return employee;
+  }
+
   Future<int> getUserCount() async => (await getUsers()).length;
 
   Future<List<AttendanceRecord>> getAllAttendance({

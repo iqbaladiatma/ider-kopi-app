@@ -19,11 +19,8 @@ class AdminUserFormPage extends ConsumerStatefulWidget {
 }
 
 class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
-  late final TextEditingController _firstNameController;
-  late final TextEditingController _lastNameController;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
-  late final TextEditingController _kangiderIdController;
 
   String? _selectedRoleId;
   bool _isSaving = false;
@@ -33,34 +30,22 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
   @override
   void initState() {
     super.initState();
-    _firstNameController =
-        TextEditingController(text: widget.user?.firstName ?? '');
-    _lastNameController =
-        TextEditingController(text: widget.user?.lastName ?? '');
     _emailController = TextEditingController(text: widget.user?.email ?? '');
     _passwordController = TextEditingController();
-    _kangiderIdController =
-        TextEditingController(text: widget.user?.kangiderId ?? '');
 
     _selectedRoleId = widget.user?.roleId;
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _kangiderIdController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSave() async {
     final email = _emailController.text.trim();
-    final firstName = _firstNameController.text.trim();
-    final lastName = _lastNameController.text.trim();
     final password = _passwordController.text;
-    final kangiderId = _kangiderIdController.text.trim();
 
     if (email.isEmpty) {
       _showSnack('Email tidak boleh kosong');
@@ -87,31 +72,21 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
       AdminUser? updatedUser;
       if (isEditing) {
         final updateData = <String, dynamic>{
-          'first_name': firstName,
-          'last_name': lastName,
           'email': email,
           'role_id': _selectedRoleId,
-          if (kangiderId.isNotEmpty) 'kangider_id': kangiderId,
         };
         if (password.isNotEmpty) {
           updateData['password'] = password;
         }
         await repo.updateUser(widget.user!.id, updateData);
         updatedUser = widget.user!.copyWith(
-          firstName: firstName,
-          lastName: lastName,
           email: email,
           roleId: _selectedRoleId,
-          kangiderId:
-              kangiderId.isNotEmpty ? kangiderId : widget.user!.kangiderId,
         );
       } else {
         await repo.createUser(CreateUserData(
           email: email,
           password: password,
-          firstName: firstName,
-          lastName: lastName,
-          kangiderNama: '$firstName $lastName'.trim(),
           roleId: _selectedRoleId!,
         ));
       }
@@ -190,32 +165,6 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _firstNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Depan',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _lastNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Belakang',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -226,18 +175,6 @@ class _AdminUserFormPageState extends ConsumerState<AdminUserFormPage> {
                     OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 prefixIcon:
                     const Icon(Icons.email_outlined, color: AppColors.muted),
-              ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _kangiderIdController,
-              decoration: InputDecoration(
-                labelText: 'NIP / KangIder ID',
-                hintText: 'IDR-0025',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon:
-                    const Icon(Icons.badge_outlined, color: AppColors.muted),
               ),
             ),
             const SizedBox(height: 24),

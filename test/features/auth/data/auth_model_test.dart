@@ -42,4 +42,16 @@ void main() {
     expect(result.user.mustChangePassword, isTrue);
     expect(result.user.roleName, 'employee');
   });
+
+  test('AuthTokens uses expires_at supplied by the issuer', () {
+    final expiresAt = DateTime.utc(2026, 8, 11, 12, 30);
+
+    final tokens = AuthTokens.fromJson({
+      'access_token': 'access-token',
+      'refresh_token': 'refresh-token',
+      'expires_at': expiresAt.toIso8601String(),
+    });
+
+    expect(tokens.expiresAt, expiresAt);
+  });
 }

@@ -106,9 +106,17 @@ void main() {
       return _jsonResponse({'data': {}});
     });
     final authDio = _dio(AppConfig.authApiBaseUrl, adapter);
+    final storage = SecureStorage();
     final coordinator = TokenRefreshCoordinator(
-      storage: SecureStorage(),
+      storage: storage,
       authDio: authDio,
+    );
+    authDio.interceptors.add(
+      AuthInterceptor(
+        storage: storage,
+        requestDio: authDio,
+        refreshCoordinator: coordinator,
+      ),
     );
     final authClient = AuthApiClient.forTesting(
       authDio,
@@ -129,6 +137,10 @@ void main() {
 
     expect(result.user.mustChangePassword, isTrue);
     expect(
+      adapter.requests[1].headers['Authorization'],
+      'Bearer synthetic-access-token',
+    );
+    expect(
       adapter.requests.map((request) => request.uri.toString()),
       [
         'https://iderkopi.tailcbf3a3.ts.net:8443/employee-auth/api/v1/auth/login',
@@ -136,6 +148,78 @@ void main() {
         'https://iderkopi.tailcbf3a3.ts.net:8443/employee-auth/api/v1/auth/me',
         'https://iderkopi.tailcbf3a3.ts.net:8443/employee-auth/api/v1/auth/logout',
       ],
+    );
+  });
+
+  test('change-password distinguishes current password mismatch', () async {
+    final adapter = _RecordingAdapter(
+      (_, __) => _jsonResponse(
+        {'error': 'current password is incorrect'},
+        statusCode: 401,
+      ),
+    );
+    final authDio = _dio(AppConfig.authApiBaseUrl, adapter);
+    final coordinator = TokenRefreshCoordinator(
+      storage: SecureStorage(),
+      authDio: authDio,
+    );
+    final repository = AuthRepository.withDependencies(
+      client: AuthApiClient.forTesting(
+        authDio,
+        refreshCoordinator: coordinator,
+      ),
+    );
+
+    await expectLater(
+      repository.changePassword(
+        currentPassword: 'synthetic-password',
+        newPassword: 'different-synthetic-password',
+      ),
+      throwsA(
+        isA<ChangePasswordException>()
+            .having((error) => error.sessionExpired, 'sessionExpired', isFalse)
+            .having(
+              (error) => error.message,
+              'message',
+              'Kata sandi saat ini tidak cocok.',
+            ),
+      ),
+    );
+  });
+
+  test('change-password identifies an invalid login session', () async {
+    final adapter = _RecordingAdapter(
+      (_, __) => _jsonResponse(
+        {'error': 'invalid access token'},
+        statusCode: 401,
+      ),
+    );
+    final authDio = _dio(AppConfig.authApiBaseUrl, adapter);
+    final coordinator = TokenRefreshCoordinator(
+      storage: SecureStorage(),
+      authDio: authDio,
+    );
+    final repository = AuthRepository.withDependencies(
+      client: AuthApiClient.forTesting(
+        authDio,
+        refreshCoordinator: coordinator,
+      ),
+    );
+
+    await expectLater(
+      repository.changePassword(
+        currentPassword: 'synthetic-password',
+        newPassword: 'different-synthetic-password',
+      ),
+      throwsA(
+        isA<ChangePasswordException>()
+            .having((error) => error.sessionExpired, 'sessionExpired', isTrue)
+            .having(
+              (error) => error.message,
+              'message',
+              'Sesi login sudah tidak valid. Silakan masuk kembali.',
+            ),
+      ),
     );
   });
 
@@ -221,7 +305,7 @@ void main() {
     await SecureStorage().saveTokens(
       accessToken: 'expired-synthetic-token',
       refreshToken: 'synthetic-refresh-token',
-      expiresAt: DateTime.fromMillisecondsSinceEpoch(0),
+      expiresAt: DateTime.now().add(const Duration(hours: 1)),
     );
 
     final refreshAdapter = _RecordingAdapter(
@@ -270,6 +354,65 @@ void main() {
     expect(
       businessAdapter.requests.last.headers['Authorization'],
       'Bearer new-synthetic-token',
+    );
+  });
+
+  test('expired admin token refreshes before parallel business requests',
+      () async {
+    final storage = SecureStorage();
+    await storage.saveAuthRealm(AuthRealm.admin);
+    await storage.saveTokens(
+      accessToken: 'expired-admin-token',
+      refreshToken: 'synthetic-admin-refresh-token',
+      expiresAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+
+    final employeeAdapter = _RecordingAdapter(
+      (_, __) => _jsonResponse({'error': 'wrong realm'}, statusCode: 500),
+    );
+    final adminRefreshAdapter = _RecordingAdapter(
+      (_, __) => _jsonResponse({
+        'data': {
+          'access_token': 'new-synthetic-admin-token',
+          'refresh_token': 'new-synthetic-admin-refresh-token',
+          'expires_at':
+              DateTime.now().add(const Duration(minutes: 15)).toIso8601String(),
+        },
+      }),
+    );
+    final businessAdapter = _RecordingAdapter(
+      (_, __) => _jsonResponse({'data': []}),
+    );
+    final businessDio = _dio(AppConfig.coreApiBaseUrl, businessAdapter);
+    final coordinator = TokenRefreshCoordinator(
+      storage: storage,
+      authDio: _dio(AppConfig.authApiBaseUrl, employeeAdapter),
+      adminAuthDio: _dio(AppConfig.coreApiBaseUrl, adminRefreshAdapter),
+    );
+    businessDio.interceptors.add(
+      AuthInterceptor(
+        storage: storage,
+        requestDio: businessDio,
+        refreshCoordinator: coordinator,
+      ),
+    );
+
+    final responses = await Future.wait([
+      businessDio.get<dynamic>('attendance/logs'),
+      businessDio.get<dynamic>('mobile-auth/accounts'),
+    ]);
+
+    expect(responses.every((response) => response.statusCode == 200), isTrue);
+    expect(employeeAdapter.requests, isEmpty);
+    expect(adminRefreshAdapter.requests, hasLength(1));
+    expect(businessAdapter.requests, hasLength(2));
+    expect(
+      businessAdapter.requests.every(
+        (request) =>
+            request.headers['Authorization'] ==
+            'Bearer new-synthetic-admin-token',
+      ),
+      isTrue,
     );
   });
 

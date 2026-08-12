@@ -20,6 +20,19 @@ class AuthLoginException implements Exception {
   String toString() => message;
 }
 
+class ChangePasswordException implements Exception {
+  const ChangePasswordException(
+    this.message, {
+    this.sessionExpired = false,
+  });
+
+  final String message;
+  final bool sessionExpired;
+
+  @override
+  String toString() => message;
+}
+
 class AuthRepository {
   AuthRepository._internal()
       : _client = AuthApiClient.instance,
@@ -242,13 +255,40 @@ class AuthRepository {
     if (await _authRealm() == AuthRealm.admin) {
       throw UnsupportedError('Admin password changes use the core dashboard');
     }
-    await _client.post(
-      'auth/change-password',
-      body: {
-        'current_password': currentPassword,
-        'new_password': newPassword,
-      },
-    );
+    try {
+      await _client.post(
+        'auth/change-password',
+        body: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        },
+      );
+    } on DioException catch (error) {
+      final responseData = error.response?.data;
+      final serverError =
+          responseData is Map ? responseData['error']?.toString() : null;
+      final status = error.response?.statusCode;
+
+      if (status == 401 && serverError == 'current password is incorrect') {
+        throw const ChangePasswordException(
+          'Kata sandi saat ini tidak cocok.',
+        );
+      }
+      if (status == 401) {
+        throw const ChangePasswordException(
+          'Sesi login sudah tidak valid. Silakan masuk kembali.',
+          sessionExpired: true,
+        );
+      }
+      if (status == 400) {
+        throw const ChangePasswordException(
+          'Kata sandi baru tidak valid. Gunakan minimal 8 karakter dan pastikan berbeda dari kata sandi saat ini.',
+        );
+      }
+      throw const ChangePasswordException(
+        'Kata sandi tidak dapat diubah. Coba lagi beberapa saat.',
+      );
+    }
   }
 
   Future<bool> isLoggedIn() async {

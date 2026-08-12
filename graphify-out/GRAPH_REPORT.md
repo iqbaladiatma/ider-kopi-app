@@ -1,16 +1,16 @@
-# Graph Report - ider-kopi-app  (2026-08-10)
+# Graph Report - ider-kopi-app  (2026-08-11)
 
 ## Corpus Check
-- 201 files · ~127,034 words
+- 206 files · ~131,642 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2340 nodes · 3291 edges · 155 communities (141 shown, 14 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 78 edges (avg confidence: 0.8)
+- 2410 nodes · 3413 edges · 163 communities (148 shown, 15 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 79 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `47d35d4e`
+- Built from commit: `41c80f9d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -133,37 +133,44 @@
 - storage_backend.dart
 - StatelessWidget
 - attendance_bar_chart.dart
-- holiday_providers.dart
 - build
 - ../data/attendance_model.dart
 - 10. Directus Schema & Permissions
 - outlet_picker_sheet_test.dart
 - static const String
 - conflict_resolver.dart
-- change_password_page_test.dart
+- empty_view.dart
 - api_provider_test.dart
 - recap_model_test.dart
 - sync_providers.dart
-- attendance_dao_test.dart
-- holiday_model_test.dart
+- build
+- SharedPreferences
 - .changePassword
 - Load
 - employees_test.go
 - holiday_providers.dart
-- leave_model_test.dart
+- holiday_model.dart
 - Ider Kopi mobile authentication backend
 - empty_view.dart
+- attendance_bar_chart.dart
 - Separate Mobile Authentication Implementation Plan
 - 001_initial.sql
-- notification_service_test.dart
+- attendance_dao_test.dart
+- api_provider_test.dart
 - T
 - @iderkopi
 - iderkopi/auth-backend
 - ../data/attendance_model.dart
+- admin_user_model_test.dart
 - admin_attendance_detail_page.dart
 - image_utils.dart
 - api_providers.dart
+- recap_model_test.dart
 - PreviewReset
+- NotificationSettingsNotifier
+- SharedPreferences
+- attendance_model_test.dart
+- holiday_model_test.dart
 - reset-login-passwords.sh
 - empty_view.dart
 
@@ -171,13 +178,13 @@
 1. `New()` - 26 edges
 2. `Win32Window` - 22 edges
 3. `Server` - 14 edges
-4. `activeBrandProvider` - 12 edges
-5. `MessageHandler` - 12 edges
-6. `authStateProvider` - 11 edges
-7. `run()` - 10 edges
-8. `runResetEmployeePasswords()` - 10 edges
-9. `ApiClient` - 10 edges
-10. `currentUserProvider` - 10 edges
+4. `outletsProvider` - 13 edges
+5. `activeBrandProvider` - 12 edges
+6. `MessageHandler` - 12 edges
+7. `authStateProvider` - 11 edges
+8. `run()` - 10 edges
+9. `runResetEmployeePasswords()` - 10 edges
+10. `ApiClient` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `New()`  [INFERRED]
@@ -194,7 +201,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (155 total, 14 thin omitted)
+## Communities (163 total, 15 thin omitted)
 
 ### Community 0 - "Win32Window"
 Cohesion: 0.06
@@ -213,16 +220,16 @@ Cohesion: 0.05
 Nodes (34): Any, Cocoa, connectivity_plus, Flutter, flutter_local_notifications, flutter_secure_storage_macos, flutter_timezone, FlutterAppDelegate (+26 more)
 
 ### Community 4 - "mock_data.dart"
-Cohesion: 0.14
-Nodes (15): core/router/app_router.dart, dart:async, features/sync/providers/sync_providers.dart, build, _connectivitySub, createState, dispose, IderKopiApp (+7 more)
+Cohesion: 0.13
+Nodes (14): @pragma, ../database/app_database.dart, ../database/daos/pending_sync_dao.dart, ../database/daos/sync_log_dao.dart, ../../features/sync/data/sync_repository.dart, callbackDispatcher, cancel, init (+6 more)
 
 ### Community 5 - "attendance_model.dart"
 Cohesion: 0.07
 Nodes (26): CheckInRequest, checkInSource, CheckOutRequest, clientRequestId, fromJson, hasCheckedIn, hasCheckedOut, id (+18 more)
 
 ### Community 6 - "auth_model.dart"
-Cohesion: 0.08
-Nodes (23): accessToken, AuthTokens, email, expiresAt, firstName, fromJson, id, isAdmin (+15 more)
+Cohesion: 0.04
+Nodes (45): DateTime, build, _buildRecordCard, _buildStatBlock, _buildStatsCard, createState, HistoryPage, _HistoryPageState (+37 more)
 
 ### Community 7 - "UI/UX Design — IderKopi Absensi"
 Cohesion: 0.07
@@ -234,15 +241,15 @@ Nodes (22): FlPluginRegistry, FlView, GApplication, gboolean, gchar, GObject, Gt
 
 ### Community 9 - "app_router.dart"
 Cohesion: 0.07
-Nodes (27): ChangeNotifier, ../../features/attendance/presentation/attendance_options_page.dart, ../../features/attendance/presentation/check_in_page.dart, ../../features/attendance/presentation/check_out_page.dart, ../../features/auth/presentation/change_password_page.dart, ../../features/auth/presentation/login_page.dart, ../../features/auth/presentation/splash_screen.dart, ../../features/auth/providers/auth_providers.dart (+19 more)
+Nodes (29): ChangeNotifier, ../../features/admin/presentation/admin_account_detail_page.dart, ../../features/admin/presentation/admin_employee_detail_page.dart, ../../features/attendance/presentation/attendance_options_page.dart, ../../features/attendance/presentation/check_in_page.dart, ../../features/attendance/presentation/check_out_page.dart, ../../features/auth/presentation/change_password_page.dart, ../../features/auth/presentation/login_page.dart (+21 more)
 
 ### Community 10 - "secure_storage.dart"
 Cohesion: 0.07
 Nodes (29): AuthRealm, _backend, clearAll, getAccessToken, getAuthRealm, getExpiresAt, getKangiderId, getMustChangePassword (+21 more)
 
 ### Community 11 - "admin_users_page.dart"
-Cohesion: 0.12
-Nodes (20): admin_user_detail_page.dart, _buildListItem, _buildFeedItem, _activeTab, AdminUsersPage, _AdminUsersPageState, build, _buildEmployeeCard (+12 more)
+Cohesion: 0.16
+Nodes (13): _activeTab, AdminUsersPage, _AdminUsersPageState, build, _buildEmployeeCard, _buildEmployeeTab, _buildOutletTab, _buildUserCard (+5 more)
 
 ### Community 12 - "camera_section.dart"
 Cohesion: 0.11
@@ -250,51 +257,51 @@ Nodes (17): CameraController?, build, _buildCameraArea, _cameras, _capturedImage
 
 ### Community 13 - "check_in_page.dart"
 Cohesion: 0.07
-Nodes (27): ../../../core/utils/image_utils.dart, _cameraController, _cameras, _capturedSelfie, createState, dispose, _distanceLabel, _distanceToOutlet (+19 more)
+Nodes (29): _cameraController, _cameraError, _cameras, _capturedSelfie, createState, dispose, _distanceLabel, _distanceToOutlet (+21 more)
 
 ### Community 14 - "check_out_page.dart"
-Cohesion: 0.07
-Nodes (27): _cameraController, _cameras, _capturedSelfie, createState, dispose, _distanceLabel, _distanceToOutlet, _initCamera (+19 more)
+Cohesion: 0.06
+Nodes (30): ../../../core/utils/image_utils.dart, _cameraController, _cameraError, _cameras, _capturedSelfie, createState, dispose, _distanceLabel (+22 more)
 
 ### Community 15 - "admin_attendance_page.dart"
-Cohesion: 0.06
-Nodes (29): ../data/kpi_model.dart, ../data/kpi_repository.dart, absentDays, attendanceRate, calculateScore, fromJson, grade, gradeFromScore (+21 more)
+Cohesion: 0.04
+Nodes (45): ../data/kpi_model.dart, ../data/kpi_repository.dart, absentDays, attendanceRate, calculateScore, fromJson, grade, gradeFromScore (+37 more)
 
 ### Community 16 - "admin_providers.dart"
-Cohesion: 0.15
-Nodes (12): ../data/admin_repository.dart, AdminRepository, accounts, activeBrand, allUsers, filter, getRoles, records (+4 more)
+Cohesion: 0.13
+Nodes (14): ../data/admin_repository.dart, AdminRepository, accounts, activeBrand, allUsers, filter, getEmployee, getRoles (+6 more)
 
 ### Community 17 - "auth_repository.dart"
-Cohesion: 0.07
-Nodes (29): auth_model.dart, ../../../core/database/app_database.dart, ../../../core/network/auth_api_client.dart, _authRealm, changePassword, _client, _coreClient, getCurrentUser (+21 more)
+Cohesion: 0.06
+Nodes (30): auth_model.dart, ../../../core/database/app_database.dart, ../../../core/network/auth_api_client.dart, _authRealm, changePassword, _client, _coreClient, getCurrentUser (+22 more)
 
 ### Community 18 - "location_card.dart"
-Cohesion: 0.14
-Nodes (13): build, _buildContent, _buildCoordRow, _buildMapView, _buildPlaceholderMap, createState, error, isLoading (+5 more)
+Cohesion: 0.13
+Nodes (15): build, _buildContent, _buildCoordRow, _buildMapView, _buildPlaceholderMap, createState, error, isLoading (+7 more)
 
 ### Community 19 - "auth_providers.dart"
 Cohesion: 0.15
 Nodes (12): ../data/auth_model.dart, ../data/auth_repository.dart, AuthRepository, authInitProvider, authState, AuthStatus, getKangiderId, getUserRole (+4 more)
 
 ### Community 20 - "admin_repository.dart"
-Cohesion: 0.11
-Nodes (17): admin_user_model.dart, _client, createUser, deleteUser, getAllAttendance, getEmployeeAccounts, getRoles, getTodayAttendanceCount (+9 more)
+Cohesion: 0.10
+Nodes (19): admin_user_model.dart, _client, createUser, deleteUser, getAllAttendance, getEmployee, getEmployeeAccounts, getRoles (+11 more)
 
 ### Community 21 - "history_page.dart"
 Cohesion: 0.10
 Nodes (19): build, _confirmationController, controller, createState, _currentPasswordController, dispose, _errorMessage, helperText (+11 more)
 
 ### Community 22 - "auth_interceptor.dart"
-Cohesion: 0.12
-Nodes (16): auth_api_client.dart, auth_interceptor.dart, authInterceptor, _create, delete, _dio, forTesting, _instance (+8 more)
+Cohesion: 0.06
+Nodes (32): auth_api_client.dart, auth_interceptor.dart, Dio, Dio get, authInterceptor, _create, delete, _dio (+24 more)
 
 ### Community 23 - "home_page.dart"
-Cohesion: 0.14
-Nodes (16): CustomPainter, dart:math, ../../holiday/providers/holiday_providers.dart, _buildOptions, _buildFeatureActionCards, _buildPunchButton, _buildRingCard, _buildTimeline (+8 more)
+Cohesion: 0.06
+Nodes (41): CustomPainter, dart:math, ../data/holiday_model.dart, ../data/holiday_repository.dart, ../../holiday/providers/holiday_providers.dart, build, AdminDashboardPage, build (+33 more)
 
 ### Community 24 - "login_page.dart"
-Cohesion: 0.14
-Nodes (13): createState, dispose, _emailController, _emailFocusNode, _errorMessage, _isAdminMode, _isLoading, _obscurePassword (+5 more)
+Cohesion: 0.12
+Nodes (16): createState, dispose, _emailController, _emailFocusNode, errorMessage, initState, _isAdminMode, _isLoading (+8 more)
 
 ### Community 25 - "profile_model.dart"
 Cohesion: 0.14
@@ -305,8 +312,8 @@ Cohesion: 0.13
 Nodes (14): attendance_model.dart, ../../../core/data/attendance_data_source.dart, checkIn, checkOut, _client, getHistory, getMonthlyHistory, getTodayAttendance (+6 more)
 
 ### Community 27 - "profile_providers.dart"
-Cohesion: 0.08
-Nodes (27): admin_attendance_detail_page.dart, Color, ../../core/constants/app_colors.dart, ../../core/providers/brand_provider.dart, ../../kpi/presentation/kpi_page.dart, ../../leave/presentation/leave_list_page.dart, notificationServiceProvider, _buildCompactStat (+19 more)
+Cohesion: 0.10
+Nodes (22): admin_attendance_detail_page.dart, ../../attendance/data/attendance_model.dart, Color, ../../core/constants/app_colors.dart, ../../core/providers/brand_provider.dart, createState, _selectedFilterIndex, _buildCompactStat (+14 more)
 
 ### Community 28 - "currentUserProvider"
 Cohesion: 0.11
@@ -317,24 +324,24 @@ Cohesion: 0.11
 Nodes (18): ../data/attendance_repository.dart, alpha, cached, dao, endDate, endStr, hadir, historyProvider (+10 more)
 
 ### Community 30 - "profile_page.dart"
-Cohesion: 0.13
-Nodes (16): _BreakdownItem, build, _buildBreakdown, _buildMonthPicker, _buildScoreCard, color, createState, icon (+8 more)
+Cohesion: 0.22
+Nodes (8): ../../attendance/providers/attendance_providers.dart, ../../auth/providers/auth_providers.dart, ../data/profile_model.dart, AttendanceStats, now, params, stats, user
 
 ### Community 31 - "directus_client.dart"
-Cohesion: 0.15
-Nodes (17): changePasswordRequest, loginRequest, principal, refreshRequest, sessionResponse, userResponse, App, Server (+9 more)
+Cohesion: 0.17
+Nodes (13): changePasswordRequest, loginRequest, principal, refreshRequest, sessionResponse, userResponse, Server, Context (+5 more)
 
 ### Community 32 - "ConsumerState"
-Cohesion: 0.15
-Nodes (15): admin_user_form_page.dart, ../data/admin_user_model.dart, AdminUser, AdminUserDetailPage, _AdminUserDetailPageState, _buildDetailTile, _confirmDelete, createState (+7 more)
+Cohesion: 0.14
+Nodes (15): core/router/app_router.dart, dart:async, features/sync/providers/sync_providers.dart, build, _connectivitySub, createState, dispose, IderKopiApp (+7 more)
 
 ### Community 33 - "Directus Schema Changes & Setup"
-Cohesion: 0.20
-Nodes (10): adminAccountResponse, resetAdminAccountPasswordRequest, updateAdminAccountStatusRequest, Server, Ctx, Time, UUID, internalAdminAuditContext() (+2 more)
+Cohesion: 0.15
+Nodes (14): adminAccountResponse, resetAdminAccountPasswordRequest, syncAdminAccountProfileRequest, updateAdminAccountStatusRequest, Server, Ctx, Time, UUID (+6 more)
 
 ### Community 34 - "gradient_header.dart"
-Cohesion: 0.15
-Nodes (12): double?, EdgeInsets, Gradient?, borderRadius, build, child, gradient, GradientHeader (+4 more)
+Cohesion: 0.10
+Nodes (19): dart:ui, double?, EdgeInsets, Gradient?, borderRadius, build, child, gradient (+11 more)
 
 ### Community 35 - "wWinMain"
 Cohesion: 0.17
@@ -345,44 +352,44 @@ Cohesion: 0.12
 Nodes (16): AppDateUtils, _days, daysInMonth, formatDate, formatDateShort, formatFullDate, formatMonthYear, formatTime (+8 more)
 
 ### Community 37 - "todayAttendanceProvider"
-Cohesion: 0.24
-Nodes (14): ConsumerState, _CheckInPageState, _getCurrentLocation, _handleSubmit, _CheckOutPageState, _getCurrentLocation, _handleSubmit, attendanceRepositoryProvider (+6 more)
+Cohesion: 0.29
+Nodes (12): ConsumerState, _CheckInPageState, _getCurrentLocation, _handleSubmit, _CheckOutPageState, _getCurrentLocation, _handleSubmit, attendanceRepositoryProvider (+4 more)
 
 ### Community 38 - "admin_dashboard_page.dart"
-Cohesion: 0.17
-Nodes (11): DateTime, fromJson, Holiday, id, isNasional, isSameDate, nama, _parseBool (+3 more)
+Cohesion: 0.19
+Nodes (15): CameraSection, _CameraSectionState, _LoadingPulse, _LoadingPulseState, OutletMapWidget, _OutletMapWidgetState, AdminShell, _AdminShellState (+7 more)
 
 ### Community 39 - "admin_nav_bar.dart"
-Cohesion: 0.13
-Nodes (14): ../../features/admin/presentation/admin_attendance_page.dart, ../../features/admin/presentation/admin_dashboard_page.dart, ../../features/admin/presentation/admin_profile_page.dart, ../../features/admin/presentation/admin_users_page.dart, _AdminBottomNav, build, child, createState (+6 more)
+Cohesion: 0.14
+Nodes (13): ../../features/admin/presentation/admin_attendance_page.dart, ../../features/admin/presentation/admin_dashboard_page.dart, ../../features/admin/presentation/admin_profile_page.dart, ../../features/admin/presentation/admin_users_page.dart, build, child, createState, currentPath (+5 more)
 
 ### Community 40 - "manifest.json"
 Cohesion: 0.18
 Nodes (10): background_color, description, display, icons, name, orientation, prefer_related_applications, short_name (+2 more)
 
 ### Community 41 - "package:flutter_riverpod/flutter_riverpod.dart"
-Cohesion: 0.40
-Nodes (4): PendingSyncDao, package:iderkopi_absensi/core/database/daos/pending_sync_dao.dart, dao, main
+Cohesion: 0.67
+Nodes (3): T, TestJWTClaimsAndAlgorithm(), TestRefreshTokenHash()
 
 ### Community 42 - "bottom_nav_bar.dart"
-Cohesion: 0.12
-Nodes (17): ../../features/attendance/presentation/history_page.dart, ../../features/attendance/presentation/home_page.dart, ../../features/profile/presentation/profile_page.dart, _BottomNav, build, _buildNavItem, child, createState (+9 more)
+Cohesion: 0.13
+Nodes (14): ../../features/attendance/presentation/history_page.dart, ../../features/attendance/presentation/home_page.dart, ../../features/profile/presentation/profile_page.dart, build, _buildNavItem, child, createState, currentPath (+6 more)
 
 ### Community 44 - "Roadmap Pengembangan"
 Cohesion: 0.50
 Nodes (3): Berikutnya, Roadmap, Selesai
 
 ### Community 45 - "StatelessWidget"
-Cohesion: 0.22
-Nodes (13): CameraSection, _CameraSectionState, LocationCard, _LocationCardState, _LoadingPulse, _LoadingPulseState, AdminShell, _AdminShellState (+5 more)
+Cohesion: 0.20
+Nodes (11): ../../../core/database/database_providers.dart, ../data/sync_repository.dart, SyncResult, build, PendingSyncBadge, manualSyncProvider, pendingCount, pendingSyncCountProvider (+3 more)
 
 ### Community 46 - "../../../core/network/api_client.dart"
 Cohesion: 0.14
 Nodes (14): ../../../core/config/app_config.dart, ../../../core/network/api_client.dart, kpi_model.dart, ApiClient, _client, getMyKpi, _instance, _mockKpi (+6 more)
 
 ### Community 47 - "package:flutter/material.dart"
-Cohesion: 0.25
-Nodes (7): dart:ui, build, child, isLoading, LoadingOverlay, message, Widget
+Cohesion: 0.15
+Nodes (13): bool get, AdminUserFormPage, _AdminUserFormPageState, createState, dispose, _emailController, initState, isEditing (+5 more)
 
 ### Community 48 - "IderKopi Absensi — Project Overview"
 Cohesion: 0.50
@@ -393,20 +400,20 @@ Cohesion: 0.25
 Nodes (7): Android (`android/app/src/main/AndroidManifest.xml`), Core Dependencies, Dependencies (pubspec.yaml), Dev Dependencies, Full pubspec.yaml, iOS (`ios/Runner/Info.plist`), Permissions
 
 ### Community 51 - "authRepositoryProvider"
-Cohesion: 0.18
-Nodes (19): activeBrandProvider, AdminProfilePage, _handleLogout, _ChangePasswordPageState, _submit, build, _handleLogin, _LoginPageState (+11 more)
+Cohesion: 0.20
+Nodes (15): AdminProfilePage, _handleLogout, ChangePasswordPage, _ChangePasswordPageState, _submit, _handleLogin, initState, authRepositoryProvider (+7 more)
 
 ### Community 52 - "error_view.dart"
-Cohesion: 0.13
-Nodes (14): @pragma, ../database/app_database.dart, ../database/daos/pending_sync_dao.dart, ../database/daos/sync_log_dao.dart, ../../features/sync/data/sync_repository.dart, callbackDispatcher, cancel, init (+6 more)
+Cohesion: 0.17
+Nodes (11): ../constants/app_colors.dart, AppTheme, buttonShadow, cardShadow, cardShadowLarge, floatingShadow, gradientShadow, light (+3 more)
 
 ### Community 53 - "SyncRepository"
 Cohesion: 0.11
-Nodes (17): Dio, Interceptor, adminAuthDio, authDio, AuthInterceptor, _isAuthenticationBootstrapEndpoint, onError, onRequest (+9 more)
+Nodes (18): Interceptor, adminAuthDio, authDio, AuthInterceptor, _isAuthenticationBootstrapEndpoint, onError, onRequest, _performRefresh (+10 more)
 
 ### Community 54 - "../../core/constants/app_colors.dart"
-Cohesion: 0.13
-Nodes (15): ../../core/theme/app_theme.dart, AttendanceRecord, AttendanceSummaryCard, build, _buildTimeRow, record, build, _buildPlaceholder (+7 more)
+Cohesion: 0.22
+Nodes (8): build, _buildPlaceholder, _buildSelfieThumbnail, _buildTimeChip, HistoryListItem, record, selfieUrl, package:cached_network_image/cached_network_image.dart
 
 ### Community 55 - "dart:io"
 Cohesion: 0.18
@@ -421,20 +428,20 @@ Cohesion: 0.33
 Nodes (5): Development, Dokumentasi, Fitur, IDER KOPI Mobile, Runtime
 
 ### Community 59 - "widget_test.dart"
-Cohesion: 0.10
-Nodes (14): package:flutter_test/flutter_test.dart, package:iderkopi_absensi/core/notifications/notification_service.dart, package:iderkopi_absensi/features/admin/data/admin_user_model.dart, package:iderkopi_absensi/features/attendance/data/attendance_model.dart, package:iderkopi_absensi/features/auth/data/auth_model.dart, package:iderkopi_absensi/features/kpi/data/kpi_model.dart, package:iderkopi_absensi/features/recap/data/recap_model.dart, main (+6 more)
+Cohesion: 0.11
+Nodes (12): package:flutter_test/flutter_test.dart, package:iderkopi_absensi/core/notifications/notification_service.dart, package:iderkopi_absensi/features/admin/data/admin_user_model.dart, package:iderkopi_absensi/features/auth/data/auth_model.dart, package:iderkopi_absensi/features/kpi/data/kpi_model.dart, package:iderkopi_absensi/features/recap/data/recap_model.dart, main, main (+4 more)
 
 ### Community 67 - "shift_model.dart"
-Cohesion: 0.04
-Nodes (46): class, AdminExportRecapPage, _AdminExportRecapPageState, build, createState, formats, _handleExport, _isExporting (+38 more)
+Cohesion: 0.10
+Nodes (19): copyWith, date, endTime, _formatTime, fromJson, id, isActive, isWithinShift (+11 more)
 
 ### Community 68 - "Rencana Pengembangan Lengkap IderKopi Absensi"
 Cohesion: 0.50
 Nodes (3): Development Plan, Kontrak wajib, Quality gate
 
 ### Community 69 - "shift_schedule_page.dart"
-Cohesion: 0.07
-Nodes (31): ../data/shift_model.dart, ../data/shift_repository.dart, build, _buildCalendar, _buildLegend, _buildMonthPicker, _buildUpcomingShifts, color (+23 more)
+Cohesion: 0.10
+Nodes (21): UserShift, build, _buildCalendar, _buildLegend, _buildMonthPicker, _buildUpcomingShifts, color, createState (+13 more)
 
 ### Community 70 - "settings_providers.dart"
 Cohesion: 0.06
@@ -466,31 +473,31 @@ Nodes (27): izin,
 
 ### Community 76 - "outlet_map_widget.dart"
 Cohesion: 0.09
-Nodes (23): ../../../core/constants/map_constants.dart, build, _buildOutletPin, _buildUserPin, createState, didUpdateWidget, dispose, _fitBounds (+15 more)
+Nodes (21): ../../../core/constants/map_constants.dart, build, _buildOutletPin, _buildUserPin, createState, didUpdateWidget, dispose, _fitBounds (+13 more)
 
 ### Community 77 - "sync_repository.dart"
 Cohesion: 0.10
 Nodes (20): ../../attendance/data/attendance_repository.dart, conflict_resolver.dart, ../../../core/database/daos/pending_sync_dao.dart, int get, attendanceRepo, enqueueCheckIn, enqueueCheckOut, failed (+12 more)
 
 ### Community 78 - "admin_outlet_edit_page.dart"
-Cohesion: 0.12
-Nodes (15): _addressController, build, createState, dispose, initState, _isActive, isEditing, _isSaving (+7 more)
+Cohesion: 0.10
+Nodes (20): _addressController, AdminOutletEditPage, _AdminOutletEditPageState, build, createState, dispose, _handleSave, initState (+12 more)
 
 ### Community 79 - "splash_screen.dart"
 Cohesion: 0.11
-Nodes (19): Animation, AnimationController, build, _controller, createState, dispose, _fadeAnimation, _logoController (+11 more)
+Nodes (18): Animation, AnimationController, build, _controller, createState, dispose, _fadeAnimation, _logoController (+10 more)
 
 ### Community 80 - "leave_form_page.dart"
-Cohesion: 0.11
-Nodes (19): LeaveType, build, createState, dispose, _endDate, _handleSubmit, _isSubmitting, label (+11 more)
+Cohesion: 0.12
+Nodes (15): LeaveType, build, createState, _DateField, dispose, _endDate, _isSubmitting, label (+7 more)
 
 ### Community 81 - "admin_user_model.dart"
-Cohesion: 0.07
-Nodes (29): accountActive, brand, copyWith, createdAt, CreateUserData, department, email, employeeActive (+21 more)
+Cohesion: 0.05
+Nodes (39): accountActive, brand, copyWith, createdAt, CreateUserData, department, departmentId, departmentName (+31 more)
 
 ### Community 82 - "leave_approval_page.dart"
-Cohesion: 0.20
-Nodes (10): ../data/leave_model.dart, leave_form_page.dart, build, _buildEmptyState, _formatDate, leave, _LeaveCard, LeaveListPage (+2 more)
+Cohesion: 0.18
+Nodes (11): ../data/leave_model.dart, leave_form_page.dart, build, _buildEmptyState, _formatDate, leave, _LeaveCard, LeaveListPage (+3 more)
 
 ### Community 83 - "sync_log_dao.dart"
 Cohesion: 0.10
@@ -501,12 +508,12 @@ Cohesion: 0.11
 Nodes (17): ../../../core/storage/secure_storage.dart, addOutlet, _cacheKey, _cacheTimestampKey, _cacheTtl, clearCache, _client, getOutletById (+9 more)
 
 ### Community 85 - "recap_page.dart"
-Cohesion: 0.12
-Nodes (18): RecapDay, build, _buildDetailTable, _buildMonthPicker, _buildSummaryRow, color, createState, day (+10 more)
+Cohesion: 0.10
+Nodes (20): RecapDay, build, _buildDetailTable, _buildMonthPicker, _buildSummaryRow, color, createState, day (+12 more)
 
 ### Community 86 - "outlet_picker_sheet.dart"
-Cohesion: 0.14
-Nodes (13): ../data/outlet_model.dart, Outlet, OutletDistance, createState, distance, isSelected, onTap, _OutletTile (+5 more)
+Cohesion: 0.13
+Nodes (15): ../data/outlet_model.dart, createState, distance, _EmptyOutletState, isSelected, onRetry, onTap, OutletPickerSheet (+7 more)
 
 ### Community 87 - "app_database.dart"
 Cohesion: 0.11
@@ -521,8 +528,8 @@ Cohesion: 0.14
 Nodes (13): leave_model.dart, approve, _client, _decodeList, delete, getMyLeaves, getPendingLeaves, _instance (+5 more)
 
 ### Community 90 - "admin_user_form_page.dart"
-Cohesion: 0.10
-Nodes (22): build, build, AdminUserFormPage, _AdminUserFormPageState, build, createState, dispose, _emailController (+14 more)
+Cohesion: 0.16
+Nodes (14): admin_user_form_page.dart, AdminUser, _toggleAccount, AdminUserDetailPage, _AdminUserDetailPageState, _buildDetailTile, _confirmDelete, createState (+6 more)
 
 ### Community 91 - "kpi_repository.dart"
 Cohesion: 0.15
@@ -533,60 +540,60 @@ Cohesion: 0.11
 Nodes (17): ../../../features/attendance/data/attendance_model.dart, AdminDataSource, AuthDataSource, checkIn, checkOut, getAllAttendance, getCurrentUser, getHistory (+9 more)
 
 ### Community 93 - "package:flutter/foundation.dart"
-Cohesion: 0.17
-Nodes (11): assignShift, _client, getMyShifts, getShifts, _instance, isCheckInOnShift, _mockShifts, ShiftRepository (+3 more)
+Cohesion: 0.14
+Nodes (12): app.dart, core/background/sync_worker.dart, core/notifications/notification_service.dart, notificationServiceProvider, main, package:flutter_riverpod/flutter_riverpod.dart, package:iderkopi_absensi/core/router/app_router.dart, package:iderkopi_absensi/features/auth/presentation/change_password_page.dart (+4 more)
 
 ### Community 94 - "attendance_dao.dart"
 Cohesion: 0.12
 Nodes (15): dart:convert, _database, _db, deleteByKangider, encodeRecords, _fromRow, getHistory, getMonthlyHistory (+7 more)
 
 ### Community 95 - "outlet_dao_test.dart"
-Cohesion: 0.16
-Nodes (13): ../../../helpers/test_database_helper.dart, AttendanceDao, SyncLogDao, package:iderkopi_absensi/core/database/app_database.dart, package:iderkopi_absensi/core/database/daos/attendance_dao.dart, package:iderkopi_absensi/core/database/daos/sync_log_dao.dart, package:iderkopi_absensi/features/sync/data/conflict_resolver.dart, dao (+5 more)
+Cohesion: 0.25
+Nodes (7): SyncLogDao, package:iderkopi_absensi/core/database/daos/sync_log_dao.dart, package:iderkopi_absensi/features/sync/data/conflict_resolver.dart, dao, main, main, syncLogDao
 
 ### Community 96 - "async_value_widget.dart"
-Cohesion: 0.15
-Nodes (12): AsyncValue, build, emptyIcon, emptyMessage, emptyValue, emptyWidget, errorTitle, _formatError (+4 more)
+Cohesion: 0.14
+Nodes (13): AsyncValue, AsyncListWidget, build, emptyIcon, emptyMessage, emptyValue, emptyWidget, errorTitle (+5 more)
 
 ### Community 97 - "outlet_providers.dart"
-Cohesion: 0.12
-Nodes (16): ../../../core/utils/location_utils.dart, ../data/outlet_repository.dart, OutletRepository, _handleSave, any, distances, getOutlets, hasOutletInRadiusProvider (+8 more)
+Cohesion: 0.13
+Nodes (14): ../../../core/utils/location_utils.dart, ../data/outlet_repository.dart, OutletRepository, any, distances, getOutlets, hasOutletInRadiusProvider, isCacheStale (+6 more)
 
 ### Community 98 - "outlet_model.dart"
-Cohesion: 0.13
-Nodes (14): bool get, alamat, distanceMeters, fromJson, hasValidGeofence, id, isActive, isWithinRadius (+6 more)
+Cohesion: 0.12
+Nodes (15): alamat, distanceMeters, fromJson, hasValidGeofence, id, isActive, isWithinRadius, latitude (+7 more)
 
 ### Community 99 - "settings_page.dart"
-Cohesion: 0.11
-Nodes (19): build, enabled, hour, icon, iconColor, minute, onTimeChanged, onToggle (+11 more)
+Cohesion: 0.12
+Nodes (17): build, enabled, hour, icon, iconColor, minute, onTimeChanged, onToggle (+9 more)
 
 ### Community 100 - "settings_page_test.dart"
 Cohesion: 0.17
 Nodes (11): NotificationService, _NullPrefs, package:iderkopi_absensi/core/notifications/notification_providers.dart, package:iderkopi_absensi/features/settings/presentation/settings_page.dart, package:iderkopi_absensi/features/settings/providers/settings_providers.dart, package:shared_preferences/shared_preferences.dart, SharedPreferences, main (+3 more)
 
 ### Community 101 - "cached_image.dart"
-Cohesion: 0.18
-Nodes (14): T, TestCORSPreflight(), TestInternalAdminAuthFailsClosed(), TestParseAuthorization(), parseAuthorization(), Duration, Time, NewTokenManager() (+6 more)
+Cohesion: 0.22
+Nodes (13): App, T, TestCORSPreflight(), TestInternalAdminAuthFailsClosed(), TestParseAuthorization(), Duration, Logger, Pool (+5 more)
 
 ### Community 102 - "Changelog"
 Cohesion: 0.50
 Nodes (3): 1.0.0 — MVP, 2.0.0 — Custom Go API, Changelog
 
 ### Community 103 - "ConsumerWidget"
-Cohesion: 0.19
-Nodes (14): ConsumerWidget, AdminAttendanceDetailPage, build, _MapPreview, _OfflineBanner, _showOfflineSuccessDialog, _showSuccessDialog, build (+6 more)
+Cohesion: 0.17
+Nodes (15): ConsumerWidget, AdminAttendanceDetailPage, _editEmployee, build, _MapPreview, _OfflineBanner, _showOfflineSuccessDialog, _showSuccessDialog (+7 more)
 
 ### Community 104 - "mock_data.dart"
-Cohesion: 0.15
-Nodes (12): ../../features/auth/data/auth_model.dart, getUser, isAdmin, mockAllAttendance, MockData, mockHolidays, mockOutlets, mockRoles (+4 more)
+Cohesion: 0.14
+Nodes (13): ../../features/auth/data/auth_model.dart, getUser, isAdmin, mockAllAttendance, MockData, mockHolidays, mockOutlets, mockRoles (+5 more)
 
 ### Community 105 - "app_theme.dart"
-Cohesion: 0.15
-Nodes (12): ../constants/app_colors.dart, AppTheme, buttonShadow, cardShadow, cardShadowLarge, floatingShadow, gradientShadow, light (+4 more)
+Cohesion: 0.29
+Nodes (7): ConsumerStatefulWidget, AdminAttendancePage, _AdminAttendancePageState, build, adminAttendanceProvider, CheckInPage, CheckOutPage
 
 ### Community 106 - "../../auth/providers/auth_providers.dart"
-Cohesion: 0.22
-Nodes (8): ../../attendance/providers/attendance_providers.dart, ../../auth/providers/auth_providers.dart, ../data/profile_model.dart, AttendanceStats, now, params, stats, user
+Cohesion: 0.18
+Nodes (11): class, AdminShiftSettingsPage, _AdminShiftSettingsPageState, createState, _handleSave, _isSaving, _jamMasuk, _jamPulang (+3 more)
 
 ### Community 107 - "currentUserProvider"
 Cohesion: 0.18
@@ -601,16 +608,16 @@ Cohesion: 0.17
 Nodes (11): app_database.dart, daos/attendance_dao.dart, daos/outlet_dao.dart, daos/pending_sync_dao.dart, daos/sync_log_dao.dart, AppDatabase, appDatabaseProvider, attendanceDaoProvider (+3 more)
 
 ### Community 110 - "directus_attendance_data_source.dart"
-Cohesion: 0.22
-Nodes (8): Attendance, Authentication, Dokumentasi Lengkap IDER KOPI Mobile, Empty state dan error, Konfigurasi, Operasional, Sistem, Verification
+Cohesion: 0.50
+Nodes (3): Dokumentasi Lengkap IDER KOPI Mobile (v2.0.0+1), Prosedur Verifikasi Kode, Ringkasan System v2.0.0+1
 
 ### Community 111 - "package:flutter_riverpod/flutter_riverpod.dart"
 Cohesion: 0.11
-Nodes (18): dart:typed_data, Exception, HttpClientAdapter, AuthLoginException, package:iderkopi_absensi/core/network/api_client.dart, package:iderkopi_absensi/core/network/auth_api_client.dart, package:iderkopi_absensi/core/network/auth_interceptor.dart, package:iderkopi_absensi/core/storage/secure_storage.dart (+10 more)
+Nodes (19): dart:typed_data, Exception, HttpClientAdapter, AuthLoginException, ChangePasswordException, package:iderkopi_absensi/core/network/api_client.dart, package:iderkopi_absensi/core/network/auth_api_client.dart, package:iderkopi_absensi/core/network/auth_interceptor.dart (+11 more)
 
 ### Community 112 - "sync_providers.dart"
-Cohesion: 0.24
-Nodes (11): AdminDashboardPage, build, todayAttendanceCountProvider, userCountProvider, AttendanceOptionsPage, build, build, HomePage (+3 more)
+Cohesion: 0.17
+Nodes (11): assignShift, _client, getMyShifts, getShifts, _instance, isCheckInOnShift, _mockShifts, ShiftRepository (+3 more)
 
 ### Community 113 - "outlet_dao.dart"
 Cohesion: 0.15
@@ -621,8 +628,8 @@ Cohesion: 0.17
 Nodes (11): RecapStatus, build, _buildSegments, color, distribution, label, _Segment, status (+3 more)
 
 ### Community 115 - "api_providers.dart"
-Cohesion: 0.20
-Nodes (13): currentUserProvider, LeaveRequest, build, _buildEmptyState, _formatDate, _handleApprove, _handleReject, leave (+5 more)
+Cohesion: 0.25
+Nodes (8): LeaveRequest, build, _buildEmptyState, _formatDate, leave, LeaveApprovalPage, pendingLeavesProvider, ../providers/leave_providers.dart
 
 ### Community 116 - "ConsumerState"
 Cohesion: 0.42
@@ -641,28 +648,28 @@ Cohesion: 0.22
 Nodes (8): createStorageBackend, deleteAll, NativeStorageBackend, read, StorageBackend, WebStorageBackend, write, storage_backend_native.dart
 
 ### Community 120 - "StatelessWidget"
-Cohesion: 0.17
-Nodes (12): AsyncListWidget, AsyncValueWidget, CachedImage, _PasswordField, _DateField, _DetailRow, _StatCard, _ReminderCard (+4 more)
+Cohesion: 0.08
+Nodes (27): AsyncValueWidget, CoreEmployee, MobileEmployeeAccount, account, _DetailTile, employee, _EmployeeContent, employeeId (+19 more)
 
 ### Community 121 - "attendance_bar_chart.dart"
-Cohesion: 0.20
-Nodes (9): ../data/recap_model.dart, AttendanceBarChart, build, color, label, _LegendDot, weeklySummaries, List (+1 more)
+Cohesion: 0.18
+Nodes (10): ../data/admin_user_model.dart, _AdminTile, _content, _formatDateTime, label, _resetPassword, _showError, _showOneTimePassword (+2 more)
 
 ### Community 123 - "build"
-Cohesion: 0.14
-Nodes (13): BorderRadius?, BoxFit, borderRadius, build, fileId, fit, height, _imageUrl (+5 more)
+Cohesion: 0.13
+Nodes (14): BorderRadius?, BoxFit, borderRadius, build, CachedImage, fileId, fit, height (+6 more)
 
 ### Community 124 - "../data/attendance_model.dart"
-Cohesion: 0.12
-Nodes (15): Dio get, _addDebugLogging, AuthApiClient, _create, _dio, forTesting, _instance, _newDio (+7 more)
+Cohesion: 0.24
+Nodes (11): currentUserProvider, _handleApprove, _handleReject, _PendingLeaveCard, _handleSubmit, LeaveFormPage, _LeaveFormPageState, approveLeaveProvider (+3 more)
 
 ### Community 125 - "10. Directus Schema & Permissions"
 Cohesion: 0.40
 Nodes (4): Custom Go API Contract, Employee authenticated, Kontrak data, Public
 
 ### Community 126 - "outlet_picker_sheet_test.dart"
-Cohesion: 0.15
-Nodes (10): OutletDao, package:iderkopi_absensi/core/database/daos/outlet_dao.dart, package:iderkopi_absensi/features/outlet/data/outlet_model.dart, package:iderkopi_absensi/features/outlet/presentation/outlet_picker_sheet.dart, package:iderkopi_absensi/features/outlet/providers/outlet_providers.dart, dao, main, main (+2 more)
+Cohesion: 0.25
+Nodes (6): package:iderkopi_absensi/features/outlet/data/outlet_model.dart, package:iderkopi_absensi/features/outlet/presentation/outlet_picker_sheet.dart, package:iderkopi_absensi/features/outlet/providers/outlet_providers.dart, main, main, _mockOutlets
 
 ### Community 127 - "static const String"
 Cohesion: 0.29
@@ -672,24 +679,32 @@ Nodes (6): ../config/app_config.dart, mapboxStyleId, MapConstants, osmTileUrl, u
 Cohesion: 0.33
 Nodes (5): ../../../core/database/daos/sync_log_dao.dart, ConflictResolver, logGenericConflict, resolveAlreadyCheckedOut, resolveDuplicateCheckIn
 
-### Community 129 - "change_password_page_test.dart"
-Cohesion: 0.18
-Nodes (9): package:flutter/material.dart, package:iderkopi_absensi/core/router/app_router.dart, package:iderkopi_absensi/features/auth/presentation/change_password_page.dart, package:iderkopi_absensi/features/auth/providers/auth_providers.dart, package:iderkopi_absensi/features/shift/data/shift_model.dart, main, _forcedPasswordContainer, main (+1 more)
+### Community 129 - "empty_view.dart"
+Cohesion: 0.13
+Nodes (13): ../../core/theme/app_theme.dart, IconData, build, EmptyView, icon, subtitle, title, build (+5 more)
 
 ### Community 130 - "api_provider_test.dart"
 Cohesion: 0.27
 Nodes (10): Apply(), Context, Pool, UUID, Plan(), Preview(), T, TestPlanIsIdempotent() (+2 more)
 
 ### Community 131 - "recap_model_test.dart"
-Cohesion: 0.24
-Nodes (9): AdminAttendancePage, _AdminAttendancePageState, build, createState, _selectedFilterIndex, adminAttendanceProvider, ../providers/admin_providers.dart, ../../../shared/widgets/empty_view.dart (+1 more)
+Cohesion: 0.25
+Nodes (9): AdminAccountDetailPage, build, _editAccount, build, build, _handleSave, adminUserDetailProvider, rolesProvider (+1 more)
 
 ### Community 132 - "sync_providers.dart"
-Cohesion: 0.20
-Nodes (11): ../../../core/database/database_providers.dart, ../data/sync_repository.dart, SyncResult, build, PendingSyncBadge, manualSyncProvider, pendingCount, pendingSyncCountProvider (+3 more)
+Cohesion: 0.13
+Nodes (15): AdminExportRecapPage, _AdminExportRecapPageState, build, createState, formats, _handleExport, _isExporting, months (+7 more)
+
+### Community 133 - "build"
+Cohesion: 0.17
+Nodes (11): ../data/shift_model.dart, ../data/shift_repository.dart, currentMonthShiftsProvider, getMyShifts, getShifts, now, repo, shiftRepositoryProvider (+3 more)
+
+### Community 134 - "SharedPreferences"
+Cohesion: 0.18
+Nodes (10): ../../kpi/presentation/kpi_page.dart, ../../leave/presentation/leave_list_page.dart, _buildInfoRow, _buildMenuItem, _buildMstat, _buildStatsCard2, ../providers/profile_providers.dart, ../../recap/presentation/recap_page.dart (+2 more)
 
 ### Community 135 - ".changePassword"
-Cohesion: 0.39
+Cohesion: 0.36
 Nodes (6): HashPassword(), T, TestHashAndVerifyPassword(), TestValidatePassword(), ValidatePassword(), VerifyPassword()
 
 ### Community 136 - "Load"
@@ -701,8 +716,12 @@ Cohesion: 0.31
 Nodes (7): T, TestParseSourceArrayAndWrapper(), TestPlanDetectsChangesAndConflicts(), TestSourceHeaderAndSafeError(), roundTripFunc, Request, Response
 
 ### Community 138 - "holiday_providers.dart"
-Cohesion: 0.22
-Nodes (8): ../data/holiday_model.dart, ../data/holiday_repository.dart, HolidayRepository, getHolidays, getTodayHoliday, holidayRepositoryProvider, holidaysProvider, repo
+Cohesion: 0.38
+Nodes (7): activeBrandProvider, build, build, ProfilePage, profileInfoProvider, profileStatsProvider, showOutletModeSheet
+
+### Community 139 - "holiday_model.dart"
+Cohesion: 0.29
+Nodes (6): AttendanceRecord, AttendanceSummaryCard, build, _buildTimeRow, record, status_badge.dart
 
 ### Community 140 - "Ider Kopi mobile authentication backend"
 Cohesion: 0.29
@@ -712,6 +731,10 @@ Nodes (6): API, Configuration, Ider Kopi mobile authentication backend, Local ve
 Cohesion: 0.50
 Nodes (3): Admin, Daftar Akun Login IDER KOPI, Employee
 
+### Community 142 - "attendance_bar_chart.dart"
+Cohesion: 0.20
+Nodes (9): ../data/recap_model.dart, AttendanceBarChart, build, color, label, _LegendDot, weeklySummaries, List (+1 more)
+
 ### Community 143 - "Separate Mobile Authentication Implementation Plan"
 Cohesion: 0.33
 Nodes (5): Separate Mobile Authentication Implementation Plan, Task 1: Cleanup dan employee sync API backend utama, Task 2: Backend auth terpisah milik Flutter, Task 3: Flutter dual-API integration, Task 4: Integration, security review, and deployment
@@ -720,53 +743,61 @@ Nodes (5): Separate Mobile Authentication Implementation Plan, Task 1: Cleanup d
 Cohesion: 0.70
 Nodes (4): employees, refresh_tokens, roles, users
 
-### Community 145 - "notification_service_test.dart"
-Cohesion: 0.18
-Nodes (11): ConsumerStatefulWidget, CheckInPage, CheckOutPage, build, HistoryPage, _HistoryPageState, monthlyHistoryProvider, ChangePasswordPage (+3 more)
+### Community 145 - "attendance_dao_test.dart"
+Cohesion: 0.13
+Nodes (14): ../../../helpers/test_database_helper.dart, AttendanceDao, OutletDao, PendingSyncDao, package:iderkopi_absensi/core/database/app_database.dart, package:iderkopi_absensi/core/database/daos/attendance_dao.dart, package:iderkopi_absensi/core/database/daos/outlet_dao.dart, package:iderkopi_absensi/core/database/daos/pending_sync_dao.dart (+6 more)
 
 ### Community 150 - "../data/attendance_model.dart"
-Cohesion: 0.10
-Nodes (18): ../../../core/utils/date_utils.dart, ../data/attendance_model.dart, AttendanceStatus, _buildOptionTile, _buildStatusCard, _buildStatusRow, _buildRecordCard, _buildStatBlock (+10 more)
-
-### Community 152 - "admin_attendance_detail_page.dart"
 Cohesion: 0.25
-Nodes (7): ../../attendance/data/attendance_model.dart, build, record, ../../outlet/data/outlet_model.dart, ../../outlet/presentation/outlet_map_widget.dart, ../../outlet/providers/outlet_providers.dart, Route /admin/attendance
+Nodes (7): ../data/attendance_model.dart, AttendanceStatus, build, size, status, StatusBadge, StatusBadgeSize
+
+### Community 151 - "admin_user_model_test.dart"
+Cohesion: 0.33
+Nodes (6): _buildListItem, _buildFeedItem, build, _buildOutletCard, _onAddPressed, MaterialPageRoute
 
 ### Community 153 - "image_utils.dart"
-Cohesion: 0.15
-Nodes (11): app.dart, core/background/sync_worker.dart, core/notifications/notification_service.dart, dart:io, compressImage, ImageUtils, main, package:camera/camera.dart (+3 more)
+Cohesion: 0.18
+Nodes (9): dart:io, compressImage, ImageUtils, package:camera/camera.dart, package:flutter/foundation.dart, package:iderkopi_absensi/features/attendance/presentation/widgets/attendance_camera_status.dart, package:image/image.dart, package:path_provider/path_provider.dart (+1 more)
 
 ### Community 154 - "api_providers.dart"
 Cohesion: 0.33
 Nodes (6): ../data/attendance_data_source.dart, ../../features/attendance/data/attendance_repository.dart, AttendanceDataSource, attendanceDataSourceProvider, attendanceRepositoryV2Provider, AttendanceRepository
 
+### Community 155 - "recap_model_test.dart"
+Cohesion: 0.40
+Nodes (4): ../../../core/utils/date_utils.dart, record, ../../outlet/data/outlet_model.dart, ../../outlet/presentation/outlet_map_widget.dart
+
 ### Community 156 - "PreviewReset"
 Cohesion: 0.60
 Nodes (5): Context, Pool, PreviewReset(), ResetActive(), ResetReport
 
+### Community 157 - "NotificationSettingsNotifier"
+Cohesion: 0.67
+Nodes (4): AdminEmployeeDetailPage, build, employeeAccountsProvider, employeeDetailProvider
+
 ### Community 162 - "empty_view.dart"
-Cohesion: 0.13
-Nodes (13): IconData, build, EmptyView, icon, subtitle, title, build, ErrorView (+5 more)
+Cohesion: 0.25
+Nodes (7): attendanceCameraErrorMessage, AttendanceCameraStatus, build, errorMessage, isInitializing, onRetry, VoidCallback?
 
 ## Knowledge Gaps
-- **1328 isolated node(s):** `iderkopi/auth-backend`, `updateAdminAccountStatusRequest`, `resetAdminAccountPasswordRequest`, `loginRequest`, `refreshRequest` (+1323 more)
+- **1371 isolated node(s):** `iderkopi/auth-backend`, `updateAdminAccountStatusRequest`, `resetAdminAccountPasswordRequest`, `syncAdminAccountProfileRequest`, `loginRequest` (+1366 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SecureStorage` connect `SyncRepository` to `auth_repository.dart`, `secure_storage.dart`, `outlet_repository.dart`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Why does `AppDatabase` connect `database_providers.dart` to `pending_sync_dao.dart`, `outlet_dao.dart`, `sync_log_dao.dart`, `app_database.dart`, `attendance_dao.dart`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **Are the 18 inferred relationships involving `New()` (e.g. with `initialPassword()` and `main()`) actually correct?**
-  _`New()` has 18 INFERRED edges - model-reasoned connections that need verification._
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `_submit` connect `authRepositoryProvider` to `history_page.dart`?**
+  _High betweenness centrality (0.009) - this node is a cross-community bridge._
 - **What connects `iderkopi/auth-backend`, `updateAdminAccountStatusRequest`, `resetAdminAccountPasswordRequest` to the rest of the system?**
-  _1328 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1371 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Win32Window` be split into smaller, more focused modules?**
   _Cohesion score 0.0597567424643046 - nodes in this community are weakly interconnected._
 - **Should `app_colors.dart` be split into smaller, more focused modules?**
   _Cohesion score 0.04081632653061224 - nodes in this community are weakly interconnected._
 - **Should `custom_button.dart` be split into smaller, more focused modules?**
   _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+- **Should `GeneratedPluginRegistrant.swift` be split into smaller, more focused modules?**
+  _Cohesion score 0.04964539007092199 - nodes in this community are weakly interconnected._

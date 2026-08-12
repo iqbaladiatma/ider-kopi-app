@@ -19,6 +19,7 @@ import '../../outlet/providers/outlet_providers.dart';
 import '../../sync/providers/sync_providers.dart';
 import '../data/attendance_model.dart';
 import '../providers/attendance_providers.dart';
+import 'widgets/attendance_camera_status.dart';
 
 class CheckOutPage extends ConsumerStatefulWidget {
   final String? reason;
@@ -32,6 +33,8 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
+  bool _isCameraInitializing = true;
+  String? _cameraError;
 
   double? _latitude;
   double? _longitude;
@@ -52,25 +55,59 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
   }
 
   Future<void> _initCamera() async {
+    if (mounted) {
+      setState(() {
+        _isCameraInitializing = true;
+        _isCameraInitialized = false;
+        _cameraError = null;
+      });
+    }
+
+    final previousController = _cameraController;
+    _cameraController = null;
+    await previousController?.dispose();
+
     try {
       _cameras = await availableCameras();
-      if (_cameras == null || _cameras!.isEmpty) return;
+      if (_cameras == null || _cameras!.isEmpty) {
+        throw CameraException(
+          'CameraUnavailable',
+          'No camera is available on this device',
+        );
+      }
 
       final frontCamera = _cameras!.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.front,
         orElse: () => _cameras!.first,
       );
 
-      _cameraController = CameraController(
+      final controller = CameraController(
         frontCamera,
         ResolutionPreset.medium,
         enableAudio: false,
       );
+      _cameraController = controller;
 
-      await _cameraController!.initialize();
-      if (mounted) setState(() => _isCameraInitialized = true);
-    } catch (_) {
-      if (mounted) setState(() => _isCameraInitialized = false);
+      await controller.initialize();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() {
+        _isCameraInitialized = true;
+        _isCameraInitializing = false;
+        _cameraError = null;
+      });
+    } catch (error) {
+      await _cameraController?.dispose();
+      _cameraController = null;
+      if (mounted) {
+        setState(() {
+          _isCameraInitialized = false;
+          _isCameraInitializing = false;
+          _cameraError = attendanceCameraErrorMessage(error);
+        });
+      }
     }
   }
 
@@ -344,6 +381,8 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
 
   @override
   Widget build(BuildContext context) {
+    final hasNoConfiguredOutlets =
+        ref.watch(outletsProvider).asData?.value.isEmpty ?? false;
     final gpsStatusText = _isLocationLoading
         ? 'Mendapatkan GPS...'
         : (_isWithinRadius == true
@@ -430,7 +469,9 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
                               _selectedOutlet?.shortName ??
                                   (_isLocationLoading
                                       ? 'Mencari outlet terdekat...'
-                                      : 'Pilih outlet'),
+                                      : hasNoConfiguredOutlets
+                                          ? 'Outlet belum dikonfigurasi'
+                                          : 'Pilih outlet'),
                               style: const TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 13,
@@ -438,6 +479,18 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
                                 color: Colors.white,
                               ),
                             ),
+                            if (hasNoConfiguredOutlets && !_isLocationLoading)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Text(
+                                  'Belum ada outlet aktif dengan geofence',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    color: AppColors.amber,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             if (_distanceToOutlet != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
@@ -549,45 +602,10 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
                     else if (_isCameraInitialized && _cameraController != null)
                       CameraPreview(_cameraController!)
                     else
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.camera_alt_outlined,
-                                  size: 36, color: Colors.white70),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Kamera Web / Simulasi Standby',
-                              style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white70),
-                            ),
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed: _takePhoto,
-                              icon: const Icon(Icons.camera_alt_rounded,
-                                  size: 16),
-                              label: const Text('Ambil / Simulasi Foto Selfie'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.red,
-                                foregroundColor: Colors.white,
-                                textStyle: const TextStyle(
-                                    fontSize: 11, fontWeight: FontWeight.w700),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(100)),
-                              ),
-                            ),
-                          ],
-                        ),
+                      AttendanceCameraStatus(
+                        isInitializing: _isCameraInitializing,
+                        errorMessage: _cameraError,
+                        onRetry: _isCameraInitializing ? null : _initCamera,
                       ),
 
                     // Top GPS Badge Overlay
@@ -627,7 +645,9 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
                     ),
 
                     // Face Guide Overlay
-                    if (_capturedSelfie == null)
+                    if (_capturedSelfie == null &&
+                        _isCameraInitialized &&
+                        _cameraController != null)
                       Container(
                         width: 150,
                         height: 190,
@@ -650,7 +670,11 @@ class _CheckOutPageState extends ConsumerState<CheckOutPage> {
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
               child: _capturedSelfie == null
                   ? GestureDetector(
-                      onTap: _takePhoto,
+                      onTap: _isCameraInitializing
+                          ? null
+                          : _isCameraInitialized
+                              ? _takePhoto
+                              : _initCamera,
                       child: Container(
                         width: 66,
                         height: 66,

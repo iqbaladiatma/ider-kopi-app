@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/presentation/admin_attendance_page.dart';
+import '../../features/admin/presentation/admin_account_detail_page.dart';
 import '../../features/admin/presentation/admin_dashboard_page.dart';
+import '../../features/admin/presentation/admin_employee_detail_page.dart';
 import '../../features/admin/presentation/admin_profile_page.dart';
+
 import '../../features/admin/presentation/admin_users_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/change_password_page.dart';
@@ -165,6 +168,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 state.uri.queryParameters['passwordChanged'] == 'true'
                     ? 'Kata sandi berhasil diubah. Silakan masuk kembali.'
                     : null,
+            errorMessage: state.uri.queryParameters['sessionExpired'] == 'true'
+                ? 'Sesi login sudah tidak valid. Silakan masuk kembali.'
+                : null,
           ),
         ),
       ),
@@ -203,6 +209,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/admin/users',
             builder: (_, __) => const AdminUsersPage(),
+          ),
+          GoRoute(
+            path: '/admin/users/admin/:userId',
+            builder: (_, state) => AdminAccountDetailPage(
+              userId: state.pathParameters['userId']!,
+            ),
+          ),
+          GoRoute(
+            path: '/admin/users/employees/:employeeId',
+            builder: (_, state) => AdminEmployeeDetailPage(
+              employeeId: state.pathParameters['employeeId']!,
+            ),
           ),
           GoRoute(
             path: '/admin/attendance',

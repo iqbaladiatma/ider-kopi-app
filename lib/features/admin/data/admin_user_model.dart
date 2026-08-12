@@ -9,6 +9,7 @@ class AdminUser {
   final String? roleName;
   final String? roleId;
   final String? status;
+  final DateTime? lastLoginAt;
   final DateTime? createdAt;
 
   AdminUser({
@@ -22,6 +23,7 @@ class AdminUser {
     this.roleName,
     this.roleId,
     this.status,
+    this.lastLoginAt,
     this.createdAt,
   });
 
@@ -51,6 +53,9 @@ class AdminUser {
       roleId: json['role_id']?.toString() ?? role?['id']?.toString(),
       status: json['status'] ??
           (json['is_active'] == false ? 'inactive' : 'active'),
+      lastLoginAt: json['last_login_at'] != null
+          ? DateTime.tryParse(json['last_login_at'].toString())
+          : null,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -76,6 +81,7 @@ class AdminUser {
     String? roleName,
     String? roleId,
     String? status,
+    DateTime? lastLoginAt,
     DateTime? createdAt,
   }) {
     return AdminUser(
@@ -89,6 +95,7 @@ class AdminUser {
       roleName: roleName ?? this.roleName,
       roleId: roleId ?? this.roleId,
       status: status ?? this.status,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -163,6 +170,73 @@ class MobileEmployeeAccount {
       employeeActive: json['employee_active'] == true,
       accountActive: json['account_active'] as bool?,
       mustChangePassword: json['must_change_password'] as bool?,
+    );
+  }
+}
+
+class CoreEmployee {
+  const CoreEmployee({
+    required this.id,
+    required this.employeeCode,
+    required this.fullName,
+    required this.brand,
+    required this.joinDate,
+    required this.isActive,
+    this.email,
+    this.phone,
+    this.departmentId,
+    this.departmentName,
+    this.positionId,
+    this.positionName,
+    this.shiftId,
+    this.shiftName,
+    this.outletId,
+    this.outletName,
+  });
+
+  final String id;
+  final String employeeCode;
+  final String fullName;
+  final String brand;
+  final DateTime? joinDate;
+  final bool isActive;
+  final String? email;
+  final String? phone;
+  final String? departmentId;
+  final String? departmentName;
+  final String? positionId;
+  final String? positionName;
+  final String? shiftId;
+  final String? shiftName;
+  final String? outletId;
+  final String? outletName;
+
+  factory CoreEmployee.fromJson(Map<String, dynamic> json) {
+    String? relationName(String key) {
+      final relation = json[key];
+      if (relation is Map) return relation['name']?.toString();
+      return null;
+    }
+
+    return CoreEmployee(
+      id: json['id']?.toString() ?? '',
+      employeeCode: json['employee_code']?.toString() ?? '',
+      fullName: json['full_name']?.toString() ?? '',
+      email: json['email']?.toString(),
+      phone: json['phone']?.toString(),
+      brand: json['brand']?.toString() ?? '',
+      departmentId: json['department_id']?.toString(),
+      departmentName: relationName('department'),
+      positionId: json['position_id']?.toString(),
+      positionName: relationName('position'),
+      shiftId: json['shift_id']?.toString(),
+      shiftName: relationName('shift'),
+      outletId: json['outlet_id']?.toString(),
+      outletName: json['outlet_name']?.toString(),
+      joinDate: json['join_date'] == null
+          ? null
+          : DateTime.tryParse(json['join_date'].toString()),
+      isActive: json['is_active'] == true,
     );
   }
 }
