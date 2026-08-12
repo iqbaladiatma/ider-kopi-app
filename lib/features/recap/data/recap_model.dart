@@ -206,7 +206,7 @@ class RecapBuilder {
           status: RecapStatus.late,
           checkInTime: '09:15',
           checkOutTime: '17:05',
-          outletName: 'IderKopi - Head Office',
+          outletName: 'IderKopi',
         ));
       } else if (day == 10) {
         days.add(RecapDay(date: date, status: RecapStatus.leave));
@@ -218,7 +218,7 @@ class RecapBuilder {
           status: RecapStatus.present,
           checkInTime: '07:45',
           checkOutTime: '17:10',
-          outletName: 'IderKopi - Head Office',
+          outletName: 'IderKopi',
         ));
       }
     }

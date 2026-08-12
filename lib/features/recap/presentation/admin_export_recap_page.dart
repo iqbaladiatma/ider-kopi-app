@@ -35,13 +35,7 @@ class _AdminExportRecapPageState extends ConsumerState<AdminExportRecapPage> {
   ];
 
   final formats = ['Excel (.xlsx)', 'CSV (.csv)', 'Ringkasan PDF (.pdf)'];
-  final outlets = [
-    'Semua Outlet',
-    'IderKopi - Malioboro',
-    'IderKopi - Kotabaru',
-    'IderKopi - Sudirman',
-    'IderPoint'
-  ];
+  final outlets = ['Semua Outlet', 'IderKopi', 'IderPoint'];
 
   void _handleExport() {
     setState(() => _isExporting = true);

@@ -268,42 +268,27 @@ class MockData {
     {'id': 'role-user', 'name': 'Karyawan'},
   ];
 
-  // Seeded Outlets (IderKopi) — koordinat Yogyakarta area
+  // Seeded Outlets — hanya 2 brand: IderKopi & IderPoint.
+  // Koordinat asli lokasi di Ungaran, Kab. Semarang, Jawa Tengah.
   // Dipakai untuk geofencing multi-outlet di v1.1.
   static List<Map<String, dynamic>> mockOutlets = [
     {
       'id': 1,
-      'nama': 'IderKopi - HQ',
-      'alamat': 'Jl. Kaliurang KM 5, Yogyakarta',
-      'latitude': -7.7550,
-      'longitude': 110.4080,
+      'nama': 'IderKopi',
+      'alamat':
+          'Jl. Sembungan Kidul No.245, Sembungan, Ungaran, Kec. Ungaran Bar., Kabupaten Semarang, Jawa Tengah 50511',
+      'latitude': -7.1319,
+      'longitude': 110.4031,
       'radius_meters': 100.0,
       'is_active': true,
     },
     {
       'id': 2,
-      'nama': 'IderKopi - Malioboro',
-      'alamat': 'Jl. Malioboro No. 52, Yogyakarta',
-      'latitude': -7.7928,
-      'longitude': 110.3658,
-      'radius_meters': 100.0,
-      'is_active': true,
-    },
-    {
-      'id': 3,
-      'nama': 'IderKopi - Kotabaru',
-      'alamat': 'Jl. C. Simanjuntak No. 18, Yogyakarta',
-      'latitude': -7.7850,
-      'longitude': 110.3720,
-      'radius_meters': 120.0,
-      'is_active': true,
-    },
-    {
-      'id': 4,
-      'nama': 'IderKopi - Sudirman',
-      'alamat': 'Jl. Jend. Sudirman, Yogyakarta',
-      'latitude': -7.7830,
-      'longitude': 110.3750,
+      'nama': 'IderPoint',
+      'alamat':
+          'Jl. Garuda Depan Kantor DISPERMASDES No.1, Dliwang, Ungaran, Kec. Ungaran Bar., Kabupaten Semarang, Jawa Tengah 50511',
+      'latitude': -7.1299,
+      'longitude': 110.4096,
       'radius_meters': 100.0,
       'is_active': true,
     },
